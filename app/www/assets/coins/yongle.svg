@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="coinGrad3" cx="40%" cy="35%">
+      <stop offset="0%" style="stop-color:#f9e79f;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#d4a843;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#coinGrad3)" stroke="#6b4d0f" stroke-width="2"/>
+  <circle cx="50" cy="50" r="28" fill="none" stroke="#6b4d0f" stroke-width="1.5"/>
+  <rect x="42" y="22" width="16" height="56" fill="none" stroke="#6b4d0f" stroke-width="1.5" rx="1"/>
+  <text x="50" y="38" font-family="serif" font-size="10" fill="#4a2c0f" text-anchor="middle" font-weight="bold">永樂</text>
+  <text x="50" y="67" font-family="serif" font-size="10" fill="#4a2c0f" text-anchor="middle" font-weight="bold">通寶</text>
+</svg>
