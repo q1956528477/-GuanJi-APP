@@ -1478,9 +1478,8 @@ function doCast(opts){
 }
 
 function showLiuyaoResult(result){
-  currentResultId = saveLiuyaoHistory(result);
-  document.getElementById('ly-result-question-display').textContent = result.question || '未填写';
   if(!result) return;
+  currentResultId = saveLiuyaoHistory(result);
   document.getElementById('liuyao-cast-view').classList.add('hidden');
   document.getElementById('liuyao-result-view').classList.remove('hidden');
   document.getElementById('liuyao-stage-chip').textContent='六爻结果';
