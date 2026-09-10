@@ -1385,10 +1385,6 @@ function startCoin(){
     el.onclick=toggleCoinSpin;
   }
   document.getElementById('ly-coin-board').scrollIntoView({behavior:'smooth'});
-});
-  document.getElementById('ly-toss-hint').textContent='点击按钮，逐爻摇出六爻';
-  document.getElementById('ly-coin-tap').textContent='摇第 1 爻';
-  document.getElementById('ly-coin-tap').disabled=false;
 }
 
 function toggleCoinSpin(){
@@ -1530,7 +1526,7 @@ function renderLiuyaoResult(r){
   let html='<div class="rebu-container">';
   html+='<table class="rebu-info-table">';
   html+='<tr><td>事项</td><td><span id="ly-result-question-text">'+(r.question?escapeHtml(r.question):'未填写')+'</span> <a href="javascript:void(0)" id="ly-inline-edit-link" style="color:#7a5d12;font-size:12px;margin-left:8px;text-decoration:none;">[修改]</a></td></tr>';
-  html+='<tr><td>日期</td><td>'+escapeHtml(a.solarDate)+' ('+escapeHtml(a.lunarDate)+')</td></tr>';
+  html+='<tr><td>日期</td><td>'+escapeHtml(a.solarDate)+(a.lunarDate?' ('+escapeHtml(a.lunarDate)+')':'')+'</td></tr>';
   html+='<tr><td>卦式</td><td>【'+escapeHtml(r.method)+'】</td></tr>';
   html+='<tr><td>节气</td><td>'+escapeHtml(a.solarTerm||'节气')+'</td></tr>';
   const movingDays = ben.moving.map(i=>ben.naJia[i].stem+ben.naJia[i].branch);
