@@ -354,7 +354,7 @@
   .rebu-yao-main{font-family:monospace;letter-spacing:-1px;}
   
   /* 六爻记录列表 */
-  .ly-history-item{padding:14px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .2s;}
+  .ly-history-item{padding:14px;padding-right:70px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .2s;position:relative;}
   .ly-history-item:hover{background:#fafafa;}
   .ly-history-item:last-child{border-bottom:none;}
   .ly-history-title{font-size:15px;font-weight:700;color:#333;margin-bottom:6px;}
@@ -563,15 +563,7 @@
     </div>
 
     <div id="liuyao-result-view" class="hidden">
-      <div class="card" style="background:#fdfbf7;border:2px solid #e8dcc8;margin-bottom:12px;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div style="flex:1;">
-            <label style="font-size:12px;color:#7a5d12;font-weight:600;">所问事项</label>
-            <div id="ly-result-question-display" style="font-size:15px;color:#333;font-weight:700;padding:8px 0;"></div>
-          </div>
-          <button class="btn ghost" id="ly-edit-question-btn" style="padding:8px 16px;font-size:13px;">编辑</button>
-        </div>
-      </div>
+
       <div id="ly-result"></div>
       <div style="margin:14px 0 0;"><button class="btn ghost" id="ly-recast">重新起卦</button></div>
     </div>
@@ -1538,7 +1530,7 @@ function renderLiuyaoResult(r){
   const movingSet=new Set(ben.moving);
   let html='<div class="rebu-container">';
   html+='<table class="rebu-info-table">';
-  html+='<tr><td>事项</td><td>'+(r.question?escapeHtml(r.question):'')+'</td></tr>';
+  html+='<tr><td>事项</td><td><span id="ly-result-question-text">'+(r.question?escapeHtml(r.question):'未填写')+'</span> <a href="javascript:void(0)" id="ly-inline-edit-link" style="color:#7a5d12;font-size:12px;margin-left:8px;text-decoration:none;">[修改]</a></td></tr>';
   html+='<tr><td>日期</td><td>'+escapeHtml(a.solarDate)+' ('+escapeHtml(a.lunarDate)+')</td></tr>';
   html+='<tr><td>卦式</td><td>【'+escapeHtml(r.method)+'】</td></tr>';
   html+='<tr><td>节气</td><td>'+escapeHtml(a.solarTerm||'节气')+'</td></tr>';
@@ -1590,6 +1582,10 @@ function renderLiuyaoResult(r){
   html+='</div>';
   box.innerHTML=html;
   box.scrollIntoView({behavior:'smooth'});
+  
+  // 绑定编辑事项事件
+  const editLink = document.getElementById('ly-inline-edit-link');
+  if(editLink) editLink.addEventListener('click', editResultQuestion);
 }
 
 function renderRebuGua(hexData, movingSet, title){
@@ -1759,9 +1755,12 @@ function deleteSingleHistory(id, event){
 }
 
 function editResultQuestion(){
-  const newQuestion = prompt('修改所问事项：', document.getElementById('ly-result-question-display').textContent);
+  const el = document.getElementById('ly-result-question-text');
+  if(!el) return;
+  const oldQuestion = el.textContent;
+  const newQuestion = prompt('修改所问事项：', oldQuestion === '未填写' ? '' : oldQuestion);
   if(newQuestion !== null && newQuestion.trim() !== ''){
-    document.getElementById('ly-result-question-display').textContent = newQuestion;
+    el.textContent = newQuestion;
     // 更新记录
     if(currentResultId){
       let history = getLiuyaoHistory();
@@ -1786,7 +1785,7 @@ function viewLiuyaoHistoryRecord(id){
   document.getElementById('liuyao-view').classList.remove('hidden');
   document.getElementById('liuyao-cast-view').classList.add('hidden');
   document.getElementById('liuyao-result-view').classList.remove('hidden');
-  document.getElementById('ly-result-question-display').textContent = record.question;
+  // 问题标题在 renderLiuyaoResult 中显示
   renderLiuyaoResult(record.fullResult);
 }
 
@@ -1812,7 +1811,7 @@ document.getElementById('liuyao-history-back').addEventListener('click', backToC
 document.getElementById('ly-history-edit-btn').addEventListener('click', toggleEditMode);
 document.getElementById('ly-select-all-btn').addEventListener('click', selectAllHistory);
 document.getElementById('ly-delete-selected-btn').addEventListener('click', deleteSelectedHistory);
-document.getElementById('ly-edit-question-btn').addEventListener('click', editResultQuestion);
+// 编辑事项的事件在渲染结果时动态绑定
 
 // 初始化
 renderHome();
