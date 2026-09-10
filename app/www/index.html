@@ -219,6 +219,39 @@
   .sleep-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .sleep-chart-wrap{overflow-x:auto;padding-bottom:4px;}
   svg.sleep-chart{display:block;width:100%;min-width:320px;}
+
+  /* ---------- 六爻 ---------- */
+  .ly-methods{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .ly-method{background:#f1eefb;border:1.5px solid transparent;border-radius:12px;padding:10px 4px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;text-align:center;}
+  .ly-method.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .ly-extra{margin-top:4px;}
+  .ly-num-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .ly-manual{display:flex;flex-direction:column;gap:8px;}
+  .ly-manual-row{display:flex;align-items:center;gap:8px;}
+  .ly-label{font-size:12px;color:var(--ink-soft);font-weight:700;width:34px;text-align:right;}
+  .ly-seg{display:flex;gap:6px;flex:1;}
+  .ly-seg button{flex:1;border:1.5px solid var(--line);background:#fbfaf8;border-radius:10px;padding:8px 3px;font-size:11px;cursor:pointer;color:var(--ink-soft);}
+  .ly-seg button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .ly-glyph{display:flex;flex-direction:column;align-items:center;gap:3px;margin-right:2px;}
+  .ly-yang{width:36px;height:8px;background:var(--ink);border-radius:2px;}
+  .ly-yin{display:flex;gap:6px;}
+  .ly-yin i{width:15px;height:8px;background:var(--ink);border-radius:2px;display:block;}
+  .ly-head{display:flex;align-items:center;gap:14px;}
+  .ly-title{font-size:22px;font-weight:800;}
+  .ly-sub{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .ly-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+  .ly-tag{background:#f1eefb;color:var(--primary);font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;}
+  .ly-line{margin-bottom:8px;border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#fdfbf8;}
+  .ly-line-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+  .ly-line-main{display:flex;align-items:center;justify-content:space-between;}
+  .ly-qin{font-size:16px;font-weight:800;}
+  .ly-ganzhi{font-size:13px;color:var(--ink-soft);}
+  .ly-sixgod{font-size:11px;color:#9b7bf2;font-weight:600;}
+  .ly-moving{color:var(--accent);font-weight:700;font-size:11px;}
+  .ly-badge{font-size:11px;padding:2px 7px;border-radius:999px;background:#eefaf5;color:#1f9d7f;font-weight:700;}
+  .ly-badge.shi{background:#fff3ee;color:#d9603f;}
+  .ly-fu{font-size:11px;color:var(--ink-faint);margin-top:5px;}
+  .ly-alert{background:#faf8f4;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.6;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -344,6 +377,51 @@
     </div>
   </div>
 
+
+  <!-- ============ 六爻卜卦模块 ============ -->
+  <div id="liuyao-view" class="hidden">
+    <div class="topbar" style="padding-top:calc(18px + env(safe-area-inset-top));">
+      <div class="back" id="liuyao-back"><span class="arr">←</span> 返回</div>
+      <div class="today-chip">六爻卜卦</div>
+    </div>
+
+    <div class="card">
+      <h3>📋 起卦设置</h3>
+      <label class="field">所问事项（可选，用于取用神）</label>
+      <input type="text" id="ly-question" placeholder="例如：近期财运如何、这份工作是否顺利…">
+
+      <label class="field">起卦方式</label>
+      <div class="ly-methods" id="ly-methods"></div>
+
+      <div id="ly-time-fields" class="ly-extra hidden">
+        <label class="field">起卦时间</label>
+        <input type="datetime-local" id="ly-time">
+      </div>
+
+      <div id="ly-number-fields" class="ly-extra hidden">
+        <label class="field">三个数字（上卦 / 下卦 / 动爻）</label>
+        <div class="ly-num-row">
+          <input type="number" id="ly-num1" inputmode="numeric" placeholder="上卦数">
+          <input type="number" id="ly-num2" inputmode="numeric" placeholder="下卦数">
+          <input type="number" id="ly-num3" inputmode="numeric" placeholder="动爻数">
+        </div>
+      </div>
+
+      <div id="ly-name-fields" class="ly-extra hidden">
+        <label class="field">选择卦名</label>
+        <select id="ly-hex-select"></select>
+      </div>
+
+      <div id="ly-manual-fields" class="ly-extra hidden">
+        <label class="field">手动指定六爻（自下而上）</label>
+        <div class="ly-manual" id="ly-manual"></div>
+      </div>
+
+      <div style="margin-top:14px;"><button class="btn" id="ly-cast-btn">起卦排盘</button></div>
+    </div>
+
+    <div id="ly-result"></div>
+  </div>
 </div>
 
 <!-- 迭代需求记录弹窗 -->
@@ -369,6 +447,7 @@
   </div>
 </div>
 
+<script src="liuyao.bundle.js"></script>
 <script src="notify.bundle.js"></script>
 <script src="native.bundle.js"></script>
 <script>
@@ -483,7 +562,7 @@ const modules = [
   {
     id:'liuyao', name:'六爻卜卦', icon:'🪙',
     desc:'铜钱起卦、六爻断事',
-    active:false, soon:true
+    active:true, render:openLiuyao
   }
 ];
 
@@ -491,11 +570,14 @@ const modules = [
 function showView(id){
   document.getElementById('home-view').classList.toggle('hidden', id!=='home');
   document.getElementById('energy-view').classList.toggle('hidden', id!=='energy');
+  document.getElementById('liuyao-view').classList.toggle('hidden', id!=='liuyao');
   window.scrollTo(0,0);
   if(id==='energy') renderEnergy();
+  if(id==='liuyao') renderLiuyaoForm();
   if(id==='home') renderHome();
 }
 function openEnergy(){ showView('energy'); }
+function openLiuyao(){ showView('liuyao'); }
 
 /* ---------------- 主界面渲染 ---------------- */
 function renderHome(){
@@ -1016,7 +1098,8 @@ function showToast(msg){
 let lastBackTime = 0;
 function handleBack(){
   const energyVisible = !document.getElementById('energy-view').classList.contains('hidden');
-  if(energyVisible){
+  const liuyaoVisible = !document.getElementById('liuyao-view').classList.contains('hidden');
+  if(energyVisible || liuyaoVisible){
     showView('home');  // 子页面 → 返回主界面
   } else {
     const now = Date.now();
@@ -1031,6 +1114,171 @@ function handleBack(){
 if(window.Native && Native.isNative()){
   Native.onBackButton(()=>{ handleBack(); });
 }
+
+
+/* ---------------- 六爻模块 ---------------- */
+let liuyaoMethod = 'coin';
+const LIUYAO_METHODS = (window.LiuYao && LiuYao.METHODS) || [
+  {id:'coin', name:'在线摇卦'}, {id:'time', name:'时间起卦'}, {id:'number', name:'数字起卦'},
+  {id:'name', name:'卦名起卦'}, {id:'manual', name:'手动指定'}, {id:'random', name:'自动起卦'}
+];
+const MANUAL_LABELS = ['初爻','二爻','三爻','四爻','五爻','上爻'];
+const YAO_TYPES = [
+  {id:'old_yang', name:'老阳 ○'},
+  {id:'young_yang', name:'少阳'},
+  {id:'old_yin', name:'老阴 ×'},
+  {id:'young_yin', name:'少阴'}
+];
+let manualLines = ['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'];
+
+function renderLiuyaoForm(){
+  document.getElementById('liuyao-back').onclick = ()=>showView('home');
+  const now = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  document.getElementById('ly-time').value = now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'T'+pad(now.getHours())+':'+pad(now.getMinutes());
+
+  const box = document.getElementById('ly-methods');
+  box.innerHTML='';
+  LIUYAO_METHODS.forEach(m=>{
+    const el=document.createElement('div');
+    el.className='ly-method'+(m.id===liuyaoMethod?' active':'');
+    el.textContent=m.name;
+    el.onclick=()=>{ liuyaoMethod=m.id; renderLiuyaoMethodFields(); };
+    box.appendChild(el);
+  });
+
+  const sel=document.getElementById('ly-hex-select');
+  sel.innerHTML='';
+  const list=(window.LiuYao && LiuYao.HEXAGRAMS)||[];
+  list.forEach(h=>{
+    const o=document.createElement('option');
+    o.value=h.bits||h.id;
+    o.textContent=(h.image||h.name);
+    sel.appendChild(o);
+  });
+
+  renderManualLines();
+  renderLiuyaoMethodFields();
+}
+
+function renderLiuyaoMethodFields(){
+  const methods=document.querySelectorAll('.ly-method');
+  methods.forEach((el,i)=>{ if(LIUYAO_METHODS[i]) el.classList.toggle('active', LIUYAO_METHODS[i].id===liuyaoMethod); });
+  document.getElementById('ly-time-fields').classList.toggle('hidden', liuyaoMethod!=='time');
+  document.getElementById('ly-number-fields').classList.toggle('hidden', liuyaoMethod!=='number');
+  document.getElementById('ly-name-fields').classList.toggle('hidden', liuyaoMethod!=='name');
+  document.getElementById('ly-manual-fields').classList.toggle('hidden', liuyaoMethod!=='manual');
+}
+
+function renderManualLines(){
+  const box=document.getElementById('ly-manual');
+  box.innerHTML='';
+  for(let i=5;i>=0;i--){
+    const row=document.createElement('div'); row.className='ly-manual-row';
+    const label=document.createElement('div'); label.className='ly-label'; label.textContent=MANUAL_LABELS[i];
+    const seg=document.createElement('div'); seg.className='ly-seg';
+    YAO_TYPES.forEach(t=>{
+      const b=document.createElement('button'); b.type='button'; b.textContent=t.name;
+      b.classList.toggle('active', manualLines[i]===t.id);
+      b.onclick=()=>{ manualLines[i]=t.id; renderManualLines(); };
+      seg.appendChild(b);
+    });
+    row.appendChild(label); row.appendChild(seg); box.appendChild(row);
+  }
+}
+
+function castLiuyao(){
+  if(!(window.LiuYao && LiuYao.cast)){ showToast('六爻引擎未加载'); return; }
+  const question=document.getElementById('ly-question').value.trim();
+  const timeVal=document.getElementById('ly-time').value;
+  const opts={method:liuyaoMethod, question:question, date: timeVal ? new Date(timeVal) : new Date()};
+  if(liuyaoMethod==='number'){
+    const a=document.getElementById('ly-num1').value, b=document.getElementById('ly-num2').value, c=document.getElementById('ly-num3').value;
+    if(a===''||b===''||c===''){ showToast('请填写三个数字'); return; }
+    opts.numbers=[a,b,c];
+  }
+  if(liuyaoMethod==='name'){
+    const sel=document.getElementById('ly-hex-select');
+    const opt=sel.options[sel.selectedIndex];
+    opts.bits=opt ? opt.value : undefined;
+  }
+  if(liuyaoMethod==='manual') opts.lines=manualLines.slice();
+  const result=LiuYao.cast(opts);
+  renderLiuyaoResult(result);
+}
+
+function glyphHtml(bits){
+  let g='<div class="ly-glyph">';
+  for(let i=5;i>=0;i--){
+    if(bits[i]==='1') g+='<div class="ly-yang"></div>';
+    else g+='<div class="ly-yin"><i></i><i></i></div>';
+  }
+  g+='</div>';
+  return g;
+}
+
+function renderLiuyaoResult(r){
+  const box=document.getElementById('ly-result');
+  const a=r.astrology, ben=r.ben, zhi=r.zhi;
+  let html='';
+
+  html += '<div class="card"><div class="ly-head">';
+  html += glyphHtml(ben.meta.bits);
+  html += '<div><div class="ly-title">'+escapeHtml(ben.meta.image)+'</div><div class="ly-sub">'+escapeHtml(a.solarDate)+' · '+escapeHtml(r.method)+'</div></div>';
+  html += '</div>';
+  html += '<div class="ly-meta">';
+  html += '<span class="ly-tag">'+escapeHtml(ben.meta.palace)+'</span>';
+  html += '<span class="ly-tag">本卦</span>';
+  if(zhi){ html += '<span class="ly-tag">变卦 '+escapeHtml(zhi.meta.image)+'</span>'; }
+  html += '</div>';
+  html += '<div class="ly-alert">年 '+escapeHtml(a.yearGZ)+'　月 '+escapeHtml(a.monthGZ)+'　日 '+escapeHtml(a.dayGZ)+'　时 '+escapeHtml(a.hourGZ)+'<br>月建 '+escapeHtml(a.monthJian)+'　日辰 '+escapeHtml(a.dayBranch)+'　空亡 '+escapeHtml(a.dayXunKong)+'</div>';
+  html += '<div class="ly-alert"><b>卦辞：</b>'+escapeHtml(ben.meta.guaci||'无')+'</div>';
+  html += '</div>';
+
+  html += '<div class="card"><h3>六爻排盘（上爻 → 初爻）</h3>';
+  for(let i=5;i>=0;i--){
+    const l=ben.naJia[i];
+    const isMove=ben.moving.indexOf(i)>=0;
+    const zl=zhi?zhi.naJia[i]:null;
+    html += '<div class="ly-line">';
+    html += '<div class="ly-line-head"><span>第'+(i+1)+'爻</span><span class="ly-sixgod">'+escapeHtml(l.sixGod)+'</span>';
+    if(l.shiYing) html += '<span class="ly-badge '+(l.shiYing==='世'?'shi':'')+'">'+l.shiYing+'</span>';
+    if(isMove) html += '<span class="ly-moving">动</span>';
+    html += '</div>';
+    html += '<div class="ly-line-main"><span class="ly-qin">'+escapeHtml(l.liuQin)+'</span><span class="ly-ganzhi">'+escapeHtml(l.stem+l.branch)+' '+escapeHtml(l.element)+'</span></div>';
+    if(isMove && zl){ html += '<div class="ly-fu">化 '+escapeHtml(zl.liuQin)+' '+escapeHtml(zl.stem+zl.branch)+' '+escapeHtml(zl.element)+'</div>'; }
+    if(l.fuShen){ html += '<div class="ly-fu">伏神 '+escapeHtml(l.fuShen.liuQin)+' '+escapeHtml(l.fuShen.stem+l.fuShen.branch)+'</div>'; }
+    html += '</div>';
+  }
+  html += '</div>';
+
+  if(ben.moving.length){
+    const texts=ben.moving.map(i=>'第'+(i+1)+'爻：'+escapeHtml(ben.meta.lines[i]||'')).join('<br>');
+    html += '<div class="card"><h3>动爻爻辞</h3><div class="ly-alert">'+texts+'</div></div>';
+  }
+
+  html += '<div class="card"><h3>断卦参考</h3>';
+  if(r.analysis.yongShen){
+    html += '<div class="ly-alert">用神：'+escapeHtml(r.analysis.yongShen)+'</div>';
+    r.analysis.yongDetail.forEach(d=>{
+      const tags=[d.status.month].concat(d.status.day).concat(d.status.transform).filter(Boolean);
+      html += '<div class="ly-alert">'+escapeHtml(d.liuQin)+' '+escapeHtml(d.branch)+' '+escapeHtml(d.element)+'：'+(tags.length?escapeHtml(tags.join('、')):'平稳')+'</div>';
+    });
+  } else {
+    html += '<div class="ly-alert">未识别到具体事项，未取用神。填写事项后重排，可获得更针对性的分析。</div>';
+  }
+  if(r.analysis.movingDetail.length){
+    html += '<div class="ly-alert">动爻：'+r.analysis.movingDetail.map(m=>'第'+(m.index+1)+'爻 '+escapeHtml(m.liuQin)+escapeHtml(m.branch)+(m.relation?' '+escapeHtml(m.relation):'')).join('；')+'</div>';
+  }
+  r.analysis.alerts.forEach(t=>{ html += '<div class="ly-alert">'+escapeHtml(t)+'</div>'; });
+  html += '<div class="muted" style="margin-top:8px;">以上为排盘与规则化提示，仅供传统文化研究参考。</div>';
+  html += '</div>';
+
+  box.innerHTML=html;
+  box.scrollIntoView({behavior:'smooth'});
+}
+
+document.getElementById('ly-cast-btn').addEventListener('click', castLiuyao);
 
 // 初始化
 renderHome();

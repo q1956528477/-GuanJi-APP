@@ -5,8 +5,10 @@
   "private": true,
   "author": "",
   "scripts": {
-    "build:bridges": "esbuild src/native.js --bundle --outfile=www/native.bundle.js && esbuild src/notify.js --bundle --outfile=www/notify.bundle.js",
-    "test": "node test_app.js",
+    "build:bridges": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1",
+    "test": "node test_app.js && node test_liuyao.js",
+    "build": "npm run build:bridges",
+    "cap": "cap sync android",
     "cap:add": "cap add android",
     "cap:sync": "cap sync android",
     "cap:open": "cap open android"
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "jsdom": "^26.1.0"
   }
 }
