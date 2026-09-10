@@ -1,14 +1,42 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <defs>
-    <radialGradient id="coinGrad2" cx="40%" cy="35%">
-      <stop offset="0%" style="stop-color:#f9e79f;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#d4a843;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+    <radialGradient id="coinBg2">
+      <stop offset="0%" stop-color="#c9a03d"/>
+      <stop offset="40%" stop-color="#a88534"/>
+      <stop offset="70%" stop-color="#7a5d12"/>
+      <stop offset="100%" stop-color="#5a4310"/>
     </radialGradient>
+    <radialGradient id="holeGrad2">
+      <stop offset="0%" stop-color="#3d2b0f"/>
+      <stop offset="100%" stop-color="#1a1408"/>
+    </radialGradient>
+    <filter id="rust2">
+      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0.08" result="desaturatedNoise"/>
+      <feComponentTransfer in="desaturatedNoise" result="theNoise">
+        <feFuncA type="table" tableValues="0 0 0.08 0.15"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="theNoise" mode="multiply"/>
+    </filter>
   </defs>
-  <circle cx="50" cy="50" r="48" fill="url(#coinGrad2)" stroke="#6b4d0f" stroke-width="2"/>
-  <circle cx="50" cy="50" r="28" fill="none" stroke="#6b4d0f" stroke-width="1.5"/>
-  <rect x="42" y="22" width="16" height="56" fill="none" stroke="#6b4d0f" stroke-width="1.5" rx="1"/>
-  <text x="50" y="38" font-family="serif" font-size="10" fill="#4a2c0f" text-anchor="middle" font-weight="bold">宋元</text>
-  <text x="50" y="67" font-family="serif" font-size="10" fill="#4a2c0f" text-anchor="middle" font-weight="bold">通寶</text>
+  
+  <circle cx="100" cy="100" r="95" fill="url(#coinBg2)" stroke="#42310e" stroke-width="2"/>
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#c89a3d" stroke-width="0.5" opacity="0.5"/>
+  <circle cx="100" cy="100" r="95" fill="url(#coinBg2)" filter="url(#rust2)" opacity="0.4"/>
+  
+  <circle cx="100" cy="100" r="75" fill="none" stroke="#7a5d12" stroke-width="2.5"/>
+  <circle cx="100" cy="100" r="76" fill="none" stroke="#b89438" stroke-width="0.8" opacity="0.4"/>
+  
+  <rect x="85" y="85" width="30" height="30" fill="url(#holeGrad2)" stroke="#2d1f0a" stroke-width="1.5"/>
+  <rect x="85.5" y="85.5" width="29" height="29" fill="none" stroke="#1a1408" stroke-width="0.5"/>
+  
+  <text x="100" y="60" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2a1d0a" text-anchor="middle">宋</text>
+  <text x="100" y="150" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2a1d0a" text-anchor="middle">元</text>
+  <text x="130" y="105" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2a1d0a" text-anchor="middle">通</text>
+  <text x="70" y="105" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2a1d0a" text-anchor="middle">寶</text>
+  
+  <text x="100.5" y="60.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#b89438" text-anchor="middle" opacity="0.25">宋</text>
+  <text x="100.5" y="150.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#b89438" text-anchor="middle" opacity="0.25">元</text>
+  <text x="130.5" y="105.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#b89438" text-anchor="middle" opacity="0.25">通</text>
+  <text x="70.5" y="105.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#b89438" text-anchor="middle" opacity="0.25">寶</text>
 </svg>

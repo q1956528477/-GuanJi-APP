@@ -1,14 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
   <defs>
-    <radialGradient id="coinGrad1" cx="40%" cy="35%">
-      <stop offset="0%" style="stop-color:#f9e79f;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#d4a843;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+    <radialGradient id="coinBg1">
+      <stop offset="0%" stop-color="#d4a843"/>
+      <stop offset="40%" stop-color="#b8933a"/>
+      <stop offset="70%" stop-color="#8b6914"/>
+      <stop offset="100%" stop-color="#6b4d0f"/>
     </radialGradient>
+    <radialGradient id="holeGrad1">
+      <stop offset="0%" stop-color="#3d2b0f"/>
+      <stop offset="100%" stop-color="#1a1408"/>
+    </radialGradient>
+    <filter id="rust1">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0.1" result="desaturatedNoise"/>
+      <feComponentTransfer in="desaturatedNoise" result="theNoise">
+        <feFuncA type="table" tableValues="0 0 0.05 0.1"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="theNoise" mode="multiply"/>
+    </filter>
   </defs>
-  <circle cx="50" cy="50" r="48" fill="url(#coinGrad1)" stroke="#6b4d0f" stroke-width="2"/>
-  <circle cx="50" cy="50" r="28" fill="none" stroke="#6b4d0f" stroke-width="1.5"/>
-  <rect x="42" y="22" width="16" height="56" fill="none" stroke="#6b4d0f" stroke-width="1.5" rx="1"/>
-  <text x="50" y="38" font-family="serif" font-size="10" fill="#4a2c0f" text-anchor="middle" font-weight="bold">開元</text>
-  <text x="50" y="67" font-family="serif" font-size="10" fill="#4a2c0f" text-anchor="middle" font-weight="bold">通寶</text>
+  
+  <!-- 外圈 -->
+  <circle cx="100" cy="100" r="95" fill="url(#coinBg1)" stroke="#4a3510" stroke-width="2"/>
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#d9a841" stroke-width="0.5" opacity="0.6"/>
+  
+  <!-- 铜锈效果 -->
+  <circle cx="100" cy="100" r="95" fill="url(#coinBg1)" filter="url(#rust1)" opacity="0.3"/>
+  
+  <!-- 内圈凸起 -->
+  <circle cx="100" cy="100" r="75" fill="none" stroke="#8b6914" stroke-width="2.5"/>
+  <circle cx="100" cy="100" r="76" fill="none" stroke="#c9a442" stroke-width="0.8" opacity="0.5"/>
+  
+  <!-- 方孔 -->
+  <rect x="85" y="85" width="30" height="30" fill="url(#holeGrad1)" stroke="#2d1f0a" stroke-width="1.5"/>
+  <rect x="85.5" y="85.5" width="29" height="29" fill="none" stroke="#1a1408" stroke-width="0.5"/>
+  
+  <!-- 文字：开元通宝 -->
+  <text x="100" y="60" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2d1f0a" text-anchor="middle">開</text>
+  <text x="100" y="150" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2d1f0a" text-anchor="middle">元</text>
+  <text x="130" y="105" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2d1f0a" text-anchor="middle">通</text>
+  <text x="70" y="105" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#2d1f0a" text-anchor="middle">寶</text>
+  
+  <!-- 文字立体效果 -->
+  <text x="100.5" y="60.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#c9a442" text-anchor="middle" opacity="0.3">開</text>
+  <text x="100.5" y="150.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#c9a442" text-anchor="middle" opacity="0.3">元</text>
+  <text x="130.5" y="105.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#c9a442" text-anchor="middle" opacity="0.3">通</text>
+  <text x="70.5" y="105.5" font-family="'STKaiti', 'KaiTi', 'SimKai', serif" font-size="22" font-weight="bold" fill="#c9a442" text-anchor="middle" opacity="0.3">寶</text>
 </svg>
