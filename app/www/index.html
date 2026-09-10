@@ -563,7 +563,7 @@
     </div>
 
     <div id="liuyao-result-view" class="hidden">
-
+      <div style="margin:0 0 12px;"><button class="btn ghost" id="ly-result-back">← 返回</button></div>
       <div id="ly-result"></div>
       <div style="margin:14px 0 0;"><button class="btn ghost" id="ly-recast">重新起卦</button></div>
     </div>
@@ -1439,13 +1439,22 @@ function toggleCoinSpin(){
       document.getElementById('ly-toss-hint').textContent='已完成 '+coinStep+' 爻，点击铜钱继续（第 '+(coinStep+1)+' 爻）';
     } else {
       document.getElementById('ly-toss-hint').textContent='六爻已成！';
-      setTimeout(()=>finishCoinCast(),800);
+      setTimeout(()=>finishCoin(),800);
     }
   }
 }
 
 function finishCoin(){
-  const result=doCast({method:'coin', lines: coinLines.slice()});
+  const question=document.getElementById('ly-question').value.trim();
+  const timeVal=document.getElementById('ly-time').value;
+  const lines = coinResults.map(r => {
+    const c = r.count;
+    if(c === 6) return 'old_yin';
+    if(c === 9) return 'old_yang';
+    if(c === 7) return 'young_yang';
+    return 'young_yin';
+  });
+  const result=doCast({method:'coin', lines: lines, question: question, date: timeVal ? new Date(timeVal) : new Date()});
   showLiuyaoResult(result);
 }
 
@@ -1481,6 +1490,28 @@ function showLiuyaoResult(result){
   document.getElementById('liuyao-stage-chip').textContent='六爻结果';
   renderLiuyaoResult(result);
   window.scrollTo(0,0);
+}
+
+function backFromHistory(){
+  document.getElementById('liuyao-history-view').classList.add('hidden');
+  document.getElementById('liuyao-view').classList.remove('hidden');
+  document.getElementById('liuyao-cast-view').classList.remove('hidden');
+  document.getElementById('liuyao-result-view').classList.add('hidden');
+  isHistoryEditMode = false;
+  selectedHistoryIds.clear();
+}
+
+function backFromResult(){
+  if(currentResultId){
+    // 从历史记录查看，返回历史记录页
+    currentResultId = null;
+    showLiuyaoHistory();
+  } else {
+    // 从新起卦，返回主页
+    document.getElementById('liuyao-view').classList.add('hidden');
+    document.getElementById('home-view').classList.remove('hidden');
+    renderHome();
+  }
 }
 
 function backToCast(){
@@ -1791,18 +1822,14 @@ function backToHistoryFromResult(){
 document.getElementById('ly-cast-btn').addEventListener('click', castLiuyao);
 document.getElementById('ly-coin-start').addEventListener('click', startCoin);
 // 铜钱点击事件在 startCoin 中绑定
+document.getElementById('ly-result-back').addEventListener('click', backFromResult);
 document.getElementById('ly-recast').addEventListener('click', function(){
-  if(currentResultId){
-    // 从历史记录查看，返回历史记录页
-    currentResultId = null;
-    showLiuyaoHistory();
-  } else {
-    // 从新起卦，返回起卦页
-    backToCast();
-  }
+  // 重新起卦：清除状态，返回起卦页
+  currentResultId = null;
+  backToCast();
 });
 document.getElementById('ly-history-btn').addEventListener('click', showLiuyaoHistory);
-document.getElementById('liuyao-history-back').addEventListener('click', backToCast);
+document.getElementById('liuyao-history-back').addEventListener('click', backFromHistory);
 document.getElementById('ly-history-edit-btn').addEventListener('click', toggleEditMode);
 document.getElementById('ly-select-all-btn').addEventListener('click', selectAllHistory);
 document.getElementById('ly-delete-selected-btn').addEventListener('click', deleteSelectedHistory);
