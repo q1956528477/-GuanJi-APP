@@ -365,6 +365,15 @@
   /* ghost按钮样式 */
   .btn.ghost{background:#fff;color:#7a5d12;border:2px solid #e8dcc8;}
   .btn.ghost:hover{background:#faf8f5;}
+  
+  /* 编辑模式样式 */
+  .ly-history-item.edit-mode{padding-left:50px;position:relative;}
+  .ly-history-checkbox{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;cursor:pointer;}
+  .ly-history-item.selected{background:#fff9e6;border:1px solid #e8dcc8;}
+  
+  /* 删除按钮 */
+  .ly-delete-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#d9534f;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;}
+  .ly-delete-btn:hover{background:#c9302c;}
   .ly-gua-line.moving{background:#fff8f0;border-radius:8px;}
   .ly-gua-guaci{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:8px;}
   .ly-interp-title{font-size:13px;font-weight:800;color:var(--primary);margin:12px 0 6px;}
@@ -554,6 +563,15 @@
     </div>
 
     <div id="liuyao-result-view" class="hidden">
+      <div class="card" style="background:#fdfbf7;border:2px solid #e8dcc8;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="flex:1;">
+            <label style="font-size:12px;color:#7a5d12;font-weight:600;">所问事项</label>
+            <div id="ly-result-question-display" style="font-size:15px;color:#333;font-weight:700;padding:8px 0;"></div>
+          </div>
+          <button class="btn ghost" id="ly-edit-question-btn" style="padding:8px 16px;font-size:13px;">编辑</button>
+        </div>
+      </div>
       <div id="ly-result"></div>
       <div style="margin:14px 0 0;"><button class="btn ghost" id="ly-recast">重新起卦</button></div>
     </div>
@@ -564,10 +582,17 @@
     <div class="topbar" style="padding-top:calc(18px + env(safe-area-inset-top));">
       <div class="back" id="liuyao-history-back"><span class="arr">←</span> 返回</div>
       <div class="today-chip">起卦记录</div>
+      <div id="ly-history-edit-btn" style="color:#7a5d12;font-weight:600;cursor:pointer;">管理</div>
     </div>
     
     <div class="card">
-      <h3>📜 历史记录</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">📜 历史记录</h3>
+        <div id="ly-history-actions" class="hidden" style="display:flex;gap:8px;">
+          <button class="btn ghost" id="ly-select-all-btn" style="padding:6px 12px;font-size:12px;">全选</button>
+          <button class="btn" id="ly-delete-selected-btn" style="padding:6px 12px;font-size:12px;background:#d9534f;">删除选中</button>
+        </div>
+      </div>
       <div id="ly-history-list"></div>
       <div id="ly-history-empty" class="hidden" style="text-align:center;padding:40px 20px;color:#999;">
         <div style="font-size:48px;margin-bottom:12px;">📭</div>
@@ -1426,7 +1451,8 @@ function doCast(opts){
 }
 
 function showLiuyaoResult(result){
-  saveLiuyaoHistory(result);
+  currentResultId = saveLiuyaoHistory(result);
+  document.getElementById('ly-result-question-display').textContent = result.question || '未填写';
   if(!result) return;
   document.getElementById('liuyao-cast-view').classList.add('hidden');
   document.getElementById('liuyao-result-view').classList.remove('hidden');
@@ -1541,7 +1567,7 @@ function renderRebuGua(hexData, movingSet, title){
     h+='<div class="rebu-yao-row">';
     h+='<div class="rebu-yao-left">'+escapeHtml(l.liuQin)+' '+escapeHtml(l.stem+l.branch)+'</div>';
     h+='<div class="rebu-yao-main">';
-    const yaoLine=meta.bits[i]==='1'?'▬▬▬▬▬':'▬　　▬';
+    const yaoLine=meta.bits[i]==='1'?'<span style="display:inline-block;width:70px;text-align:center;">▬▬▬▬▬</span>':'<span style="display:inline-block;width:70px;text-align:center;">▬　　▬</span>';
     h+=yaoLine;
     if(l.shiYing) h+=' <span class="attr">'+l.shiYing+'</span>';
     if(isMove) h+='<span class="arrow">0→</span><span class="trans">变化</span>';
@@ -1553,11 +1579,16 @@ function renderRebuGua(hexData, movingSet, title){
 }
 
 
+let isHistoryEditMode = false;
+let selectedHistoryIds = new Set();
+let currentResultId = null;
+
 // ========== 六爻记录功能 ==========
 function saveLiuyaoHistory(result){
   const history = getLiuyaoHistory();
+  const id = Date.now();
   const record = {
-    id: Date.now(),
+    id: id,
     question: result.question || '未填写',
     method: result.method,
     date: result.astrology.solarDate,
@@ -1570,6 +1601,7 @@ function saveLiuyaoHistory(result){
   // 最多保存100条记录
   if(history.length > 100) history.length = 100;
   localStorage.setItem('liuyao_history', JSON.stringify(history));
+  return id;
 }
 
 function getLiuyaoHistory(){
@@ -1578,6 +1610,9 @@ function getLiuyaoHistory(){
 }
 
 function showLiuyaoHistory(){
+  // 隐藏所有其他视图
+  document.getElementById('home-view').classList.add('hidden');
+  document.getElementById('liuyao-view').classList.remove('hidden');
   document.getElementById('liuyao-cast-view').classList.add('hidden');
   document.getElementById('liuyao-result-view').classList.add('hidden');
   document.getElementById('liuyao-history-view').classList.remove('hidden');
@@ -1598,7 +1633,13 @@ function renderLiuyaoHistoryList(){
   emptyEl.classList.add('hidden');
   let html = '';
   history.forEach(record => {
-    html += '<div class="ly-history-item" data-id="'+record.id+'">';
+    const isSelected = selectedHistoryIds.has(record.id);
+    html += '<div class="ly-history-item'+(isHistoryEditMode?' edit-mode':'')+(isSelected?' selected':'')+'" data-id="'+record.id+'">';
+    if(isHistoryEditMode){
+      html += '<input type="checkbox" class="ly-history-checkbox" '+(isSelected?'checked':'')+' onclick="toggleHistorySelect('+record.id+',event)">';
+    } else {
+      html += '<button class="ly-delete-btn" onclick="deleteSingleHistory('+record.id+',event)">删除</button>';
+    }
     html += '<div class="ly-history-title">'+escapeHtml(record.question)+'</div>';
     html += '<div class="ly-history-meta">';
     html += '<span class="ly-history-date">'+escapeHtml(record.timestamp)+'</span>';
@@ -1609,22 +1650,106 @@ function renderLiuyaoHistoryList(){
   listEl.innerHTML = html;
   
   // 绑定点击事件
-  listEl.querySelectorAll('.ly-history-item').forEach(item => {
-    item.addEventListener('click', function(){
-      const id = parseInt(this.dataset.id);
-      viewLiuyaoHistoryRecord(id);
+  if(!isHistoryEditMode){
+    listEl.querySelectorAll('.ly-history-item').forEach(item => {
+      item.addEventListener('click', function(e){
+        if(e.target.classList.contains('ly-delete-btn')) return;
+        const id = parseInt(this.dataset.id);
+        viewLiuyaoHistoryRecord(id);
+      });
     });
-  });
+  } else {
+    listEl.querySelectorAll('.ly-history-item').forEach(item => {
+      item.addEventListener('click', function(e){
+        if(e.target.type === 'checkbox') return;
+        const id = parseInt(this.dataset.id);
+        toggleHistorySelect(id, e);
+      });
+    });
+  }
+}
+
+function toggleEditMode(){
+  isHistoryEditMode = !isHistoryEditMode;
+  selectedHistoryIds.clear();
+  document.getElementById('ly-history-edit-btn').textContent = isHistoryEditMode ? '完成' : '管理';
+  document.getElementById('ly-history-actions').classList.toggle('hidden', !isHistoryEditMode);
+  renderLiuyaoHistoryList();
+}
+
+function toggleHistorySelect(id, event){
+  event.stopPropagation();
+  if(selectedHistoryIds.has(id)){
+    selectedHistoryIds.delete(id);
+  } else {
+    selectedHistoryIds.add(id);
+  }
+  renderLiuyaoHistoryList();
+}
+
+function selectAllHistory(){
+  const history = getLiuyaoHistory();
+  if(selectedHistoryIds.size === history.length){
+    selectedHistoryIds.clear();
+  } else {
+    history.forEach(r => selectedHistoryIds.add(r.id));
+  }
+  renderLiuyaoHistoryList();
+}
+
+function deleteSelectedHistory(){
+  if(selectedHistoryIds.size === 0){
+    alert('请先选择要删除的记录');
+    return;
+  }
+  if(!confirm('确定要删除选中的 '+selectedHistoryIds.size+' 条记录吗？')){
+    return;
+  }
+  let history = getLiuyaoHistory();
+  history = history.filter(r => !selectedHistoryIds.has(r.id));
+  localStorage.setItem('liuyao_history', JSON.stringify(history));
+  selectedHistoryIds.clear();
+  renderLiuyaoHistoryList();
+}
+
+function deleteSingleHistory(id, event){
+  event.stopPropagation();
+  if(!confirm('确定要删除这条记录吗？')){
+    return;
+  }
+  let history = getLiuyaoHistory();
+  history = history.filter(r => r.id !== id);
+  localStorage.setItem('liuyao_history', JSON.stringify(history));
+  renderLiuyaoHistoryList();
+}
+
+function editResultQuestion(){
+  const newQuestion = prompt('修改所问事项：', document.getElementById('ly-result-question-display').textContent);
+  if(newQuestion !== null && newQuestion.trim() !== ''){
+    document.getElementById('ly-result-question-display').textContent = newQuestion;
+    // 更新记录
+    if(currentResultId){
+      let history = getLiuyaoHistory();
+      const record = history.find(r => r.id === currentResultId);
+      if(record){
+        record.question = newQuestion;
+        record.fullResult.question = newQuestion;
+        localStorage.setItem('liuyao_history', JSON.stringify(history));
+      }
+    }
+  }
 }
 
 function viewLiuyaoHistoryRecord(id){
   const history = getLiuyaoHistory();
   const record = history.find(r => r.id === id);
   if(!record) return;
+  currentResultId = id;
   
   // 显示结果页面
   document.getElementById('liuyao-history-view').classList.add('hidden');
   document.getElementById('liuyao-result-view').classList.remove('hidden');
+  document.getElementById('ly-result-question-display').textContent = record.question;
   renderLiuyaoResult(record.fullResult);
 }
 
@@ -1638,6 +1763,10 @@ document.getElementById('ly-coin-start').addEventListener('click', startCoin);
 document.getElementById('ly-recast').addEventListener('click', backToCast);
 document.getElementById('ly-history-btn').addEventListener('click', showLiuyaoHistory);
 document.getElementById('liuyao-history-back').addEventListener('click', backToCast);
+document.getElementById('ly-history-edit-btn').addEventListener('click', toggleEditMode);
+document.getElementById('ly-select-all-btn').addEventListener('click', selectAllHistory);
+document.getElementById('ly-delete-selected-btn').addEventListener('click', deleteSelectedHistory);
+document.getElementById('ly-edit-question-btn').addEventListener('click', editResultQuestion);
 
 // 初始化
 renderHome();
