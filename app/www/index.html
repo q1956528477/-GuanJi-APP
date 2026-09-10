@@ -352,6 +352,19 @@
   
   /* 爻线字体优化 */
   .rebu-yao-main{font-family:monospace;letter-spacing:-1px;}
+  
+  /* 六爻记录列表 */
+  .ly-history-item{padding:14px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .2s;}
+  .ly-history-item:hover{background:#fafafa;}
+  .ly-history-item:last-child{border-bottom:none;}
+  .ly-history-title{font-size:15px;font-weight:700;color:#333;margin-bottom:6px;}
+  .ly-history-meta{font-size:12px;color:#999;display:flex;justify-content:space-between;align-items:center;}
+  .ly-history-date{flex:1;}
+  .ly-history-gua{font-size:11px;color:#666;background:#f5f5f5;padding:3px 8px;border-radius:4px;}
+  
+  /* ghost按钮样式 */
+  .btn.ghost{background:#fff;color:#7a5d12;border:2px solid #e8dcc8;}
+  .btn.ghost:hover{background:#faf8f5;}
   .ly-gua-line.moving{background:#fff8f0;border-radius:8px;}
   .ly-gua-guaci{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:8px;}
   .ly-interp-title{font-size:13px;font-weight:800;color:var(--primary);margin:12px 0 6px;}
@@ -521,6 +534,7 @@
 
         <div id="ly-other-action" style="margin-top:14px;"><button class="btn" id="ly-cast-btn">起卦排盘</button></div>
         <div id="ly-coin-action" style="margin-top:14px;" class="hidden"><button class="btn" id="ly-coin-start">开始摇卦</button></div>
+        <div style="margin-top:16px;text-align:center;"><button class="btn ghost" id="ly-history-btn">📜 起卦记录</button></div>
       </div>
 
       <div id="ly-coin-board" class="card hidden">
@@ -542,6 +556,23 @@
     <div id="liuyao-result-view" class="hidden">
       <div id="ly-result"></div>
       <div style="margin:14px 0 0;"><button class="btn ghost" id="ly-recast">重新起卦</button></div>
+    </div>
+  </div>
+
+  <!-- ============ 六爻记录页面 ============ -->
+  <div id="liuyao-history-view" class="hidden">
+    <div class="topbar" style="padding-top:calc(18px + env(safe-area-inset-top));">
+      <div class="back" id="liuyao-history-back"><span class="arr">←</span> 返回</div>
+      <div class="today-chip">起卦记录</div>
+    </div>
+    
+    <div class="card">
+      <h3>📜 历史记录</h3>
+      <div id="ly-history-list"></div>
+      <div id="ly-history-empty" class="hidden" style="text-align:center;padding:40px 20px;color:#999;">
+        <div style="font-size:48px;margin-bottom:12px;">📭</div>
+        <div>暂无起卦记录</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1395,6 +1426,7 @@ function doCast(opts){
 }
 
 function showLiuyaoResult(result){
+  saveLiuyaoHistory(result);
   if(!result) return;
   document.getElementById('liuyao-cast-view').classList.add('hidden');
   document.getElementById('liuyao-result-view').classList.remove('hidden');
@@ -1520,10 +1552,92 @@ function renderRebuGua(hexData, movingSet, title){
   return h;
 }
 
+
+// ========== 六爻记录功能 ==========
+function saveLiuyaoHistory(result){
+  const history = getLiuyaoHistory();
+  const record = {
+    id: Date.now(),
+    question: result.question || '未填写',
+    method: result.method,
+    date: result.astrology.solarDate,
+    timestamp: new Date().toLocaleString('zh-CN'),
+    benGua: result.ben.meta.image,
+    zhiGua: result.zhi ? result.zhi.meta.image : null,
+    fullResult: result
+  };
+  history.unshift(record);
+  // 最多保存100条记录
+  if(history.length > 100) history.length = 100;
+  localStorage.setItem('liuyao_history', JSON.stringify(history));
+}
+
+function getLiuyaoHistory(){
+  const data = localStorage.getItem('liuyao_history');
+  return data ? JSON.parse(data) : [];
+}
+
+function showLiuyaoHistory(){
+  document.getElementById('liuyao-cast-view').classList.add('hidden');
+  document.getElementById('liuyao-result-view').classList.add('hidden');
+  document.getElementById('liuyao-history-view').classList.remove('hidden');
+  renderLiuyaoHistoryList();
+}
+
+function renderLiuyaoHistoryList(){
+  const history = getLiuyaoHistory();
+  const listEl = document.getElementById('ly-history-list');
+  const emptyEl = document.getElementById('ly-history-empty');
+  
+  if(history.length === 0){
+    listEl.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    return;
+  }
+  
+  emptyEl.classList.add('hidden');
+  let html = '';
+  history.forEach(record => {
+    html += '<div class="ly-history-item" data-id="'+record.id+'">';
+    html += '<div class="ly-history-title">'+escapeHtml(record.question)+'</div>';
+    html += '<div class="ly-history-meta">';
+    html += '<span class="ly-history-date">'+escapeHtml(record.timestamp)+'</span>';
+    html += '<span class="ly-history-gua">'+escapeHtml(record.benGua)+(record.zhiGua?' → '+escapeHtml(record.zhiGua):'')+'</span>';
+    html += '</div>';
+    html += '</div>';
+  });
+  listEl.innerHTML = html;
+  
+  // 绑定点击事件
+  listEl.querySelectorAll('.ly-history-item').forEach(item => {
+    item.addEventListener('click', function(){
+      const id = parseInt(this.dataset.id);
+      viewLiuyaoHistoryRecord(id);
+    });
+  });
+}
+
+function viewLiuyaoHistoryRecord(id){
+  const history = getLiuyaoHistory();
+  const record = history.find(r => r.id === id);
+  if(!record) return;
+  
+  // 显示结果页面
+  document.getElementById('liuyao-history-view').classList.add('hidden');
+  document.getElementById('liuyao-result-view').classList.remove('hidden');
+  renderLiuyaoResult(record.fullResult);
+}
+
+function backToHistoryFromResult(){
+  showLiuyaoHistory();
+}
+
 document.getElementById('ly-cast-btn').addEventListener('click', castLiuyao);
 document.getElementById('ly-coin-start').addEventListener('click', startCoin);
 // 铜钱点击事件在 startCoin 中绑定
 document.getElementById('ly-recast').addEventListener('click', backToCast);
+document.getElementById('ly-history-btn').addEventListener('click', showLiuyaoHistory);
+document.getElementById('liuyao-history-back').addEventListener('click', backToCast);
 
 // 初始化
 renderHome();
