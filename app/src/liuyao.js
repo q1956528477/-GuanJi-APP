@@ -343,7 +343,7 @@ export function cast(opts) {
   else if (opts.method === 'number') { lines = castByNumbers(opts.numbers || []); methodNote = '数字起卦'; }
   else if (opts.method === 'name') { const meta = HEX_BY_BITS[opts.bits] || YIJING_HEXAGRAMS[0]; lines = castByName(meta.bits); methodNote = '卦名起卦（静卦）'; }
   else if (opts.method === 'manual') { lines = (opts.lines || []).slice(0, 6); while (lines.length < 6) lines.push('young_yang'); methodNote = '手动指定'; }
-  else { lines = castByCoin(); methodNote = '铜钱摇卦'; }
+  else { lines = (opts.method==='coin' && opts.lines && opts.lines.length===6) ? opts.lines.slice(0,6) : castByCoin(); methodNote = opts.method==='random' ? '自动起卦' : '铜钱摇卦'; }
 
   const astrology = buildAstrology(date);
   const movingIdx = [];
@@ -413,6 +413,19 @@ export function cast(opts) {
       alerts,
     },
   };
+}
+
+export function tossCoin() {
+  const toss = () => (Math.random() < 0.5 ? 2 : 3);
+  const values = [toss(), toss(), toss()];
+  const sum = values[0] + values[1] + values[2];
+  let type, name;
+  if (sum === 6) { type = 'old_yin'; name = '老阴'; }
+  else if (sum === 9) { type = 'old_yang'; name = '老阳'; }
+  else if (sum === 7) { type = 'young_yang'; name = '少阳'; }
+  else { type = 'young_yin'; name = '少阴'; }
+  const heads = values.filter(v => v === 3).length;
+  return { values, sum, type, name, heads, tails: 3 - heads };
 }
 
 export const HEXAGRAMS = HEX_LIST;

@@ -52,6 +52,21 @@ check('数字起卦生成六爻', num.ben.naJia.length === 6);
 const time = LiuYao.cast({method:'time', date:'2026-09-10T10:00:00'});
 check('时间起卦生成六爻', time.ben.naJia.length === 6);
 
+// 单次铜钱摇卦
+check('单次摇卦接口存在', typeof LiuYao.tossCoin === 'function');
+const one = LiuYao.tossCoin();
+check('单次摇卦返回三枚铜钱', Array.isArray(one.values) && one.values.length === 3);
+check('单次摇卦卦型合法', ['old_yin','young_yang','young_yin','old_yang'].indexOf(one.type) >= 0);
+check('单次摇卦点数正确', one.values[0] + one.values[1] + one.values[2] === one.sum);
+
+// coin 起卦应使用传入的逐爻结果
+const coinCast = LiuYao.cast({method:'coin', lines:['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'], date:'2000-01-07T12:00:00'});
+check('coin 起卦使用传入六爻', coinCast.ben.meta.image === '乾为天' && coinCast.hasMoving === false);
+
+// 解读字段已随数据补齐
+check('卦辞白话译文存在', typeof qian.ben.meta.guaciTranslation === 'string' && qian.ben.meta.guaciTranslation.length > 0);
+check('爻辞白话译文存在', typeof qian.ben.meta.lines[0].translation === 'string' && qian.ben.meta.lines[0].translation.length > 0);
+
 console.log('\n===== 六爻引擎测试结果 =====');
 results.forEach(r => console.log(r));
 console.log('===== 结束 =====');

@@ -81,10 +81,14 @@ check('六爻模块存在', !!liuyaoCard);
 liuyaoCard.click();
 check('切到六爻视图', !document.getElementById('liuyao-view').classList.contains('hidden'));
 check('六爻引擎已加载', !!(window.LiuYao && window.LiuYao.cast));
+check('六爻起卦页与结果页分离', !document.getElementById('liuyao-cast-view').classList.contains('hidden'));
+const nameMethod = [...document.querySelectorAll('.ly-method')].find(b => b.textContent === '卦名起卦');
+nameMethod.click();
 document.getElementById('ly-cast-btn').click();
-check('六爻排盘结果已渲染', document.getElementById('ly-result').innerHTML.includes('六爻排盘'));
+check('六爻结果页已渲染', document.getElementById('ly-result').innerHTML.includes('卦象解读'));
 check('排盘包含本卦标签', document.getElementById('ly-result').innerHTML.includes('本卦'));
-check('排盘包含六爻标签', document.getElementById('ly-result').innerHTML.includes('六爻'));
+check('排盘包含卦象区', document.getElementById('ly-result').innerHTML.includes('卦象'));
+check('结果页显示', !document.getElementById('liuyao-result-view').classList.contains('hidden'));
 
 console.log('\n===== 测试结果 =====');
 results.forEach(r => console.log(r));
