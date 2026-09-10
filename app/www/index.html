@@ -371,6 +371,54 @@
   .ly-history-checkbox{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:20px;height:20px;cursor:pointer;}
   .ly-history-item.selected{background:#fff9e6;border:1px solid #e8dcc8;}
   
+  /* 需求记录项 */
+  .req-item{
+    padding:14px;
+    padding-right:140px;
+    border-bottom:1px solid #f0f0f0;
+    position:relative;
+    background:#fff;
+    transition:background .2s;
+  }
+  .req-item:hover{background:#fafafa;}
+  .req-item:last-child{border-bottom:none;}
+  .req-item-content{
+    font-size:14px;
+    line-height:1.6;
+    color:#333;
+    word-break:break-word;
+  }
+  .req-item-actions{
+    position:absolute;
+    right:14px;
+    top:50%;
+    transform:translateY(-50%);
+    display:flex;
+    gap:8px;
+  }
+  .req-item-edit-btn, .req-item-delete-btn{
+    padding:4px 12px;
+    border-radius:4px;
+    font-size:12px;
+    cursor:pointer;
+    border:none;
+    transition:all .2s;
+  }
+  .req-item-edit-btn{
+    background:#7a5d12;
+    color:#fff;
+  }
+  .req-item-edit-btn:hover{
+    background:#5d4509;
+  }
+  .req-item-delete-btn{
+    background:#d9534f;
+    color:#fff;
+  }
+  .req-item-delete-btn:hover{
+    background:#c9302c;
+  }
+  
   /* 删除按钮 */
   .ly-delete-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#d9534f;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;}
   .ly-delete-btn:hover{background:#c9302c;}
@@ -571,17 +619,7 @@
 
 </div>
 
-<!-- 迭代需求记录弹窗 -->
-<div class="modal-overlay" id="req-modal">
-  <div class="modal-panel">
-    <div class="modal-header">
-      <h3>📝 迭代需求记录</h3>
-      <button class="modal-close" id="req-close">&times;</button>
-    </div>
-    <div class="req-list" id="req-list"></div>
-    <button class="btn ghost" id="req-copy">📋 一键复制全部需求</button>
-  </div>
-</div>
+
 
 <!-- 日期详情弹窗 -->
 <div class="modal-overlay" id="day-modal">
@@ -591,6 +629,31 @@
       <button class="modal-close" id="day-close">&times;</button>
     </div>
     <div id="day-detail"></div>
+  </div>
+</div>
+
+<!-- ============ 迭代需求记录页面（独立） ============ -->
+<div id="req-view" class="view hidden">
+  <div class="topbar" style="padding-top:calc(18px + env(safe-area-inset-top));">
+    <div class="back" id="req-back"><span class="arr">←</span> 返回</div>
+    <div class="today-chip">迭代需求记录</div>
+    <div id="req-clear-all-btn" style="color:#d9534f;font-weight:600;cursor:pointer;">一键清空</div>
+  </div>
+  
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h3 style="margin:0;">📝 需求列表</h3>
+    </div>
+    <div id="req-list-container"></div>
+    <div id="req-empty" class="hidden" style="text-align:center;padding:40px 20px;color:#999;">
+      <div style="font-size:48px;margin-bottom:12px;">📭</div>
+      <div>暂无需求记录</div>
+    </div>
+  </div>
+  
+  <div style="margin:14px;display:flex;gap:8px;">
+    <button class="btn" id="req-add-new" style="flex:1;">➕ 添加新需求</button>
+    <button class="btn ghost" id="req-copy-all">📋 一键复制全部需求</button>
   </div>
 </div>
 
@@ -664,9 +727,18 @@ function saveState(){ Storage.save(state); }
 
 /* ---------------- 迭代需求存储 ---------------- */
 const ReqStorage = {
-  KEY: 'guanji_requirements_v1',
+  KEY: 'guanji_requirements_v2',
   load(){
-    try{ const raw = localStorage.getItem(this.KEY); return raw ? JSON.parse(raw) : []; }
+    try{ 
+      const raw = localStorage.getItem(this.KEY); 
+      if(!raw) return [];
+      const data = JSON.parse(raw);
+      // 兼容旧格式：如果是字符串数组，转换为新格式
+      if(Array.isArray(data) && data.length > 0 && typeof data[0] === 'string'){
+        return data.map(text => ({text: text, createdAt: Date.now()}));
+      }
+      return data;
+    }
     catch(e){ return []; }
   },
   save(list){ localStorage.setItem(this.KEY, JSON.stringify(list)); }
@@ -1207,39 +1279,12 @@ document.getElementById('restore-file').addEventListener('change', (e)=>{
 });
 
 // ---- 迭代需求记录 ----
-function renderReqList(){
-  const box = document.getElementById('req-list');
-  const list = ReqStorage.load();
-  box.innerHTML = '';
-  if(list.length === 0){ box.innerHTML = '<div class="req-empty">还没有记录需求，点击下方添加</div>'; }
-  list.forEach((txt, i)=>{
-    const item = document.createElement('div'); item.className = 'req-item';
-    const ta = document.createElement('textarea'); ta.value = txt; ta.placeholder = '输入迭代需求…';
-    ta.oninput = ()=>{ list[i] = ta.value; ReqStorage.save(list); };
-    const del = document.createElement('button'); del.className = 'req-del'; del.textContent = '×';
-    del.onclick = ()=>{ list.splice(i, 1); ReqStorage.save(list); renderReqList(); };
-    item.appendChild(ta); item.appendChild(del);
-    box.appendChild(item);
-  });
-  const add = document.createElement('button'); add.className = 'req-add'; add.textContent = '+ 添加新需求';
-  add.onclick = ()=>{ list.push(''); ReqStorage.save(list); renderReqList(); box.scrollTop = box.scrollHeight; };
-  box.appendChild(add);
-}
-function closeReqModal(){ document.getElementById('req-modal').classList.remove('show'); }
-document.getElementById('req-float-btn').addEventListener('click', ()=>{ renderReqList(); document.getElementById('req-modal').classList.add('show'); });
-document.getElementById('req-close').addEventListener('click', closeReqModal);
-document.getElementById('req-modal').addEventListener('click', (e)=>{ if(e.target === document.getElementById('req-modal')) closeReqModal(); });
-document.getElementById('req-copy').addEventListener('click', async ()=>{
-  const list = ReqStorage.load().map((t, i)=> (i+1) + '. ' + t).join('\n');
-  if(!list){ showToast('没有需求可复制'); return; }
-  try{
-    await navigator.clipboard.writeText(list);
-  }catch(e){
-    const ta = document.createElement('textarea'); ta.value = list; document.body.appendChild(ta);
-    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-  }
-  showToast('已复制全部需求到剪贴板');
-});
+
+
+
+
+
+
 
 // ---- 日期详情弹窗 ----
 document.getElementById('day-close').addEventListener('click', closeDayDetail);
@@ -1499,6 +1544,129 @@ function backFromHistory(){
   document.getElementById('liuyao-result-view').classList.add('hidden');
   isHistoryEditMode = false;
   selectedHistoryIds.clear();
+}
+
+// ========== 迭代需求记录功能 ==========
+function openReqView(){
+  document.getElementById('home-view').classList.add('hidden');
+  document.getElementById('req-view').classList.remove('hidden');
+  renderReqList();
+}
+
+function closeReqView(){
+  document.getElementById('req-view').classList.add('hidden');
+  document.getElementById('home-view').classList.remove('hidden');
+  renderHome();
+}
+
+function renderReqList(){
+  const list = ReqStorage.load();
+  const container = document.getElementById('req-list-container');
+  const empty = document.getElementById('req-empty');
+  
+  container.innerHTML = '';
+  
+  if(list.length === 0){
+    empty.classList.remove('hidden');
+    return;
+  }
+  
+  empty.classList.add('hidden');
+  
+  list.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'req-item';
+    
+    const content = document.createElement('div');
+    content.className = 'req-item-content';
+    content.textContent = item.text || '（空需求）';
+    
+    const actions = document.createElement('div');
+    actions.className = 'req-item-actions';
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'req-item-edit-btn';
+    editBtn.textContent = '修改';
+    editBtn.onclick = () => editReqItem(index);
+    
+    const delBtn = document.createElement('button');
+    delBtn.className = 'req-item-delete-btn';
+    delBtn.textContent = '删除';
+    delBtn.onclick = () => deleteReqItem(index);
+    
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    
+    div.appendChild(content);
+    div.appendChild(actions);
+    container.appendChild(div);
+  });
+}
+
+function addNewReq(){
+  const text = prompt('请输入新需求：');
+  if(text === null || text.trim() === '') return;
+  
+  const list = ReqStorage.load();
+  list.push({text: text.trim(), createdAt: Date.now()});
+  ReqStorage.save(list);
+  renderReqList();
+  showToast('需求已添加');
+}
+
+function editReqItem(index){
+  const list = ReqStorage.load();
+  const item = list[index];
+  if(!item) return;
+  
+  const newText = prompt('修改需求内容：', item.text || '');
+  if(newText === null || newText.trim() === '') return;
+  
+  list[index].text = newText.trim();
+  ReqStorage.save(list);
+  renderReqList();
+  showToast('需求已更新');
+}
+
+function deleteReqItem(index){
+  if(!confirm('确定删除这条需求吗？')) return;
+  
+  const list = ReqStorage.load();
+  list.splice(index, 1);
+  ReqStorage.save(list);
+  renderReqList();
+  showToast('需求已删除');
+}
+
+function clearAllReq(){
+  const list = ReqStorage.load();
+  if(list.length === 0){
+    showToast('暂无需求记录');
+    return;
+  }
+  
+  if(!confirm(`确定清空全部 ${list.length} 条需求记录吗？此操作不可恢复！`)) return;
+  
+  ReqStorage.save([]);
+  renderReqList();
+  showToast('已清空全部需求');
+}
+
+async function copyAllReq(){
+  const list = ReqStorage.load();
+  if(list.length === 0){
+    showToast('没有需求可复制');
+    return;
+  }
+  
+  const text = list.map((item, i) => (i+1) + '. ' + item.text).join('\n');
+  
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast('已复制到剪贴板');
+  } catch(e){
+    showToast('复制失败');
+  }
 }
 
 function backFromResult(){
@@ -1834,6 +2002,13 @@ document.getElementById('ly-history-edit-btn').addEventListener('click', toggleE
 document.getElementById('ly-select-all-btn').addEventListener('click', selectAllHistory);
 document.getElementById('ly-delete-selected-btn').addEventListener('click', deleteSelectedHistory);
 // 编辑事项的事件在渲染结果时动态绑定
+
+// 需求记录事件监听
+document.getElementById('req-float-btn').addEventListener('click', openReqView);
+document.getElementById('req-back').addEventListener('click', closeReqView);
+document.getElementById('req-add-new').addEventListener('click', addNewReq);
+document.getElementById('req-copy-all').addEventListener('click', copyAllReq);
+document.getElementById('req-clear-all-btn').addEventListener('click', clearAllReq);
 
 // 初始化
 renderHome();
