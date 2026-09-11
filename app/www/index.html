@@ -318,19 +318,22 @@
   /* 卦象表格：本卦 / 变卦 逐爻对齐 */
   .rebu-gua-area{border-top:1px solid #ddd;border-bottom:1px solid #ddd;}
   .rebu-gua-table{width:100%;border-collapse:collapse;table-layout:fixed;}
-  .rebu-gua-table th{padding:8px 4px;font-size:12px;font-weight:800;text-align:center;border-bottom:1px solid #ddd;letter-spacing:1px;}
-  .rebu-gua-table th.gua-th-ben{color:#0e7a63;background:#f1faf7;border-right:1px solid #ddd;}
-  .rebu-gua-table th.gua-th-zhi{color:#1c6fa8;background:#f2f8fd;}
-  .rebu-gua-table td{padding:5px;font-size:10px;line-height:1.5;vertical-align:top;border-bottom:1px dashed #f0f0f0;}
+  .rebu-gua-table th{padding:8px 4px;font-size:13px;font-weight:800;text-align:center;color:#333;letter-spacing:1px;border-bottom:1px solid #ddd;}
+  .rebu-gua-table th.gua-th-ben{border-right:1px solid #ddd;}
+  .rebu-gua-table td{padding:4px 2px;text-align:center;vertical-align:middle;border-bottom:1px dashed #f0f0f0;}
+  .rebu-gua-table td.gua-td-ben{border-right:1px solid #ddd;}
   .rebu-gua-table tbody tr:last-child td{border-bottom:none;}
-  .rebu-yao-left{color:#d9534f;font-weight:700;overflow:hidden;}
-  .rebu-yao-left.zhi-col,.rebu-yao-main.zhi-col{border-left:1px solid #ddd;}
-  .rebu-yao-left .ly-stem{color:#a88534;font-weight:600;margin-left:3px;}
-  .rebu-yao-left .rebu-fushen-inline{display:block;color:#d9534f;font-weight:500;font-size:9px;margin-top:1px;}
-  .rebu-yao-main{color:#333;font-family:monospace;letter-spacing:-1px;white-space:nowrap;}
-  .rebu-yao-glyph{display:inline-block;min-width:46px;}
-  .rebu-yao-main .attr{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:0;color:#1f9d7f;font-weight:700;margin-left:3px;font-size:9px;}
-  .rebu-yao-main .moving-flag{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:0;color:#fff;background:#d9534f;border-radius:8px;padding:1px 5px;font-weight:700;margin-left:3px;font-size:9px;}
+  /* 爻行：六亲纳甲 在左，爻线居中，世应/动 在右 */
+  .rebu-yao-row{display:inline-flex;align-items:center;justify-content:center;}
+  .rebu-yao-meta{flex:0 0 44px;width:44px;text-align:right;padding-right:4px;font-size:10px;line-height:1.35;color:#d9534f;font-weight:700;white-space:nowrap;}
+  .rebu-yao-meta .ly-stem{color:#a88534;font-weight:600;margin-left:2px;}
+  .rebu-yao-meta .rebu-fushen-inline{display:block;color:#d9534f;font-weight:500;font-size:8px;line-height:1.2;white-space:normal;}
+  .rebu-yao-bar{flex:0 0 46px;width:46px;display:flex;align-items:center;justify-content:center;gap:10px;}
+  .rebu-yao-bar .seg{height:7px;background:#1a1a1a;border-radius:1px;}
+  .rebu-yao-bar.yang .seg{width:46px;}
+  .rebu-yao-bar.yin .seg{width:18px;}
+  .rebu-yao-tag{flex:0 0 44px;width:44px;text-align:left;padding-left:4px;font-size:9px;font-weight:700;color:#1f9d7f;}
+  .rebu-yao-tag .move{color:#fff;background:#d9534f;border-radius:8px;padding:1px 5px;margin-left:2px;}
 
   /* 解卦区：本卦 / 变卦 切换按钮 */
   .rebu-jieshi-section{margin:14px 0 0;}
@@ -366,9 +369,6 @@
   /* 卡片容器优化 */
   #ly-result .card{padding:0;margin:12px 0;overflow:hidden;}
   #ly-result .card:first-child{margin-top:0;}
-  
-  /* 爻线字体优化 */
-  .rebu-yao-main{font-family:monospace;letter-spacing:-1px;}
   
   /* 六爻记录列表 */
   .ly-history-item{padding:14px;padding-right:70px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .2s;position:relative;}
@@ -1784,38 +1784,39 @@ function renderLiuyaoResult(r){
   if(btnZhi) btnZhi.addEventListener('click', function(){ switchGuaJieshi('zhi'); });
 }
 
-// 卦象表格：把本卦与变卦的每一爻放在同一行，确保逐爻对齐
+// 卦象表格：表头显示卦名，本卦与变卦的每一爻放在同一行，确保逐爻左右对齐
 function renderGuaTable(ben, zhi, movingSet){
   const hasZhi = !!zhi;
-  let h='<table class="rebu-gua-table"><colgroup><col style="width:64px"><col>';
-  if(hasZhi) h+='<col style="width:64px"><col>';
+  let h='<table class="rebu-gua-table"><colgroup><col>';
+  if(hasZhi) h+='<col>';
   h+='</colgroup><thead><tr>';
-  h+='<th colspan="2" class="gua-th-ben">本卦</th>';
-  if(hasZhi) h+='<th colspan="2" class="gua-th-zhi">变卦</th>';
+  h+='<th class="gua-th-ben">'+escapeHtml(ben.meta.image)+'</th>';
+  if(hasZhi) h+='<th class="gua-th-zhi">'+escapeHtml(zhi.meta.image)+'</th>';
   h+='</tr></thead><tbody>';
   for(let i=5;i>=0;i--){
     h+='<tr>';
-    h+=renderYaoCells(ben, i, movingSet, false);
-    if(hasZhi) h+=renderYaoCells(zhi, i, new Set(), true);
+    h+='<td class="gua-td-ben">'+renderYaoRow(ben, i, movingSet.has(i))+'</td>';
+    if(hasZhi) h+='<td class="gua-td-zhi">'+renderYaoRow(zhi, i, false)+'</td>';
     h+='</tr>';
   }
   h+='</tbody></table>';
   return h;
 }
 
-function renderYaoCells(hexData, i, movingSet, isZhi){
+// 单爻：六亲纳甲（左）＋ 爻线（居中，阳爻一条直线 / 阴爻两条短线）＋ 世应·动（右）
+function renderYaoRow(hexData, i, isMove){
   const l=hexData.naJia[i], meta=hexData.meta;
-  const isMove=movingSet.has(i);
-  const colCls=isZhi?' zhi-col':'';
-  let h='';
-  h+='<td class="rebu-yao-left'+colCls+'">'+escapeHtml(l.liuQin)+'<span class="ly-stem">'+escapeHtml(l.stem+l.branch)+'</span>';
+  const yang=meta.bits[i]==='1';
+  let h='<div class="rebu-yao-row">';
+  h+='<span class="rebu-yao-meta">'+escapeHtml(l.liuQin)+'<span class="ly-stem">'+escapeHtml(l.stem+l.branch)+'</span>';
   if(l.fuShen) h+='<span class="rebu-fushen-inline">伏 '+escapeHtml(l.fuShen.liuQin)+' '+escapeHtml(l.fuShen.stem+l.fuShen.branch)+'</span>';
-  h+='</td>';
-  h+='<td class="rebu-yao-main'+colCls+'">';
-  h+='<span class="rebu-yao-glyph">'+(meta.bits[i]==='1'?'▬▬▬▬▬':'▬　　▬')+'</span>';
-  if(l.shiYing) h+='<span class="attr">'+l.shiYing+'</span>';
-  if(isMove) h+='<span class="moving-flag">动</span>';
-  h+='</td>';
+  h+='</span>';
+  h+='<span class="rebu-yao-bar '+(yang?'yang':'yin')+'">'+(yang?'<i class="seg"></i>':'<i class="seg"></i><i class="seg"></i>')+'</span>';
+  h+='<span class="rebu-yao-tag">';
+  if(l.shiYing) h+='<span class="shiying">'+l.shiYing+'</span>';
+  if(isMove) h+='<span class="move">动</span>';
+  h+='</span>';
+  h+='</div>';
   return h;
 }
 
