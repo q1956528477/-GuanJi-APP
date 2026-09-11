@@ -315,27 +315,44 @@
   .rebu-info-table td:first-child{background:#f9f6f0;color:#c8a060;font-weight:600;width:50px;text-align:center;font-size:10px;}
   .rebu-info-table .highlight{color:#d9534f;font-weight:700;}
   
-  .rebu-gua-area{display:flex;border-top:1px solid #ddd;border-bottom:1px solid #ddd;}
-  .rebu-gua-col{flex:1;padding:12px 6px;}
-  .rebu-gua-col:first-child{border-right:1px solid #ddd;}
-  .rebu-gua-name{text-align:center;font-size:13px;font-weight:800;margin-bottom:10px;}
-  
-  .rebu-yao-row{display:flex;align-items:flex-start;padding:4px 0;font-size:11px;line-height:1.5;}
-  .rebu-yao-left{color:#d9534f;font-weight:700;min-width:60px;font-size:10px;}
-  .rebu-yao-main{flex:1;color:#333;font-size:10px;word-break:keep-all;}
-  .rebu-yao-main .attr{color:#666;margin-left:4px;font-size:9px;}
-  .rebu-yao-main .arrow{color:#999;margin:0 3px;}
-  .rebu-yao-main .trans{color:#666;font-size:9px;}
-  .rebu-fushen{color:#d9534f;font-size:9px;margin-top:2px;padding-left:60px;}
-  
-  .rebu-bottom-tags{display:flex;justify-content:center;gap:0;margin:12px 0;}
-  .rebu-tag{flex:1;text-align:center;padding:10px;font-weight:700;font-size:12px;color:#fff;}
-  .rebu-tag.ben{background:#16a085;}
-  .rebu-tag.bian{background:#3498db;}
-  
-  .rebu-jieshi-gray{background:#f5f5f5;padding:10px;margin:10px 0;line-height:1.7;font-size:11px;color:#333;}
-  .rebu-jieshi-white{background:#fff;padding:10px;margin:10px 0;line-height:1.7;font-size:11px;color:#333;}
-  .rebu-jieshi-white h4{font-size:12px;font-weight:700;margin:8px 0 4px;color:#333;}
+  /* 卦象表格：本卦 / 变卦 逐爻对齐 */
+  .rebu-gua-area{border-top:1px solid #ddd;border-bottom:1px solid #ddd;}
+  .rebu-gua-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  .rebu-gua-table th{padding:8px 4px;font-size:12px;font-weight:800;text-align:center;border-bottom:1px solid #ddd;letter-spacing:1px;}
+  .rebu-gua-table th.gua-th-ben{color:#0e7a63;background:#f1faf7;border-right:1px solid #ddd;}
+  .rebu-gua-table th.gua-th-zhi{color:#1c6fa8;background:#f2f8fd;}
+  .rebu-gua-table td{padding:5px;font-size:10px;line-height:1.5;vertical-align:top;border-bottom:1px dashed #f0f0f0;}
+  .rebu-gua-table tbody tr:last-child td{border-bottom:none;}
+  .rebu-yao-left{color:#d9534f;font-weight:700;overflow:hidden;}
+  .rebu-yao-left.zhi-col,.rebu-yao-main.zhi-col{border-left:1px solid #ddd;}
+  .rebu-yao-left .ly-stem{color:#a88534;font-weight:600;margin-left:3px;}
+  .rebu-yao-left .rebu-fushen-inline{display:block;color:#d9534f;font-weight:500;font-size:9px;margin-top:1px;}
+  .rebu-yao-main{color:#333;font-family:monospace;letter-spacing:-1px;white-space:nowrap;}
+  .rebu-yao-glyph{display:inline-block;min-width:46px;}
+  .rebu-yao-main .attr{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:0;color:#1f9d7f;font-weight:700;margin-left:3px;font-size:9px;}
+  .rebu-yao-main .moving-flag{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:0;color:#fff;background:#d9534f;border-radius:8px;padding:1px 5px;font-weight:700;margin-left:3px;font-size:9px;}
+
+  /* 解卦区：本卦 / 变卦 切换按钮 */
+  .rebu-jieshi-section{margin:14px 0 0;}
+  .rebu-jieshi-switch{display:flex;gap:8px;margin-bottom:12px;}
+  .rebu-gua-btn{flex:1;padding:11px 8px;font-size:12px;font-weight:700;border:1px solid #d9c9a3;background:#faf7f0;color:#7a5d12;border-radius:10px;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+  .rebu-gua-btn.active{background:linear-gradient(135deg,#d4a843,#b8933a);color:#fff;border-color:#b8933a;box-shadow:0 3px 10px rgba(139,105,20,.25);}
+  .rebu-gua-btn:active{transform:scale(.98);}
+
+  /* 解读分段 */
+  .rebu-block{background:#fff;border-left:3px solid #d4a843;border-radius:8px;padding:10px 12px;margin:10px 0;box-shadow:0 1px 4px rgba(139,105,20,.06);}
+  .rebu-block-title{font-size:12px;font-weight:800;color:#7a5d12;margin-bottom:6px;letter-spacing:1px;}
+  .rebu-block .rebu-text{font-size:12px;line-height:1.8;color:#333;margin:0;}
+  .rebu-yaoci{padding:6px 0;border-bottom:1px dashed #f0ead9;}
+  .rebu-yaoci:last-child{border-bottom:none;}
+  .rebu-yaoci.moving{background:#fff8ef;border-radius:6px;padding:6px 8px;}
+  .rebu-yaoci-title{font-size:12px;font-weight:700;color:#5a4310;line-height:1.7;}
+  .rebu-yaoci-dong{display:inline-block;color:#fff;background:#d9534f;font-size:9px;font-weight:700;border-radius:8px;padding:1px 6px;margin:0 4px;}
+  .rebu-yaoci-sub{font-size:11px;line-height:1.7;color:#666;margin-top:2px;}
+
+  .rebu-jieshi-gray{background:#f5f5f5;padding:10px 12px;margin:12px 0 0;line-height:1.7;font-size:11px;color:#333;border-radius:8px;}
+  .rebu-alert-list{margin:6px 0 0;padding-left:18px;}
+  .rebu-alert-list li{line-height:1.7;}
   
   .rebu-tradition-box{border:2px solid #f39c12;border-radius:4px;padding:12px;margin:12px 0;position:relative;}
   .rebu-tradition-box::before,.rebu-tradition-box::after{content:'🔖';position:absolute;top:-12px;font-size:18px;background:#fff;padding:0 4px;}
@@ -1737,41 +1754,21 @@ function renderLiuyaoResult(r){
   html+='<tr><td>空亡</td><td>'+escapeHtml(a.dayXunKong)+'</td></tr>';
   html+='<tr><td>神煞</td><td>'+ben.naJia.map(l=>l.sixGod).filter((v,i,a)=>a.indexOf(v)===i).join('　')+'</td></tr>';
   html+='</table>';
-  html+='<div class="rebu-gua-area">';
-  html+=renderRebuGua(ben, movingSet, ben.meta.image+'(乾)');
-  if(zhi) html+=renderRebuGua(zhi, new Set(), zhi.meta.image+'(坤)');
-  html+='</div>';
-  html+='<div class="rebu-bottom-tags">';
-  html+='<div class="rebu-tag ben">本卦：'+escapeHtml(ben.meta.image)+'</div>';
-  if(zhi) html+='<div class="rebu-tag bian">变卦：'+escapeHtml(zhi.meta.image)+'</div>';
-  html+='</div>';
-  html+='<div class="rebu-jieshi-gray">';
-  if(r.analysis.yongShen){
-    html+='<b>用神：</b>'+r.analysis.yongDetail.map(d=>{
-      const tags=[d.status.month].concat(d.status.day).concat(d.status.transform).filter(Boolean);
-      return escapeHtml(d.liuQin)+escapeHtml(d.branch)+(tags.length?'，'+escapeHtml(tags.join('、')):'');
-    }).join('。')+'。';
-  }
-  r.analysis.alerts.forEach(t=>{ html+='<br>'+escapeHtml(t); });
-  html+='</div>';
-  html+='<div class="rebu-jieshi-white">';
-  if(ben.meta.guaci) html+='<p><b>卦辞：</b>'+escapeHtml(ben.meta.guaci)+'</p>';
-  if(ben.meta.guaciTranslation) html+='<p>'+escapeHtml(ben.meta.guaciTranslation)+'</p>';
-  if(ben.moving.length){
-    ben.moving.forEach(i=>{
-      const line=ben.meta.lines[i];
-      html+='<h4>'+['初','二','三','四','五','上'][i]+'爻：</h4>';
-      if(line.text) html+='<p>'+escapeHtml(line.text)+'</p>';
-    });
-  }
-  html+='</div>';
-  if(ben.meta.shaoyong){
-    html+='<div class="rebu-tradition-box">';
-    html+='<div class="rebu-tradition-title">传统解卦</div>';
-    html+='<div class="rebu-tradition-content">';
-    html+='<h4>'+escapeHtml(ben.meta.image)+'</h4>';
-    html+='<p>'+escapeHtml(ben.meta.shaoyong)+'</p>';
-    html+='</div></div>';
+  html+='<div class="rebu-gua-area">'+renderGuaTable(ben, zhi, movingSet)+'</div>';
+  html+=renderJieshiSection(ben, zhi, movingSet);
+  if(r.analysis.yongShen || (r.analysis.alerts && r.analysis.alerts.length)){
+    html+='<div class="rebu-jieshi-gray">';
+    html+='<div class="rebu-block-title">用神与提示</div>';
+    if(r.analysis.yongShen){
+      html+='<div><b>用神：</b>'+r.analysis.yongDetail.map(d=>{
+        const tags=[d.status.month].concat(d.status.day).concat(d.status.transform).filter(Boolean);
+        return escapeHtml(d.liuQin)+escapeHtml(d.branch)+(tags.length?'，'+escapeHtml(tags.join('、')):'');
+      }).join('。')+'。</div>';
+    }
+    if(r.analysis.alerts && r.analysis.alerts.length){
+      html+='<ul class="rebu-alert-list">'+r.analysis.alerts.map(t=>'<li>'+escapeHtml(t)+'</li>').join('')+'</ul>';
+    }
+    html+='</div>';
   }
   html+='</div>';
   box.innerHTML=html;
@@ -1780,27 +1777,116 @@ function renderLiuyaoResult(r){
   // 绑定编辑事项事件
   const editLink = document.getElementById('ly-inline-edit-link');
   if(editLink) editLink.addEventListener('click', editResultQuestion);
+  // 绑定本卦 / 变卦切换按钮
+  const btnBen = document.getElementById('rebu-gua-btn-ben');
+  if(btnBen) btnBen.addEventListener('click', function(){ switchGuaJieshi('ben'); });
+  const btnZhi = document.getElementById('rebu-gua-btn-zhi');
+  if(btnZhi) btnZhi.addEventListener('click', function(){ switchGuaJieshi('zhi'); });
 }
 
-function renderRebuGua(hexData, movingSet, title){
-  const meta=hexData.meta, naJia=hexData.naJia;
-  let h='<div class="rebu-gua-col">';
-  h+='<div class="rebu-gua-name">'+escapeHtml(title)+'</div>';
+// 卦象表格：把本卦与变卦的每一爻放在同一行，确保逐爻对齐
+function renderGuaTable(ben, zhi, movingSet){
+  const hasZhi = !!zhi;
+  let h='<table class="rebu-gua-table"><colgroup><col style="width:64px"><col>';
+  if(hasZhi) h+='<col style="width:64px"><col>';
+  h+='</colgroup><thead><tr>';
+  h+='<th colspan="2" class="gua-th-ben">本卦</th>';
+  if(hasZhi) h+='<th colspan="2" class="gua-th-zhi">变卦</th>';
+  h+='</tr></thead><tbody>';
   for(let i=5;i>=0;i--){
-    const l=naJia[i];
-    const isMove=movingSet.has(i);
-    h+='<div class="rebu-yao-row">';
-    h+='<div class="rebu-yao-left">'+escapeHtml(l.liuQin)+' '+escapeHtml(l.stem+l.branch)+'</div>';
-    h+='<div class="rebu-yao-main">';
-    const yaoLine=meta.bits[i]==='1'?'<span style="display:inline-block;width:70px;text-align:center;">▬▬▬▬▬</span>':'<span style="display:inline-block;width:70px;text-align:center;">▬　　▬</span>';
-    h+=yaoLine;
-    if(l.shiYing) h+=' <span class="attr">'+l.shiYing+'</span>';
-    if(isMove) h+='<span class="arrow">0→</span><span class="trans">变化</span>';
-    h+='</div></div>';
-    if(l.fuShen) h+='<div class="rebu-fushen">伏神：'+escapeHtml(l.fuShen.liuQin)+' '+escapeHtml(l.fuShen.stem+l.fuShen.branch)+'</div>';
+    h+='<tr>';
+    h+=renderYaoCells(ben, i, movingSet, false);
+    if(hasZhi) h+=renderYaoCells(zhi, i, new Set(), true);
+    h+='</tr>';
   }
+  h+='</tbody></table>';
+  return h;
+}
+
+function renderYaoCells(hexData, i, movingSet, isZhi){
+  const l=hexData.naJia[i], meta=hexData.meta;
+  const isMove=movingSet.has(i);
+  const colCls=isZhi?' zhi-col':'';
+  let h='';
+  h+='<td class="rebu-yao-left'+colCls+'">'+escapeHtml(l.liuQin)+'<span class="ly-stem">'+escapeHtml(l.stem+l.branch)+'</span>';
+  if(l.fuShen) h+='<span class="rebu-fushen-inline">伏 '+escapeHtml(l.fuShen.liuQin)+' '+escapeHtml(l.fuShen.stem+l.fuShen.branch)+'</span>';
+  h+='</td>';
+  h+='<td class="rebu-yao-main'+colCls+'">';
+  h+='<span class="rebu-yao-glyph">'+(meta.bits[i]==='1'?'▬▬▬▬▬':'▬　　▬')+'</span>';
+  if(l.shiYing) h+='<span class="attr">'+l.shiYing+'</span>';
+  if(isMove) h+='<span class="moving-flag">动</span>';
+  h+='</td>';
+  return h;
+}
+
+// 解卦区：卦名按钮 + 对应解读
+function renderJieshiSection(ben, zhi, movingSet){
+  let h='<div class="rebu-jieshi-section">';
+  h+='<div class="rebu-jieshi-switch">';
+  h+='<button type="button" class="rebu-gua-btn active" id="rebu-gua-btn-ben">本卦：'+escapeHtml(ben.meta.image)+'</button>';
+  if(zhi) h+='<button type="button" class="rebu-gua-btn" id="rebu-gua-btn-zhi">变卦：'+escapeHtml(zhi.meta.image)+'</button>';
+  h+='</div>';
+  h+='<div class="rebu-jieshi-panels">';
+  h+='<div class="rebu-jieshi-panel" id="rebu-jieshi-ben">'+renderJieshiContent(ben, movingSet, true)+'</div>';
+  if(zhi) h+='<div class="rebu-jieshi-panel hidden" id="rebu-jieshi-zhi">'+renderJieshiContent(zhi, new Set(), false)+'</div>';
+  h+='</div>';
   h+='</div>';
   return h;
+}
+
+// 单卦解读：卦辞 / 卦象 / 卦义 / 爻辞 / 传统解卦
+function renderJieshiContent(hexData, movingSet, isBen){
+  const meta=hexData.meta;
+  const yaoName=['初','二','三','四','五','上'];
+  let h='';
+  h+='<div class="rebu-block">';
+  h+='<div class="rebu-block-title">卦辞</div>';
+  h+='<p class="rebu-text">'+(meta.guaci?escapeHtml(meta.guaci):'暂无')+'</p>';
+  h+='</div>';
+  h+='<div class="rebu-block">';
+  h+='<div class="rebu-block-title">卦象</div>';
+  h+='<p class="rebu-text">'+(meta.summary?escapeHtml(meta.summary):'暂无')+'</p>';
+  h+='</div>';
+  h+='<div class="rebu-block">';
+  h+='<div class="rebu-block-title">卦义</div>';
+  h+='<p class="rebu-text">'+(meta.guaciTranslation?escapeHtml(meta.guaciTranslation):'暂无')+'</p>';
+  h+='</div>';
+  h+='<div class="rebu-block">';
+  h+='<div class="rebu-block-title">爻辞</div>';
+  if(meta.lines && meta.lines.length){
+    meta.lines.forEach((ln, i)=>{
+      const moving = isBen && movingSet.has(i);
+      h+='<div class="rebu-yaoci'+(moving?' moving':'')+'">';
+      h+='<div class="rebu-yaoci-title">'+yaoName[i]+'爻'+(moving?'<span class="rebu-yaoci-dong">动</span>':'')+'：'+escapeHtml(ln.text||'')+'</div>';
+      if(ln.translation) h+='<div class="rebu-yaoci-sub">'+escapeHtml(ln.translation)+'</div>';
+      if(ln.shaoyong) h+='<div class="rebu-yaoci-sub">【断易】'+escapeHtml(ln.shaoyong)+'</div>';
+      h+='</div>';
+    });
+  } else {
+    h+='<p class="rebu-text">暂无</p>';
+  }
+  h+='</div>';
+  if(meta.shaoyong){
+    h+='<div class="rebu-tradition-box">';
+    h+='<div class="rebu-tradition-title">传统解卦</div>';
+    h+='<div class="rebu-tradition-content">';
+    h+='<h4>'+escapeHtml(meta.image)+'</h4>';
+    h+='<p>'+escapeHtml(meta.shaoyong)+'</p>';
+    h+='</div></div>';
+  }
+  return h;
+}
+
+function switchGuaJieshi(which){
+  const benPanel=document.getElementById('rebu-jieshi-ben');
+  const zhiPanel=document.getElementById('rebu-jieshi-zhi');
+  const btnBen=document.getElementById('rebu-gua-btn-ben');
+  const btnZhi=document.getElementById('rebu-gua-btn-zhi');
+  const useZhi=(which==='zhi' && !!zhiPanel);
+  if(benPanel) benPanel.classList.toggle('hidden', useZhi);
+  if(zhiPanel) zhiPanel.classList.toggle('hidden', !useZhi);
+  if(btnBen) btnBen.classList.toggle('active', !useZhi);
+  if(btnZhi) btnZhi.classList.toggle('active', useZhi);
 }
 
 
