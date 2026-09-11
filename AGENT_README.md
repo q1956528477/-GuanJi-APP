@@ -6,6 +6,46 @@
 
 ---
 
+## 使用方式｜让另一个终端接手（把下面的话发给它）
+
+**情况 A｜新终端，代码还没拉下来** —— 把下面这段整段发给它：
+
+```
+从 GitHub 接手「观己」这个项目，先不要改任何代码，按顺序做完再说：
+
+1) 拉代码：
+   git clone https://github.com/q1956528477/-GuanJi-APP.git
+   cd 仓库目录
+   git checkout codex/liuyao-replica
+
+2) 完整读一遍仓库根目录的 AGENT_README.md。它是这个项目的交接说明，
+   包含技术栈、目录结构、页面架构、localStorage 键名、构建/打包流程、
+   六爻结果页结构（v1.11.0 重构重点）、常见问题和本机环境坑。
+
+3) 检查本机环境是否齐备：Node.js、JDK 17、Android SDK。
+   如果换了机器，按 6.2 / 6.3 节核对
+   app/android/local.properties 的 sdk.dir 与
+   app/android/gradle.properties 的 projectcachedir。
+
+4) 读完先向我汇报，不要动手改：
+   - 当前分支与版本号
+   - 你理解的项目结构和关键文件
+   - 你打算怎么验证改动（预览方式、打包方式）
+   - 有疑问的地方列出来问我
+```
+
+**情况 B｜这个终端已经有代码** —— 一句话就够：
+
+```
+在仓库根目录先 git pull（分支 codex/liuyao-replica），
+然后重读一遍 AGENT_README.md 看有没有更新，再按里面的约定继续开发。
+本次需求：<在这里写你的需求>
+做完按约定：同步 android assets → 递增版本号三处 → 打包 APK → commit + push，
+最后告诉我改了哪些文件、怎么验证的。
+```
+
+---
+
 ## 0. 交接铁律（先读这一节）
 
 1. **只通过 Git 交接源码**，不再用压缩包传工程。
@@ -185,6 +225,17 @@ python -m http.server 8080 --directory app/www
 | `app/package.json` | `version` |
 | 交付 APK 文件名 | `观己_vX.Y_描述_release.apk` |
 
+### 6.6 测试
+
+```powershell
+cd app
+npm test            # 只跑六爻引擎测试 test_liuyao.js（推荐，快）
+npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不用
+```
+
+- `test_liuyao.js` 直接读 `www/liuyao.bundle.js` 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑它**。
+- `test_app.js` 是旧版本（v1.3 时代）的 jsdom 页面测试，检查的 DOM 结构早已不存在，且 jsdom 在本机运行会直接让 Node 崩（访问冲突），**不要用它判断代码对错**，页面一律以浏览器预览为准。
+
 ---
 
 ## 7. 六爻结果页结构（v1.11.0 重构，最容易被改坏的地方）
@@ -245,6 +296,7 @@ python -m http.server 8080 --directory app/www
 ### 环境坑（本机已知）
 
 - 中文路径：`app/android/gradle.properties` 需保留 `android.overridePathCheck=true`。
+- **工程若放在中文路径下，Node 跑 `npm test` 会直接崩（访问冲突 / 0xC0000005）**。把 `www/liuyao.bundle.js` 和 `test_liuyao.js` 复制到纯英文路径（如 `%TEMP%\guanji-test`）再跑就正常——这是路径问题，不是代码问题。`test_app.js` 则是 jsdom 自身崩溃，任何路径都跑不了。
 - 删除文件：本环境 `rm` 与未 unset 的 node 删除会被 safe-delete 拦截，用 `unset NODE_OPTIONS && node -e "fs.rmSync(...)"`。
 - 清 build 目录：用 `robocopy 空目录 目标 /MIR`，**一次只清一个目录**（并行/循环会静默失败）。
 
@@ -268,6 +320,7 @@ python -m http.server 8080 --directory app/www
 1. 脚本大括号/圆括号配平，浏览器控制台无报错。
 2. 在 `http://localhost:8080` 走一遍受影响流程（起卦 → 结果页 → 历史记录 → 返回）。
 3. 320 / 360 / 390px 宽度下无横向溢出（尤其卦象表格）。
-4. 改了 `app/www/` → 已同步到 `android/app/src/main/assets/public`。
-5. 版本号三处一致、已递增。
-6. 已 `git commit` 并 `git push`。
+4. 改了 `app/src/*.js` → 已 `npm run build`，并跑过 `npm test`（六爻引擎测试）。
+5. 改了 `app/www/` → 已同步到 `android/app/src/main/assets/public`。
+6. 版本号三处一致、已递增。
+7. 已 `git commit` 并 `git push`。

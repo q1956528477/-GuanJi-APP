@@ -6,7 +6,8 @@
   "author": "",
   "scripts": {
     "build:bridges": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1",
-    "test": "node test_app.js && node test_liuyao.js",
+    "test": "node test_liuyao.js",
+    "test:page": "node test_app.js",
     "build": "npm run build:bridges",
     "cap": "cap sync android",
     "cap:add": "cap add android",
