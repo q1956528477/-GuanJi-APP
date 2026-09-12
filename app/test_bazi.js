@@ -29,12 +29,14 @@ check('用例1 四柱正确', JSON.stringify(case1.pillars) === JSON.stringify({
   year:'庚午', month:'壬午', day:'辛亥', hour:'壬辰'
 }));
 check('用例1 阴年女顺排校验为逆排', case1.yun.forward === false);
-check('用例1 大运起点正确', case1.yun.start.years === 3 && case1.yun.start.months === 0 && case1.yun.start.days === 10);
+check('用例1 大运起点包含夏令时修正', case1.yun.start.years === 3 && case1.yun.start.months === 0 && case1.yun.start.days === 3 && case1.yun.start.hours === 20);
+check('用例1 起运虚岁正确', case1.yun.start.age === 4);
 check('用例1 首步大运为辛巳', case1.yun.daYun[0].ganZhi === '辛巳');
 check('十神计算正确', case1.pillarDetails.year.shiShen === '劫财' && case1.pillarDetails.month.shiShen === '伤官');
 check('藏干与十神存在', case1.pillarDetails.day.hidden.length > 0 && !!case1.pillarDetails.day.hidden[0].shiShen);
 check('四柱纳音存在', case1.columns.every(item => !!item.naYin));
 check('空亡与神煞字段存在', case1.columns.every(item => item.xunKong && Array.isArray(item.shenSha)));
+check('神煞规则库已完整载入', case1.pillarDetails.day.shenSha.includes('天厨贵人') && case1.pillarDetails.day.shenSha.includes('孤鸾煞'));
 check('五行统计总数为8', Object.values(case1.extras.wuXing).reduce((a, b) => a + b, 0) === 8);
 check('大运含10步', case1.yun.daYun.length === 10 && case1.yun.daYun[0].liuNian.length === 10);
 
@@ -46,14 +48,14 @@ check('用例2 四柱正确', JSON.stringify(case2.pillars) === JSON.stringify({
   year:'乙丑', month:'己卯', day:'戊午', hour:'丁巳'
 }));
 check('用例2 阴年男逆排', case2.yun.forward === false);
-check('用例2 大运起点正确', case2.yun.start.years === 4 && case2.yun.start.months === 10);
+check('用例2 大运起点正确', case2.yun.start.years === 4 && case2.yun.start.months === 9 && case2.yun.start.days === 26);
 
 // 验收用例 3：晚子时，日柱进位、时干仍按当日日干
 const case3 = Bazi.calculate({
-  gender:'female', calendarType:'solar', solarDate:'1990-06-15', time:'23:30', useTrueSolarTime:false
+  gender:'female', calendarType:'solar', solarDate:'1990-06-15', time:'23:30', useTrueSolarTime:false, applyChinaDst:false
 });
 check('23:30 日柱按次日计算', case3.pillars.day === '壬子');
-check('23:30 时柱按当日日干起算', case3.pillars.hour === '庚子');
+check('23:30 时柱按当日日干起算', case3.pillars.hour === '戊子');
 
 // 农历闰月校验
 const leapMonths = Bazi.getLunarMonths(2023);
@@ -71,6 +73,20 @@ const trueSolar = Bazi.calculate({
   useTrueSolarTime:true, longitude:116.4074
 });
 check('真太阳时执行经度校正', trueSolar.correctionMinutes < 0 && trueSolar.chartSolarDatetime !== trueSolar.solarDatetime);
+const longitudeOnly = Bazi.calculate({
+  gender:'female', calendarType:'solar', solarDate:'2026-09-04', time:'02:03',
+  useTrueSolarTime:true, longitude:104.0665, applyChinaDst:false
+});
+check('真太阳时只按经度公式校正', longitudeOnly.longitudeCorrectionMinutes === -64 && longitudeOnly.chartSolarDatetime === '2026-09-04 00:59');
+const noLongitude = Bazi.calculate({
+  gender:'female', calendarType:'solar', solarDate:'1990-06-15', time:'08:32',
+  useTrueSolarTime:true, longitude:null, applyChinaDst:false
+});
+check('未选出生地不执行经度校正', noLongitude.longitudeCorrectionMinutes === 0 && noLongitude.pillars.hour === '壬辰');
+const dstCase = Bazi.calculate({
+  gender:'female', calendarType:'solar', solarDate:'1990-06-15', time:'08:32', useTrueSolarTime:false
+});
+check('中国夏令时自动减1小时', dstCase.dstCorrectionMinutes === -60 && dstCase.chartSolarDatetime === '1990-06-15 07:32');
 
 // 四柱直排模式
 const direct = Bazi.calculate({
@@ -81,6 +97,12 @@ check('四柱直排保持用户输入', JSON.stringify(direct.pillars) === JSON.
   year:'庚午', month:'壬午', day:'辛亥', hour:'壬辰'
 }));
 check('四柱直排附加信息完整', !!direct.extras.mingGong && !!direct.extras.shenGong && direct.yun.daYun.length === 10);
+check('人元司令按交节天数计算', direct.extras.renYuanSiLing.gan === '丁');
+
+const jieBoundaryCase = Bazi.calculate({
+  gender:'female', calendarType:'solar', solarDate:'2023-02-04', time:'10:45', useTrueSolarTime:false
+});
+check('交节当日司令计算正确', jieBoundaryCase.extras.renYuanSiLing.gan === '戊');
 
 // 流月使用真实交节日期
 const timeline = Bazi.calculate({

@@ -1,4 +1,7 @@
 import lunarPkg from 'lunar-javascript';
+import {
+  analyzePillars, collectNatalShenSha, packPillar, selectRenyuanSiling, shenShaNames, GENDER
+} from 'bazi-lite';
 
 const { Solar, Lunar, LunarYear } = lunarPkg;
 
@@ -129,17 +132,20 @@ function addMinutes(parts, minutes) {
     hour:d.getUTCHours(), minute:d.getUTCMinutes(), second:0
   };
 }
-function dayOfYear(parts) {
-  const start = Date.UTC(parts.year, 0, 0);
-  const current = Date.UTC(parts.year, parts.month - 1, parts.day);
-  return Math.floor((current - start) / 86400000);
-}
-function equationOfTime(parts) {
-  const gamma = 2 * Math.PI / 365 * (dayOfYear(parts) - 1 + (parts.hour - 12) / 24);
-  return 229.18 * (
-    0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma)
-    - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma)
-  );
+function chinaDstCorrectionMinutes(parts) {
+  const ranges = {
+    1986:['1986-05-04T02:00','1986-09-14T02:00'],
+    1987:['1987-04-12T02:00','1987-09-13T02:00'],
+    1988:['1988-04-10T02:00','1988-09-11T02:00'],
+    1989:['1989-04-16T02:00','1989-09-17T02:00'],
+    1990:['1990-04-15T02:00','1990-09-16T02:00'],
+    1991:['1991-04-14T02:00','1991-09-15T02:00']
+  }[parts.year];
+  if (!ranges) return 0;
+  const current = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+  const start = Date.parse(ranges[0] + '+08:00');
+  const end = Date.parse(ranges[1] + '+08:00');
+  return current >= start && current < end ? -60 : 0;
 }
 function isYangGan(gan) { return GAN.indexOf(gan) % 2 === 0; }
 function elementGenerates(a, b) {
@@ -239,8 +245,8 @@ function shenShaForPillar(details, key, dayGan, yearZhi) {
   const guaSu = {亥:'戌', 子:'戌', 丑:'戌', 寅:'丑', 卯:'丑', 辰:'丑', 巳:'辰', 午:'辰', 未:'辰', 申:'未', 酉:'未', 戌:'未'}[yearZhi];
   if (zhi === guChen) uniquePush(result, '孤辰');
   if (zhi === guaSu) uniquePush(result, '寡宿');
-  if (['戌','亥'].includes(yearZhi) && ['戌','亥'].includes(zhi)) uniquePush(result, '天罗');
-  if (['辰','巳'].includes(yearZhi) && ['辰','巳'].includes(zhi)) uniquePush(result, '地网');
+  if ((yearZhi === '戌' && zhi === '亥') || (yearZhi === '亥' && zhi === '戌')) uniquePush(result, '天罗');
+  if ((yearZhi === '辰' && zhi === '巳') || (yearZhi === '巳' && zhi === '辰')) uniquePush(result, '地网');
 
   const yinCha = ['丙子','丙午','丁丑','丁未','戊寅','戊申','辛卯','辛酉','壬辰','壬戌','癸巳','癸亥'];
   if (key === 'day' && yinCha.includes(pillar.ganZhi)) uniquePush(result, '阴差阳错');
@@ -253,7 +259,7 @@ function shenShaForPillar(details, key, dayGan, yearZhi) {
   const tianShe = {春:'戊寅', 夏:'甲午', 秋:'戊申', 冬:'甲子'};
   if (key === 'day' && pillar.ganZhi === tianShe[season]) uniquePush(result, '天赦日');
 
-  const hongLuanBases = [yearZhi, dayZhi];
+  const hongLuanBases = [yearZhi];
   hongLuanBases.forEach(base => {
     const hongLuan = ZHI[(ZHI.indexOf('卯') - ZHI.indexOf(base) + 12) % 12];
     const tianXi = ZHI[(ZHI.indexOf(hongLuan) + 6) % 12];
@@ -265,10 +271,41 @@ function shenShaForPillar(details, key, dayGan, yearZhi) {
   }
   return result;
 }
+const BAZI_LITE_SHEN_SHA_ALIAS = {
+  '咸池（桃花）':'桃花',
+  '文昌贵人':'文昌',
+  '日干学堂':'学堂',
+  '日干词馆':'词馆',
+  '天厨贵人（本旬）':'天厨贵人'
+};
+function buildShenShaFromLibrary(pillars, gender) {
+  const packed = {
+    year:packPillar(GAN.indexOf(pillars.year[0]), ZHI.indexOf(pillars.year[1])),
+    month:packPillar(GAN.indexOf(pillars.month[0]), ZHI.indexOf(pillars.month[1])),
+    day:packPillar(GAN.indexOf(pillars.day[0]), ZHI.indexOf(pillars.day[1])),
+    hour:packPillar(GAN.indexOf(pillars.hour[0]), ZHI.indexOf(pillars.hour[1]))
+  };
+  const analysis = analyzePillars(packed);
+  const natal = collectNatalShenSha(analysis, {
+    gender:gender === 'male' ? GENDER.MALE : GENDER.FEMALE
+  });
+  return ['year','month','day','hour'].reduce((result, key) => {
+    result[key] = Array.from(new Set(shenShaNames(natal[key])
+      .map(name => BAZI_LITE_SHEN_SHA_ALIAS[name] || name)
+      .filter(name => name !== '空亡')));
+    return result;
+  }, {});
+}
 function buildPillars(pillars, dayGan, dayGender, yearZhi) {
   const order = ['year','month','day','hour'];
   const labels = ['年柱','月柱','日柱','时柱'];
   const details = {};
+  let libraryShenSha = null;
+  try {
+    libraryShenSha = buildShenShaFromLibrary(pillars, dayGender);
+  } catch (e) {
+    libraryShenSha = null;
+  }
   order.forEach((key, idx) => {
     const ganZhi = pillars[key];
     const gan = ganZhi[0], zhi = ganZhi[1];
@@ -285,7 +322,9 @@ function buildPillars(pillars, dayGan, dayGender, yearZhi) {
     };
   });
   order.forEach((key, idx) => {
-    details[key].shenSha = shenShaForPillar(details, key, dayGan, yearZhi);
+    details[key].shenSha = libraryShenSha
+      ? libraryShenSha[key]
+      : shenShaForPillar(details, key, dayGan, yearZhi);
   });
   return details;
 }
@@ -314,8 +353,56 @@ function buildExtras(pillars, details, sourceEightChar) {
     dayMaster:{gan:dayGan, element:GAN_ELEMENT[dayGan], yinYang:isYangGan(dayGan) ? '阳' : '阴'}
   };
 }
+function getRenYuanSiLing(solar, monthZhi) {
+  const previousJie = solar.getLunar().getPrevJie().getSolar();
+  const daysAfterJie = Math.max(0, solar.subtractMinute(previousJie) / 1440);
+  const segment = selectRenyuanSiling(ZHI.indexOf(monthZhi), daysAfterJie);
+  return { gan:GAN[segment.stem], daysAfterJie };
+}
 function pillarListFromDetails(details) {
   return ['year','month','day','hour'].map(key => details[key]);
+}
+function positiveMod(value, base) {
+  return ((value % base) + base) % base;
+}
+function addCalendarComponents(solar, years, months, remainingDays) {
+  const parts = solarParts(solar);
+  const monthIndex = parts.month - 1 + months;
+  const targetYear = parts.year + years + Math.floor(monthIndex / 12);
+  const targetMonth = positiveMod(monthIndex, 12) + 1;
+  const base = Date.UTC(targetYear, targetMonth - 1, parts.day, parts.hour, parts.minute, parts.second);
+  const result = new Date(base + remainingDays * 86400000);
+  return Solar.fromYmdHms(
+    result.getUTCFullYear(), result.getUTCMonth() + 1, result.getUTCDate(),
+    result.getUTCHours(), result.getUTCMinutes(), result.getUTCSeconds()
+  );
+}
+function calculateTraditionalStart(solar, yun) {
+  const lunar = solar.getLunar();
+  const previousJie = lunar.getPrevJie();
+  const nextJie = lunar.getNextJie();
+  const intervalMinutes = yun.isForward()
+    ? nextJie.getSolar().subtractMinute(solar)
+    : solar.subtractMinute(previousJie.getSolar());
+  const scaledDays = Math.max(0, intervalMinutes) / 12;
+  const years = Math.floor(scaledDays / 360);
+  const afterYears = scaledDays - years * 360;
+  const months = Math.floor(afterYears / 30);
+  const remainingDays = afterYears - months * 30;
+  const wholeDays = Math.floor(remainingDays);
+  const remainingMinutes = Math.round((remainingDays - wholeDays) * 1440);
+  const hours = Math.floor(remainingMinutes / 60);
+  const minutes = remainingMinutes - hours * 60;
+  const startSolar = addCalendarComponents(solar, years, months, remainingDays);
+  const startLunar = startSolar.getLunar();
+  const actualPreviousJie = startLunar.getPrevJie();
+  return {
+    years, months, days:wholeDays, hours, minutes,
+    solar:startSolar,
+    jieQiName:actualPreviousJie.getName(),
+    jieQiDateTime:actualPreviousJie.getSolar().toYmdHms(),
+    daysAfterJie:Math.max(0, startSolar.subtract(actualPreviousJie.getSolar()))
+  };
 }
 function buildYun(solar, pillars, input, birthYear) {
   const lunar = solar.getLunar();
@@ -323,14 +410,10 @@ function buildYun(solar, pillars, input, birthYear) {
   eightChar.setSect(2);
   const genderValue = input.gender === 'male' ? 1 : 0;
   const yun = eightChar.getYun(genderValue, 1);
-  let startYear = yun.getStartYear();
-  const startMonth = yun.getStartMonth();
-  const startDay = yun.getStartDay();
-  const startHour = yun.getStartHour();
-  if (startYear === 0 && startMonth === 0 && startDay === 0 && startHour === 0) startYear = 1;
-  const startAge = birthYear + startYear + 1;
-  const startSolar = yun.getStartSolar().toYmdHms();
-  const daYun = yun.getDaYun(11).slice(1, 11).map(item => {
+  const traditionalStart = calculateTraditionalStart(solar, yun);
+  const sourceDaYun = yun.getDaYun(11);
+  const startAge = sourceDaYun[1] ? sourceDaYun[1].getStartAge() : traditionalStart.years + 1;
+  const daYun = sourceDaYun.slice(1, 11).map(item => {
     const gz = item.getGanZhi();
     const gan = gz[0], zhi = gz[1];
     return {
@@ -375,8 +458,19 @@ function buildYun(solar, pillars, input, birthYear) {
   return {
     forward:yun.isForward(),
     directionLabel:yun.isForward() ? '顺排' : '逆排',
-    start:{ years:startYear, months:startMonth, days:startDay, hours:startHour, age:startAge, solar:startSolar,
-      text:`${startYear}年${startMonth}月${startDay}天${startHour ? startHour + '时' : ''}` },
+    start:{
+      years:traditionalStart.years,
+      months:traditionalStart.months,
+      days:traditionalStart.days,
+      hours:traditionalStart.hours,
+      minutes:traditionalStart.minutes,
+      age:startAge,
+      solar:traditionalStart.solar.toYmdHms(),
+      jieQiName:traditionalStart.jieQiName,
+      jieQiDateTime:traditionalStart.jieQiDateTime,
+      daysAfterJie:traditionalStart.daysAfterJie,
+      text:`${traditionalStart.years}年${traditionalStart.months}月${traditionalStart.days}天${traditionalStart.hours ? traditionalStart.hours + '时' : ''}`
+    },
     daYun
   };
 }
@@ -405,15 +499,16 @@ function calculate(input) {
   const chartType = input.calendarType || 'solar';
   const solar = resolveSolar(input);
   const original = solarParts(solar);
-  const longitude = Number(input.longitude);
-  let correctionMinutes = 0;
-  let chartSolar = solar;
-  if (input.useTrueSolarTime && isFinite(longitude)) {
-    const correction = (longitude - 120) * 4 + equationOfTime(original);
-    correctionMinutes = Math.round(correction);
-    const adjusted = addMinutes(original, correctionMinutes);
-    chartSolar = Solar.fromYmdHms(adjusted.year, adjusted.month, adjusted.day, adjusted.hour, adjusted.minute, 0);
-  }
+  const hasLongitude = input.longitude !== null && input.longitude !== undefined && input.longitude !== '';
+  const longitude = hasLongitude ? Number(input.longitude) : NaN;
+  const dstCorrectionMinutes = input.applyChinaDst === false ? 0 : chinaDstCorrectionMinutes(original);
+  const standard = addMinutes(original, dstCorrectionMinutes);
+  const longitudeCorrectionMinutes = input.useTrueSolarTime && isFinite(longitude)
+    ? Math.round((longitude - 120) * 4)
+    : 0;
+  const adjusted = addMinutes(standard, longitudeCorrectionMinutes);
+  const chartSolar = Solar.fromYmdHms(adjusted.year, adjusted.month, adjusted.day, adjusted.hour, adjusted.minute, 0);
+  const correctionMinutes = dstCorrectionMinutes + longitudeCorrectionMinutes;
 
   const chartParts = solarParts(chartSolar);
   const lunar = chartSolar.getLunar();
@@ -429,7 +524,8 @@ function calculate(input) {
     const nextEightChar = nextSolar.getLunar().getEightChar();
     nextEightChar.setSect(2);
     rawPillars.day = nextEightChar.getDay();
-    rawPillars.hour = eightChar.getTime();
+    const currentDayGan = eightChar.getDayGan();
+    rawPillars.hour = GAN[((GAN.indexOf(currentDayGan) % 5) * 2) % 10] + ZHI[0];
   }
   if (chartType === 'ganzhi') {
     const direct = input.fourPillars || {};
@@ -450,6 +546,7 @@ function calculate(input) {
     } catch (e) {}
   }
   const extras = buildExtras(rawPillars, details, sourceEightChar);
+  extras.renYuanSiLing = getRenYuanSiLing(chartSolar, rawPillars.month[1]);
   const birthLunar = solar.getLunar();
   const yun = buildYun(chartSolar, rawPillars, input, original.year);
 
@@ -460,6 +557,8 @@ function calculate(input) {
     chartSolarDatetime:fmtSolar(chartParts),
     trueSolarDatetime:correctionMinutes ? fmtSolar(chartParts) : '',
     correctionMinutes,
+    dstCorrectionMinutes,
+    longitudeCorrectionMinutes,
     lunarText:birthLunar.toString(),
     chartLunarText:lunar.toString(),
     zodiac:birthLunar.getYearShengXiao(),

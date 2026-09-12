@@ -61,6 +61,7 @@ check('大运、流年、流月三条横带存在', document.querySelectorAll('.
 check('三条横带默认各高亮一列', document.querySelectorAll('.bz3-strip-col.active').length === 3);
 check('起运与交运信息完整', document.querySelector('.bz3-start-info').textContent.includes('起运：') && document.querySelector('.bz3-start-info').textContent.includes('交运：'));
 check('五行旺衰五段渲染完成', document.querySelectorAll('.bz3-wuxing > div').length === 5);
+check('五行旺衰按出生月令计算', document.querySelector('.bz3-wuxing > div').textContent.includes('火旺'));
 check('岁运与原局共六行关系', document.querySelectorAll('.bz3-relation-row').length === 6);
 check('三类神煞区渲染完成', document.querySelectorAll('.bz3-shensha-title').length === 3);
 const secondLiuNian = document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col')[1];
@@ -102,6 +103,17 @@ const fanYinResult = window.Bazi.calculate({
   fourPillars:{year:'甲子', month:'庚午', day:'乙丑', hour:'辛未'}
 });
 check('天比地冲与反吟判定正确', window.analyzeBaziRelations(fanYinResult).full.includes('甲子庚午反吟'));
+
+const crossBase = window.Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'1990-06-15', time:'12:00', useTrueSolarTime:false,
+  fourPillars:{year:'甲子', month:'乙丑', day:'甲子', hour:'乙丑'}
+});
+const crossFlow = window.Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'1990-06-15', time:'12:00', useTrueSolarTime:false,
+  fourPillars:{year:'甲子', month:'乙丑', day:'甲子', hour:'己丑'}
+}).pillarDetails.hour;
+const crossRelations = window.analyzeBaziCrossRelations(crossBase.columns, [crossFlow]);
+check('岁运关系包含原局与大运流年交叉', crossRelations.gan.includes('甲己合化土') && crossRelations.zhi.includes('子丑合化土'));
 
 console.log('\n===== 八字页面测试结果 =====');
 results.forEach(result => console.log(result));
