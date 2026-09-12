@@ -2299,7 +2299,7 @@ function analyzeBaziDetailRelations(items){
   }
   BZ2_AN_HE_PAIRS.forEach(item => {
     if(branchSet.has(item.branches[0]) && branchSet.has(item.branches[1])){
-      bz2Push(anHe, item.branches[0] + item.branches[1] + '见' + item.gan + '暗合');
+      bz2Push(anHe, item.branches[0] + item.branches[1] + '暗合');
     }
   });
   BZ2_SAN_HE.forEach(group => {
@@ -2726,10 +2726,13 @@ function renderBaziFine(result){
   html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流月</span></div>' +
     '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liuyue-scroll">';
   liuNian.liuYue.forEach((item, index) => {
-    const term = BZ3_TERMS[index] || {name:item.name, date:'—'};
+    const fallback = BZ3_TERMS[index] || {name:item.name, date:'—'};
+    const termName = item.jieQiName || fallback.name;
+    const termDate = item.jieQiDate ? item.jieQiDate.slice(5).replace('-','/').replace(/^0/,'') : fallback.date;
+    const normalizedDate = termDate.replace('/0','/');
     const ganShen = bz3ShortShiShen(item.shiShen);
     html += '<div class="bz3-strip-col' + (index === baziFineLiuYueIndex ? ' active' : '') + '" data-index="' + index + '">' +
-      '<span class="term">' + term.name + '</span><span class="term">' + term.date + '</span>' +
+      '<span class="term">' + escapeHtml(termName) + '</span><span class="term">' + escapeHtml(normalizedDate) + '</span>' +
       '<span class="gz-line ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.ganZhi[0]]) + '">' + escapeHtml(item.ganZhi[0] + ganShen) + '</span>' +
       '<span class="gz-line ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.ganZhi[1]]) + '">' + escapeHtml(item.ganZhi[1]) + '</span></div>';
   });

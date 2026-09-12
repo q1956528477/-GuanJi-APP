@@ -345,18 +345,27 @@ function buildYun(solar, pillars, input, birthYear) {
       endYear:item.getEndYear(),
       liuNian:item.getLiuNian(10).map(nian => {
         const ngz = nian.getGanZhi();
+        const termNames = ['立春','惊蛰','清明','立夏','芒种','小暑','立秋','白露','寒露','立冬','大雪','小寒'];
+        const termYear = nian.getYear();
+        const termTable = Solar.fromYmd(termYear, 6, 1).getLunar().getJieQiTable();
+        const nextTermTable = Solar.fromYmd(termYear + 1, 1, 15).getLunar().getJieQiTable();
         return {
           ganZhi:ngz,
           gan:ngz[0], zhi:ngz[1],
           shiShen:tenGod(pillars.day[0], ngz[0]),
           age:nian.getAge(),
           year:nian.getYear(),
-          liuYue:nian.getLiuYue().map(yue => {
+          liuYue:nian.getLiuYue().map((yue, index) => {
             const ygz = yue.getGanZhi();
+            const termName = termNames[index] || '';
+            const termSolar = index === 11 ? nextTermTable[termName] : termTable[termName];
             return {
               name:yue.getMonthInChinese(),
               ganZhi:ygz,
-              shiShen:tenGod(pillars.day[0], ygz[0])
+              shiShen:tenGod(pillars.day[0], ygz[0]),
+              jieQiName:termName,
+              jieQiDate:termSolar ? termSolar.toYmd() : '',
+              jieQiDateTime:termSolar ? termSolar.toYmdHms() : ''
             };
           })
         };

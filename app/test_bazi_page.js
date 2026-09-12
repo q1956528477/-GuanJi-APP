@@ -78,7 +78,8 @@ const relations = window.analyzeBaziRelations(relationResult);
 check('天干五合判定存在', relations.gan.includes('丙辛合化水'));
 check('地支六合判定正确', relations.zhi.includes('申巳合化水'));
 check('地支拱合判定正确', relations.zhi.includes('巳丑拱合酉'));
-check('地支暗合判定正确', relations.zhi.includes('巳丑见辛暗合'));
+check('地支暗合按地支简写显示', relations.zhi.includes('巳丑暗合'));
+check('暗合不再附带藏干说明', !relations.zhi.some(item => /见.+暗合/.test(item)));
 check('地支刑破害判定正确', ['申巳相刑','申巳相破','丑午相害'].every(item => relations.zhi.includes(item)));
 check('盖头截脚判定正确', relations.full.includes('丙申盖头') && relations.full.includes('辛巳截脚'));
 const combineDisputeResult = window.Bazi.calculate({

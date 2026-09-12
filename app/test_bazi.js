@@ -82,6 +82,19 @@ check('四柱直排保持用户输入', JSON.stringify(direct.pillars) === JSON.
 }));
 check('四柱直排附加信息完整', !!direct.extras.mingGong && !!direct.extras.shenGong && direct.yun.daYun.length === 10);
 
+// 流月使用真实交节日期
+const timeline = Bazi.calculate({
+  gender:'female', calendarType:'solar', solarDate:'1990-06-15', time:'08:32', useTrueSolarTime:false
+});
+let liuNian2026 = null;
+timeline.yun.daYun.forEach(dayun => {
+  const found = dayun.liuNian.find(item => item.year === 2026);
+  if(found) liuNian2026 = found;
+});
+check('流年包含真实节气日期', !!liuNian2026 && liuNian2026.liuYue[0].jieQiDate === '2026-02-04');
+check('流月春季节气日期正确', !!liuNian2026 && liuNian2026.liuYue[1].jieQiDate === '2026-03-05' && liuNian2026.liuYue[3].jieQiDate === '2026-05-05');
+check('年末流月跨年节气正确', !!liuNian2026 && liuNian2026.liuYue[11].jieQiDate === '2027-01-05');
+
 console.log('\n===== 八字引擎测试结果 =====');
 results.forEach(r => console.log(r));
 console.log('===== 结束 =====');
