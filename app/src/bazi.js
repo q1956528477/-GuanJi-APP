@@ -435,5 +435,14 @@ function getLunarDays(year, month) {
   if (!info) throw new Error('该年份不存在所选农历月份');
   return info.getDayCount();
 }
+function getNaYin(ganZhi) {
+  return lunarPkg.LunarUtil.NAYIN[ganZhi] || '';
+}
+function getHiddenGan(zhi) {
+  return (HIDDEN_GAN[zhi] || []).slice();
+}
 
-export { calculate, getLunarMonths, getLunarDays, CITIES, JIAZI, GAN, ZHI, tenGod, changSheng };
+export {
+  calculate, getLunarMonths, getLunarDays, getNaYin, getHiddenGan,
+  CITIES, JIAZI, GAN, ZHI, GAN_ELEMENT, ZHI_ELEMENT, tenGod, changSheng
+};

@@ -52,11 +52,21 @@ check('五行着色元素已生成', document.querySelectorAll('.bz2-table [clas
 check('占位卡片已移除', document.querySelectorAll('.bz2-action-card').length === 0);
 check('干支作用关系三行渲染完成', document.querySelectorAll('.bz2-relation-row').length === 3);
 
-document.querySelector('.bz-info-tabs button[data-tab="luck"]').click();
-check('大运渲染10步', document.querySelectorAll('.bz-dayun-card').length === 10);
-check('流年渲染10条', document.querySelectorAll('.bz-liunian-item').length === 10);
-document.querySelector('.bz-liunian-item').click();
-check('流年可展开流月', document.querySelectorAll('.bz-liuyue-grid > div').length === 12);
+document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
+check('细盘七列表格结构正确', document.querySelectorAll('.bz3-table colgroup col').length === 7);
+check('细盘大运流年列默认高亮', document.querySelectorAll('.bz3-table .bz3-active-col').length === 20);
+check('大运、流年、流月三条横带存在', document.querySelectorAll('.bz3-strip').length === 3);
+check('三条横带默认各高亮一列', document.querySelectorAll('.bz3-strip-col.active').length === 3);
+check('起运与交运信息完整', document.querySelector('.bz3-start-info').textContent.includes('起运：') && document.querySelector('.bz3-start-info').textContent.includes('交运：'));
+check('五行旺衰五段渲染完成', document.querySelectorAll('.bz3-wuxing > div').length === 5);
+check('岁运与原局共六行关系', document.querySelectorAll('.bz3-relation-row').length === 6);
+check('三类神煞区渲染完成', document.querySelectorAll('.bz3-shensha-title').length === 3);
+const secondLiuNian = document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col')[1];
+secondLiuNian.click();
+check('点击流年可联动高亮', document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col')[1].classList.contains('active'));
+const beforeExpandRows = document.querySelectorAll('.bz3-shensha-row').length;
+document.getElementById('bz3-toggle-liunian-shensha').click();
+check('流年神煞可展开', document.querySelectorAll('.bz3-shensha-row').length > beforeExpandRows);
 
 const relationResult = window.Bazi.calculate({
   gender:'male', calendarType:'ganzhi', solarDate:'1990-06-15', time:'12:00', useTrueSolarTime:false,
