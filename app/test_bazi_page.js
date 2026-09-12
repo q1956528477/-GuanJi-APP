@@ -43,13 +43,36 @@ check('保存后自动进入信息页', !document.getElementById('bazi-info-view
 check('基本信息页四柱正确', JSON.stringify(persons[0].fourPillars) === JSON.stringify({
   year:'庚午', month:'壬午', day:'辛亥', hour:'壬辰'
 }));
-check('基本盘渲染完成', document.querySelectorAll('.bz-basic-table tbody tr').length === 8);
+const profileText = document.querySelector('.bz2-profile').textContent;
+check('顶部农历信息格式正确', profileText.includes('农历：1990年五月廿三 辰时 坤造'));
+check('顶部阳历信息格式正确', profileText.includes('阳历：1990年06月15日 08:32:00'));
+check('基本盘11行渲染完成', document.querySelectorAll('.bz2-table tbody tr').length === 11);
+check('五行着色元素已生成', document.querySelectorAll('.bz2-table [class*="bz2-el-"]').length > 0);
+check('占位卡片渲染正确', document.querySelectorAll('.bz2-action-card').length === 2);
+check('干支作用关系三行渲染完成', document.querySelectorAll('.bz2-relation-row').length === 3);
 
 document.querySelector('.bz-info-tabs button[data-tab="luck"]').click();
 check('大运渲染10步', document.querySelectorAll('.bz-dayun-card').length === 10);
 check('流年渲染10条', document.querySelectorAll('.bz-liunian-item').length === 10);
 document.querySelector('.bz-liunian-item').click();
 check('流年可展开流月', document.querySelectorAll('.bz-liuyue-grid > div').length === 12);
+
+const relationResult = window.Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'1990-06-15', time:'12:00', useTrueSolarTime:false,
+  fourPillars:{year:'丙申', month:'辛巳', day:'癸丑', hour:'戊午'}
+});
+const relations = window.analyzeBaziRelations(relationResult);
+check('天干五合判定存在', relations.gan.includes('丙辛合化水'));
+check('地支六合判定正确', relations.zhi.includes('申巳合化水'));
+check('地支拱合判定正确', relations.zhi.includes('巳丑拱合酉'));
+check('地支暗合判定正确', relations.zhi.includes('巳丑见辛暗合'));
+check('地支刑破害判定正确', ['申巳相刑','申巳相破','丑午相害'].every(item => relations.zhi.includes(item)));
+check('盖头截脚判定正确', relations.full.includes('丙申盖头') && relations.full.includes('辛巳截脚'));
+const combineDisputeResult = window.Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'1990-06-15', time:'12:00', useTrueSolarTime:false,
+  fourPillars:{year:'丙申', month:'辛巳', day:'丙午', hour:'戊戌'}
+});
+check('天干争合判定正确', window.analyzeBaziRelations(combineDisputeResult).gan.includes('丙辛争合'));
 
 console.log('\n===== 八字页面测试结果 =====');
 results.forEach(result => console.log(result));

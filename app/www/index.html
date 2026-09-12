@@ -525,6 +525,45 @@
   .bz-group-actions button{border:none;background:#f5f1e8;color:#7a5d12;border-radius:8px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;}
   .bz-group-actions button.danger{background:#fff0ed;color:#d9534f;}
 
+  /* 八字基本盘 v2 */
+  .bz2-profile{background:#1a1a1a;border-radius:20px;padding:17px 16px;display:flex;align-items:center;gap:13px;margin-bottom:14px;}
+  .bz2-avatar{width:60px;height:60px;flex:0 0 60px;border:1.5px solid #c8a552;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .bz2-zodiac{font-size:31px;line-height:1;color:transparent;-webkit-text-stroke:1px #c8a552;font-weight:700;}
+  .bz2-profile-main{flex:1;min-width:0;}
+  .bz2-profile-name{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .bz2-profile-line{font-size:10px;line-height:1.65;color:#b8b8b8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .bz2-profile-actions{display:flex;align-items:center;gap:6px;align-self:flex-start;}
+  .bz2-icon-btn{width:29px;height:29px;border:1px solid rgba(200,165,82,.5);border-radius:9px;background:transparent;color:#c8a552;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit;}
+  .bz2-panel{background:#fff;border-radius:18px;padding:0 12px 12px;}
+  .bz2-table-scroll{overflow-x:auto;margin:0 -12px;padding:0 12px 2px;}
+  .bz2-table{width:100%;min-width:620px;border-collapse:collapse;table-layout:fixed;}
+  .bz2-table td{border-bottom:1px solid #f0f0f0;padding:8px 4px;text-align:center;vertical-align:top;font-size:11px;color:#666;line-height:1.45;}
+  .bz2-table tr:last-child td{border-bottom:none;}
+  .bz2-table .bz2-row-label{width:56px;text-align:left;color:#999;font-size:10px;font-weight:500;vertical-align:middle;white-space:nowrap;padding-left:0;}
+  .bz2-table .bz2-date-cell{color:#aaa;font-size:10px;padding-top:10px;padding-bottom:6px;}
+  .bz2-main-star{font-size:12px;font-weight:700;}
+  .bz2-gan,.bz2-zhi{font-size:30px;font-weight:800;line-height:1.05;letter-spacing:0;}
+  .bz2-elem{display:inline-block;font-size:8px;line-height:1.2;border:1px solid currentColor;border-radius:50%;padding:0 3px;margin-left:2px;vertical-align:5px;font-weight:700;}
+  .bz2-hidden-list,.bz2-sha-list{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .bz2-hidden-line{white-space:nowrap;font-size:12px;font-weight:700;}
+  .bz2-secondary-line{white-space:nowrap;font-size:10px;color:#888;}
+  .bz2-row-label.star-label::after{content:"★";display:block;color:#bdbdbd;font-size:8px;line-height:1;margin-top:3px;}
+  .bz2-sha-good{color:#9b772d;font-size:10px;font-weight:700;white-space:nowrap;}
+  .bz2-sha-bad{color:#555;font-size:10px;font-weight:700;white-space:nowrap;}
+  .bz2-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0;}
+  .bz2-action-card{background:#f5f5f5;border-radius:14px;padding:14px 12px;color:#333;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:none;font-family:inherit;}
+  .bz2-action-card span:last-child{color:#8d8d8d;font-size:18px;line-height:1;}
+  .bz2-relations{background:#fff;border-radius:16px;padding:4px 14px;}
+  .bz2-relation-row{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid #f2f2f2;font-size:11px;line-height:1.7;}
+  .bz2-relation-row:last-child{border-bottom:none;}
+  .bz2-relation-label{flex:0 0 58px;color:#9b772d;font-weight:800;}
+  .bz2-relation-value{flex:1;color:#777;word-break:break-word;}
+  .bz2-el-fire{color:#c0392b!important;}
+  .bz2-el-metal{color:#a08530!important;}
+  .bz2-el-water{color:#5b7e9b!important;}
+  .bz2-el-wood{color:#4e7a3a!important;}
+  .bz2-el-earth{color:#8b7355!important;}
+
 </style>
 </head>
 <body>
@@ -2022,6 +2061,151 @@ function openBaziInfo(id){
   showView('bazi-info');
 }
 
+const BZ2_ELEMENT_CLASS = {
+  木:'bz2-el-wood', 火:'bz2-el-fire', 土:'bz2-el-earth', 金:'bz2-el-metal', 水:'bz2-el-water'
+};
+const BZ2_GAN_COMBINE = {
+  甲己:'土', 己甲:'土', 乙庚:'金', 庚乙:'金', 丙辛:'水', 辛丙:'水',
+  丁壬:'木', 壬丁:'木', 戊癸:'火', 癸戊:'火'
+};
+const BZ2_BRANCH_COMBINE = {
+  子丑:'土', 丑子:'土', 寅亥:'木', 亥寅:'木', 卯戌:'火', 戌卯:'火',
+  辰酉:'金', 酉辰:'金', 巳申:'水', 申巳:'水', 午未:'土', 未午:'土'
+};
+const BZ2_SAN_HE = [
+  {branches:['申','子','辰'], element:'水', name:'申子辰'},
+  {branches:['亥','卯','未'], element:'木', name:'亥卯未'},
+  {branches:['寅','午','戌'], element:'火', name:'寅午戌'},
+  {branches:['巳','酉','丑'], element:'金', name:'巳酉丑'}
+];
+const BZ2_XING_PAIRS = ['子卯','寅巳','巳申','寅申','丑戌','戌未','丑未'];
+const BZ2_SELF_XING = ['辰','午','酉','亥'];
+const BZ2_CHONG = ['子午','丑未','寅申','卯酉','辰戌','巳亥'];
+const BZ2_PO = ['子酉','午卯','寅亥','巳申','辰丑','戌未'];
+const BZ2_HAI = ['子未','丑午','寅巳','卯辰','申亥','酉戌'];
+const BZ2_GOOD_SHEN_SHA = new Set(['天乙贵人','太极贵人','文昌','禄神','将星','金舆','红鸾','天喜','十灵日']);
+
+function bz2ElementClass(element){ return BZ2_ELEMENT_CLASS[element] || ''; }
+function bz2HasPair(list, a, b){
+  return list.includes(a + b) || list.includes(b + a);
+}
+function bz2Control(a, b){
+  return (a === '木' && b === '土') || (a === '土' && b === '水') || (a === '水' && b === '火') ||
+    (a === '火' && b === '金') || (a === '金' && b === '木');
+}
+function bz2Push(list, value){
+  if(value && !list.includes(value)) list.push(value);
+}
+function analyzeBaziRelations(result){
+  const keys = ['year','month','day','hour'];
+  const items = keys.map(key => result.pillarDetails[key]);
+  const gan = [];
+  const liuHe = [];
+  const sanHe = [];
+  const banHe = [];
+  const gongHe = [];
+  const anHe = [];
+  const xing = [];
+  const chong = [];
+  const po = [];
+  const hai = [];
+  const full = [];
+
+  const combinePairs = [];
+  for(let i = 0; i < items.length; i++){
+    for(let j = i + 1; j < items.length; j++){
+      const pair = items[i].gan + items[j].gan;
+      const element = BZ2_GAN_COMBINE[pair];
+      if(element){
+        bz2Push(gan, items[i].gan + items[j].gan + '合化' + element);
+        combinePairs.push(pair);
+      }
+    }
+  }
+  const combineCounts = {};
+  combinePairs.forEach(pair => {
+    const key = BZ2_GAN_COMBINE[pair] + pair.split('').sort().join('');
+    combineCounts[key] = (combineCounts[key] || 0) + 1;
+  });
+  Object.keys(combineCounts).forEach(key => {
+    if(combineCounts[key] > 1 || key.length > 4){
+      const stems = key.slice(1).split('');
+      bz2Push(gan, stems[0] + stems[1] + '争合');
+    }
+  });
+
+  const branchValues = items.map(item => item.zhi);
+  const branchSet = new Set(branchValues);
+  for(let i = 0; i < branchValues.length; i++){
+    for(let j = i + 1; j < branchValues.length; j++){
+      const a = branchValues[i], b = branchValues[j];
+      const combined = a + b;
+      const combineElement = BZ2_BRANCH_COMBINE[combined];
+      if(combineElement) bz2Push(liuHe, a + b + '合化' + combineElement);
+      if(bz2HasPair(BZ2_XING_PAIRS, a, b)) bz2Push(xing, a + b + '相刑');
+      if(a === b && BZ2_SELF_XING.includes(a)) bz2Push(xing, a + a + '自刑');
+      if(bz2HasPair(BZ2_CHONG, a, b)) bz2Push(chong, a + b + '相冲');
+      if(bz2HasPair(BZ2_PO, a, b)) bz2Push(po, a + b + '相破');
+      if(bz2HasPair(BZ2_HAI, a, b)) bz2Push(hai, a + b + '相害');
+      const hiddenA = items[i].hidden.map(item => item.gan);
+      const hiddenB = items[j].hidden.map(item => item.gan);
+      for(const ganA of hiddenA){
+        for(const ganB of hiddenB){
+          if(BZ2_GAN_COMBINE[ganA + ganB]) bz2Push(anHe, a + b + '见' + ganB + '暗合');
+        }
+      }
+    }
+  }
+  BZ2_SAN_HE.forEach(group => {
+    const present = group.branches.filter(branch => branchSet.has(branch));
+    if(present.length === 3){
+      bz2Push(sanHe, group.name + '三合' + group.element + '局');
+      return;
+    }
+    const pairs = [[0,1],[1,2]];
+    pairs.forEach(([x,y]) => {
+      const a = group.branches[x], b = group.branches[y];
+      if(branchSet.has(a) && branchSet.has(b)) bz2Push(banHe, a + b + '半合' + group.element);
+    });
+    const a = group.branches[0], b = group.branches[2], missing = group.branches[1];
+    if(branchSet.has(a) && branchSet.has(b) && !branchSet.has(missing)) bz2Push(gongHe, a + b + '拱合' + missing);
+  });
+
+  items.forEach(item => {
+    if(bz2Control(item.ganElement, item.zhiElement)) full.push(item.ganZhi + '盖头');
+    if(bz2Control(item.zhiElement, item.ganElement)) full.push(item.ganZhi + '截脚');
+  });
+  return {gan, zhi:[].concat(liuHe, sanHe, banHe, anHe, gongHe, xing, chong, po, hai), full};
+}
+function formatBaziLunarHeader(result, person){
+  const chineseDigits = {'〇':'0','零':'0','一':'1','二':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9'};
+  let year = String(person.lunarYear || '');
+  let rest = result.lunarText || '';
+  const match = /^(.+?)年(.+)$/.exec(rest);
+  if(match){
+    year = match[1].split('').map(ch => chineseDigits[ch] || ch).join('');
+    rest = match[2];
+  }
+  return '农历：' + year + '年' + rest + ' ' + result.pillars.hour[1] + '时 ' + (person.gender === 'female' ? '坤造' : '乾造');
+}
+function formatBaziSolarHeader(result){
+  const [date, time] = String(result.solarDatetime || '').split(' ');
+  const [year, month, day] = (date || '').split('-');
+  return '阳历：' + year + '年' + month + '月' + day + '日 ' + (time || '').slice(0,5) + ':00';
+}
+function renderBaziProfile(result, person){
+  return '<div class="bz2-profile">' +
+    '<div class="bz2-avatar"><span class="bz2-zodiac">' + escapeHtml(result.zodiac || '命') + '</span></div>' +
+    '<div class="bz2-profile-main">' +
+    '<div class="bz2-profile-name">' + escapeHtml(person.name) + '</div>' +
+    '<div class="bz2-profile-line">' + escapeHtml(formatBaziLunarHeader(result, person)) + '</div>' +
+    '<div class="bz2-profile-line">' + escapeHtml(formatBaziSolarHeader(result)) + '</div></div>' +
+    '<div class="bz2-profile-actions">' +
+    '<button type="button" class="bz2-icon-btn" id="bz2-visible-btn" title="查看">◉</button>' +
+    '<button type="button" class="bz2-icon-btn" id="bz2-top-edit" title="编辑">✎</button>' +
+    '</div></div>';
+}
+
 function renderBaziInfo(){
   const person = getBaziPerson(baziCurrentPersonId);
   const box = document.getElementById('bz-info-content');
@@ -2038,17 +2222,7 @@ function renderBaziInfo(){
     box.innerHTML = '<div class="card"><div class="bz-empty">排盘失败：' + escapeHtml(err.message) + '</div></div>';
     return;
   }
-  const summary = '<div class="bz-info-head">' +
-    '<div class="bz-info-name">' + escapeHtml(person.name) + '<small>' + (person.gender === 'female' ? '坤造' : '乾造') + '</small></div>' +
-    '<div class="bz-info-meta">公历：' + escapeHtml(result.solarDatetime) + '<br>农历：' + escapeHtml(result.lunarText) +
-    '<br>生肖：' + escapeHtml(result.zodiac) + ' · 星座：' + escapeHtml(result.constellation) +
-    (result.correctionMinutes ? '<br>真太阳时：' + escapeHtml(result.trueSolarDatetime) + '（' + result.correctionMinutes + '分钟）' : '') +
-    '</div><div class="bz-summary-grid">' +
-    '<div class="bz-summary-item">当前虚岁<b>' + result.virtualAge + '</b></div>' +
-    '<div class="bz-summary-item">大运方向<b>' + escapeHtml(result.yun.directionLabel) + '</b></div>' +
-    '<div class="bz-summary-item">起运<b>' + escapeHtml(result.yun.start.text) + '</b></div>' +
-    '<div class="bz-summary-item">日主<b>' + escapeHtml(result.extras.dayMaster.yinYang + result.extras.dayMaster.element + ' ' + result.extras.dayMaster.gan) + '</b></div>' +
-    '</div></div>';
+  const summary = renderBaziProfile(result, person);
   const tabs = '<div class="bz-info-tabs">' +
     '<button type="button" data-tab="basic" class="' + (baziInfoTab === 'basic' ? 'active' : '') + '">基本盘</button>' +
     '<button type="button" data-tab="luck" class="' + (baziInfoTab === 'luck' ? 'active' : '') + '">大运流年</button></div>';
@@ -2060,31 +2234,52 @@ function renderBaziInfo(){
       renderBaziInfo();
     };
   });
+  const topEdit = document.getElementById('bz2-top-edit');
+  if(topEdit) topEdit.onclick = () => openBaziForm(person.id);
   if(baziInfoTab === 'basic') renderBaziBasic(result);
   else renderBaziLuck(result);
 }
 
 function renderBaziBasic(result){
   const columns = result.columns;
-  const row = (label, render) => '<tr><td>' + label + '</td>' + columns.map(render).join('') + '</tr>';
-  let basic = '<div class="bz-basic-scroll"><table class="bz-basic-table"><thead><tr><th>项目</th>' +
-    columns.map(item => '<th>' + escapeHtml(item.label) + '</th>').join('') + '</tr></thead><tbody>';
-  basic += row('主星', item => '<td>' + escapeHtml(item.shiShen || '—') + '</td>');
-  basic += row('干支', item => '<td class="bz-ganzhi-cell"><b>' + escapeHtml(item.gan) + '</b><span>' + escapeHtml(item.zhi) + '</span></td>');
-  basic += row('藏干', item => '<td>' + item.hidden.map(hidden => '<span class="bz-hidden-line">' + escapeHtml(hidden.gan) + ' · ' + escapeHtml(hidden.shiShen) + '</span>').join('') + '</td>');
-  basic += row('星运', item => '<td>' + escapeHtml(item.starLuck) + '</td>');
-  basic += row('自坐', item => '<td>' + escapeHtml(item.selfSeat) + '</td>');
+  const row = (label, render, labelClass) =>
+    '<tr><td class="bz2-row-label ' + (labelClass || '') + '">' + label + '</td>' + columns.map(render).join('') + '</tr>';
+  const elementMark = element => '<i class="bz2-elem ' + bz2ElementClass(element) + '">' + escapeHtml(element) + '</i>';
+  const textColor = (text, element) => '<span class="' + bz2ElementClass(element) + '">' + escapeHtml(text) + '</span>';
+
+  let basic = '<div class="bz2-panel"><div class="bz2-table-scroll"><table class="bz2-table"><tbody>';
+  basic += '<tr><td class="bz2-row-label">日期</td>' + columns.map(item => '<td class="bz2-date-cell">' + escapeHtml(item.label) + '</td>').join('') + '</tr>';
+  basic += row('主星', item => item.key === 'day'
+    ? '<td>' + escapeHtml(item.shiShen) + '</td>'
+    : '<td>' + textColor(item.shiShen || '—', item.ganElement) + '</td>');
+  basic += row('天干', item => '<td><span class="bz2-gan ' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.gan) + elementMark(item.ganElement) + '</span></td>');
+  basic += row('地支', item => '<td><span class="bz2-zhi ' + bz2ElementClass(item.zhiElement) + '">' + escapeHtml(item.zhi) + elementMark(item.zhiElement) + '</span></td>');
+  basic += row('藏干', item => '<td><div class="bz2-hidden-list">' + item.hidden.map(hidden =>
+    '<span class="bz2-hidden-line ' + bz2ElementClass(hidden.element) + '">' + escapeHtml(hidden.gan) + '</span>'
+  ).join('') + '</div></td>', 'star-label');
+  basic += row('副星', item => '<td><div class="bz2-hidden-list">' + item.hidden.map(hidden =>
+    '<span class="bz2-secondary-line ' + bz2ElementClass(hidden.element) + '">' + escapeHtml(hidden.shiShen) + '</span>'
+  ).join('') + '</div></td>');
+  basic += row('星运', item => '<td>' + escapeHtml(item.starLuck || '—') + '</td>');
+  basic += row('自坐', item => '<td>' + escapeHtml(item.selfSeat || '—') + '</td>');
+  const dayKong = result.pillarDetails.day.xunKong || '';
+  basic += row('空亡', item => '<td>' + escapeHtml(dayKong.includes(item.zhi) ? dayKong : '—') + '</td>');
   basic += row('纳音', item => '<td>' + escapeHtml(item.naYin || '—') + '</td>');
-  basic += row('空亡', item => '<td>' + escapeHtml(item.xunKong || '—') + '</td>');
-  basic += row('神煞', item => '<td><div class="bz-shensha">' + (item.shenSha.length ? item.shenSha.map(name => '<span>' + escapeHtml(name) + '</span>').join('') : '—') + '</div></td>');
-  basic += '</tbody></table></div>';
-  const wuXing = Object.keys(result.extras.wuXing).map(key => '<span>' + key + ' ' + result.extras.wuXing[key] + '</span>').join('');
-  basic += '<div class="bz-extra-grid">' +
-    '<div class="bz-extra-item"><div class="k">胎元</div><div class="v">' + escapeHtml(result.extras.taiYuan || '—') + '</div></div>' +
-    '<div class="bz-extra-item"><div class="k">命宫 / 身宫</div><div class="v">' + escapeHtml(result.extras.mingGong || '—') + ' / ' + escapeHtml(result.extras.shenGong || '—') + '</div></div>' +
-    '<div class="bz-extra-item"><div class="k">日主</div><div class="v">' + escapeHtml(result.extras.dayMaster.gan + ' · ' + result.extras.dayMaster.yinYang + result.extras.dayMaster.element) + '</div></div>' +
-    '<div class="bz-extra-item"><div class="k">四柱属性</div><div class="v">' + escapeHtml(result.pillars.year) + ' ' + escapeHtml(result.pillars.month) + ' ' + escapeHtml(result.pillars.day) + ' ' + escapeHtml(result.pillars.hour) + '</div></div>' +
-    '<div class="bz-extra-item bz-wuxing"><div class="k">五行个数</div>' + wuXing + '</div></div>';
+  basic += row('神煞', item => '<td>' + (item.shenSha.length
+    ? '<div class="bz2-sha-list">' + item.shenSha.map(name =>
+        '<span class="' + (BZ2_GOOD_SHEN_SHA.has(name) ? 'bz2-sha-good' : 'bz2-sha-bad') + '">' + escapeHtml(name) + '</span>').join('') + '</div>'
+    : '—') + '</td>');
+  basic += '</tbody></table></div></div>';
+
+  basic += '<div class="bz2-actions">' +
+    '<button type="button" class="bz2-action-card"><span>智能干支图示</span><span>›</span></button>' +
+    '<button type="button" class="bz2-action-card"><span>AI指令</span><span>›</span></button></div>';
+  const relations = analyzeBaziRelations(result);
+  const relationRow = (label, list) =>
+    '<div class="bz2-relation-row"><div class="bz2-relation-label">' + label + '</div><div class="bz2-relation-value">' +
+    escapeHtml(list.length ? list.join('｜') : '无') + '</div></div>';
+  basic += '<div class="bz2-relations">' + relationRow('原局天干', relations.gan) +
+    relationRow('原局地支', relations.zhi) + relationRow('原局整柱', relations.full) + '</div>';
   document.getElementById('bz-info-panel').innerHTML = basic;
 }
 
