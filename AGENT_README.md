@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.11.0 (build 24)**　最后更新：2026-09-11
+> 当前版本：**v1.11.1 (build 25)**　最后更新：2026-09-12
 
 ---
 
