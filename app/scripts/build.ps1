@@ -28,4 +28,5 @@ function Build-One($entry, $out, $globalName, $format) {
 Build-One (Join-Path $root "src\native.js") (Join-Path $root "www\native.bundle.js") $null $null
 Build-One (Join-Path $root "src\notify.js") (Join-Path $root "www\notify.bundle.js") $null $null
 Build-One (Join-Path $root "src\liuyao.js") (Join-Path $root "www\liuyao.bundle.js") "LiuYao" "iife"
-Write-Host "构建完成：native.bundle.js / notify.bundle.js / liuyao.bundle.js"
+Build-One (Join-Path $root "src\bazi.js") (Join-Path $root "www\bazi.bundle.js") "Bazi" "iife"
+Write-Host "构建完成：native.bundle.js / notify.bundle.js / liuyao.bundle.js / bazi.bundle.js"

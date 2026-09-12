@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.11.1 (build 25)**　最后更新：2026-09-12
+> 当前版本：**v1.12.0 (build 26)**　最后更新：2026-09-12
 
 ---
 
@@ -86,18 +86,20 @@ git push
 app/
 ├── www/                        # 【真正的应用代码，改这里】
 │   ├── index.html              # 单页应用主文件（全部 UI + 逻辑 + 样式）
+│   ├── bazi.bundle.js          # 八字引擎 → window.Bazi（esbuild 生成）
 │   ├── liuyao.bundle.js        # 六爻引擎 → window.LiuYao（esbuild 生成）
 │   ├── native.bundle.js        # 原生桥接 → window.Native（esbuild 生成）
 │   ├── notify.bundle.js        # 通知桥接 → window.Notify（esbuild 生成）
 │   └── assets/coins/           # 铜钱图（*.png 正面 / *_back.png 背面）
 ├── src/                        # 桥接与引擎源码
 │   ├── liuyao.js               # 六爻核心引擎（装卦、纳甲、六亲、世应、伏神、动变）
+│   ├── bazi.js                 # 八字历法、四柱、十神、大运流年与神煞引擎
 │   ├── yijing-data.js          # 64 卦数据（卦辞、白话、断易、邵雍、爻辞）
 │   ├── native.js               # 返回键 / 退出 / 备份读写
 │   └── notify.js               # 每日提醒调度
-├── scripts/build.ps1           # 用 esbuild 生成三个 bundle.js（Windows PowerShell）
+├── scripts/build.js / build.ps1 # 用 esbuild 生成四个 bundle.js（Node / PowerShell）
 ├── tools/generate-yijing-data.js  # 由《周易》结构化 JSON 生成 yijing-data.js
-├── test_liuyao.js / test_app.js   # 引擎测试 / 页面测试（jsdom，较旧）
+├── test_liuyao.js / test_bazi.js / test_bazi_page.js # 六爻、八字与页面测试
 ├── package.json                # 版本号三处之一
 └── android/                    # Android 原生工程
     └── app/
@@ -113,6 +115,9 @@ app/
 
 ```html
 <div id="home-view">                     <!-- 主页 -->
+<div id="bazi-form-view">                <!-- 八字排盘页 -->
+<div id="bazi-records-view">             <!-- 八字命例记录 -->
+<div id="bazi-info-view">                <!-- 八字基本盘 / 大运流年 -->
 <div id="liuyao-view">                   <!-- 六爻模块 -->
   <div id="liuyao-cast-view">            <!--   起卦页（与结果页互斥） -->
   <div id="liuyao-result-view">          <!--   结果页 -->
@@ -134,7 +139,15 @@ app/
 - 只能记录最近 7 天，未来日期置灰
 - 周/月趋势图，CSV 导出
 
-### 4.2 六爻卜卦（Liuyao）
+### 4.2 八字排盘（Bazi）
+
+- 主页入口进入排盘页，支持公历、农历（含闰月）、四柱直排三种模式；支持 12 时辰与精确分钟。
+- 默认开启真太阳时；选择内置城市后按经度与均时差近似校正。
+- 四柱严格以立春、节气为界；23:00–23:59 按晚子时规则，日柱进位、时干按当日日干起算。
+- 命例按分组保存，预置默认、自己、家人、朋友、客户五组；支持搜索、排序、移动、编辑和删除。
+- 信息页包含基本盘（十神、藏干、星运、自坐、纳音、空亡、神煞、胎元、命宫、身宫、五行统计）和大运流年细盘（每步大运、10 个流年、12 个流月）。
+
+### 4.3 六爻卜卦（Liuyao）
 
 **起卦方式**：铜钱摇卦（点击铜钱）、时间起卦、数字起卦、卦名起卦、手动指定、自动起卦。
 
@@ -153,7 +166,7 @@ app/
 
 **起卦记录**：存 `liuyao_history`，最多 100 条；支持查看、改事项、单条删除、编辑模式批量删除。
 
-### 4.3 迭代需求记录（Requirements）
+### 4.4 迭代需求记录（Requirements）
 
 - 独立全屏页；增 / 改 / 删、一键复制全部、一键清空
 - 数据格式：`{ text: string, createdAt: timestamp }`
@@ -169,6 +182,8 @@ app/
 | `guanji_data_v1` | 精力状态：`{records:{[date]:{score,note,sleepTime,wakeTime,updatedAt}}, settings:{remindTime,lowThreshold}}` | `Storage` 对象 |
 | `guanji_requirements_v2` | 迭代需求数组 | `ReqStorage` 对象 |
 | `liuyao_history` | 六爻起卦记录数组（`fullResult` 存完整卦象） | `getLiuyaoHistory()` 等 |
+| `guanji_bazi_groups_v1` | 八字命例分组数组 | `BaziStorage` 对象 |
+| `guanji_bazi_persons_v1` | 八字命例数组（输入信息与四柱缓存） | `BaziStorage` 对象 |
 
 **备份 / 恢复**：`native.js` 的 `writeBackup / readBackup` 会把 JSON 写到应用 Documents 目录（覆盖安装保留，卸载清除）；页面同时支持下载 JSON 与选择文件恢复。
 
@@ -182,7 +197,7 @@ app/
 
 ```powershell
 cd app
-npm run build        # 等价于 scripts/build.ps1，用 esbuild 生成三个 bundle.js
+npm run build        # 用 esbuild 生成 native / notify / liuyao / bazi 四个 bundle.js
 ```
 
 > 只改 `app/www/index.html` 时**不需要**重新构建 bundle。
@@ -229,11 +244,12 @@ python -m http.server 8080 --directory app/www
 
 ```powershell
 cd app
-npm test            # 只跑六爻引擎测试 test_liuyao.js（推荐，快）
+npm test            # 六爻引擎 + 八字引擎 + 八字页面集成测试
 npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不用
 ```
 
-- `test_liuyao.js` 直接读 `www/liuyao.bundle.js` 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑它**。
+- `test_liuyao.js` / `test_bazi.js` 直接读取对应 bundle 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑**。
+- `test_bazi_page.js` 用 jsdom 验证八字入口、保存命例、基本盘、大运流年和流月展开。
 - `test_app.js` 是旧版本（v1.3 时代）的 jsdom 页面测试，检查的 DOM 结构早已不存在，且 jsdom 在本机运行会直接让 Node 崩（访问冲突），**不要用它判断代码对错**，页面一律以浏览器预览为准。
 
 ---
