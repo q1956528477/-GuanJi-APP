@@ -551,10 +551,6 @@
   .bz2-row-label.star-label::after{content:"★";display:block;color:#bdbdbd;font-size:8px;line-height:1;margin-top:3px;}
   .bz2-sha-good{color:#9b772d;font-size:.625rem;font-weight:700;white-space:normal;overflow-wrap:anywhere;text-align:center;}
   .bz2-sha-bad{color:#555;font-size:.625rem;font-weight:700;white-space:normal;overflow-wrap:anywhere;text-align:center;}
-  .bz2-actions{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin:.8125rem 0;}
-  .bz2-action-card{background:#f5f5f5;border-radius:.875rem;padding:.875rem .75rem;color:#333;font-size:.8125rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:none;font-family:inherit;min-width:0;}
-  .bz2-action-card span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .bz2-action-card span:last-child{color:#8d8d8d;font-size:1.125rem;line-height:1;}
   .bz2-relations{background:#fff;border-radius:1rem;padding:.25rem .875rem;}
   .bz2-relation-row{display:flex;align-items:flex-start;gap:.5rem;padding:.625rem 0;border-bottom:1px solid #f2f2f2;font-size:.6875rem;line-height:1.7;}
   .bz2-relation-row:last-child{border-bottom:none;}
@@ -578,7 +574,6 @@
     .bz2-elem{font-size:.4375rem;padding:0 .1rem;margin-left:.05rem;vertical-align:.2rem;}
     .bz2-hidden-line{font-size:.6875rem;}
     .bz2-secondary-line,.bz2-sha-good,.bz2-sha-bad{font-size:.5625rem;}
-    .bz2-action-card{padding:.7rem .45rem;font-size:.7rem;}
   }
   @media (min-width:768px){
     #app{max-width:480px;}
@@ -2292,9 +2287,6 @@ function renderBaziBasic(result){
     : '—') + '</td>');
   basic += '</tbody></table></div></div>';
 
-  basic += '<div class="bz2-actions">' +
-    '<button type="button" class="bz2-action-card"><span>智能干支图示</span><span>›</span></button>' +
-    '<button type="button" class="bz2-action-card"><span>AI指令</span><span>›</span></button></div>';
   const relations = analyzeBaziRelations(result);
   const relationRow = (label, list) =>
     '<div class="bz2-relation-row"><div class="bz2-relation-label">' + label + '</div><div class="bz2-relation-value">' +
