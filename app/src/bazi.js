@@ -74,9 +74,13 @@ const SHEN_SHA_TABLES = {
     戊:['辰','戌','丑','未'], 己:['辰','戌','丑','未'], 庚:['寅','亥'], 辛:['寅','亥'], 壬:['巳','申'], 癸:['巳','申']
   },
   wenChang: {甲:['巳'], 乙:['午'], 丙:['申'], 丁:['酉'], 戊:['申'], 己:['酉'], 庚:['亥'], 辛:['子'], 壬:['寅'], 癸:['卯']},
+  fuXing: {甲:['寅','子'], 乙:['丑','卯'], 丙:['寅','子'], 丁:['亥'], 戊:['申'], 己:['未'], 庚:['午'], 辛:['巳'], 壬:['辰'], 癸:['丑','卯']},
+  guoYin: {甲:['戌'], 乙:['亥'], 丙:['丑'], 丁:['寅'], 戊:['丑'], 己:['寅'], 庚:['辰'], 辛:['巳'], 壬:['未'], 癸:['申']},
   yangRen: {甲:['卯'], 乙:['寅'], 丙:['午'], 丁:['巳'], 戊:['午'], 己:['巳'], 庚:['酉'], 辛:['申'], 壬:['子'], 癸:['亥']},
   luShen: {甲:['寅'], 乙:['卯'], 丙:['巳'], 丁:['午'], 戊:['巳'], 己:['午'], 庚:['申'], 辛:['酉'], 壬:['亥'], 癸:['子']},
-  jinYu: {甲:['辰'], 乙:['巳'], 丙:['未'], 丁:['申'], 戊:['未'], 己:['申'], 庚:['戌'], 辛:['亥'], 壬:['丑'], 癸:['寅']}
+  jinYu: {甲:['辰'], 乙:['巳'], 丙:['未'], 丁:['申'], 戊:['未'], 己:['申'], 庚:['戌'], 辛:['亥'], 壬:['丑'], 癸:['寅']},
+  hongYan: {甲:['午'], 乙:['午'], 丙:['寅'], 丁:['未'], 戊:['辰'], 己:['辰'], 庚:['戌'], 辛:['酉'], 壬:['子'], 癸:['申']},
+  liuXia: {甲:['酉'], 乙:['戌'], 丙:['未'], 丁:['申'], 戊:['巳'], 己:['午'], 庚:['辰'], 辛:['卯'], 壬:['亥'], 癸:['寅']}
 };
 
 const GROUP_TABLE = {
@@ -92,7 +96,8 @@ const SHEN_SHA_BY_GROUP = {
   huaGai: {申:'辰', 子:'辰', 辰:'辰', 寅:'戌', 午:'戌', 戌:'戌', 巳:'丑', 酉:'丑', 丑:'丑', 亥:'未', 卯:'未', 未:'未'},
   jiangXing: {申:'子', 子:'子', 辰:'子', 寅:'午', 午:'午', 戌:'午', 巳:'酉', 酉:'酉', 丑:'酉', 亥:'卯', 卯:'卯', 未:'卯'},
   jieSha: {申:'巳', 子:'巳', 辰:'巳', 寅:'亥', 午:'亥', 戌:'亥', 巳:'寅', 酉:'寅', 丑:'寅', 亥:'申', 卯:'申', 未:'申'},
-  zaiSha: {申:'午', 子:'午', 辰:'午', 寅:'子', 午:'子', 戌:'子', 巳:'卯', 酉:'卯', 丑:'卯', 亥:'酉', 卯:'酉', 未:'酉'}
+  zaiSha: {申:'午', 子:'午', 辰:'午', 寅:'子', 午:'子', 戌:'子', 巳:'卯', 酉:'卯', 丑:'卯', 亥:'酉', 卯:'酉', 未:'酉'},
+  wangShen: {申:'亥', 子:'亥', 辰:'亥', 寅:'巳', 午:'巳', 戌:'巳', 巳:'申', 酉:'申', 丑:'申', 亥:'寅', 卯:'寅', 未:'寅'}
 };
 
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -182,22 +187,54 @@ function uniquePush(list, value) {
   if (value && list.indexOf(value) < 0) list.push(value);
 }
 function shenShaForPillar(details, key, dayGan, yearZhi) {
-  const zhi = details[key].zhi;
+  const pillar = details[key];
+  const zhi = pillar.zhi;
+  const gan = pillar.gan;
   const dayZhi = details.day.zhi;
+  const yearGan = details.year.gan;
+  const monthZhi = details.month.zhi;
   const result = [];
-  const addByTable = (name, table, key) => {
-    if ((table[key] || []).includes(zhi)) uniquePush(result, name);
+  const addByTable = (name, table, bases) => {
+    if (bases.some(base => (table[base] || []).includes(zhi))) uniquePush(result, name);
   };
-  addByTable('天乙贵人', SHEN_SHA_TABLES.tianYi, dayGan);
-  addByTable('太极贵人', SHEN_SHA_TABLES.taiJi, dayGan);
-  addByTable('文昌', SHEN_SHA_TABLES.wenChang, dayGan);
-  addByTable('羊刃', SHEN_SHA_TABLES.yangRen, dayGan);
-  addByTable('禄神', SHEN_SHA_TABLES.luShen, dayGan);
-  addByTable('金舆', SHEN_SHA_TABLES.jinYu, dayGan);
-  for (const key of ['yiMa','taoHua','huaGai','jiangXing','jieSha','zaiSha']) {
-    if (SHEN_SHA_BY_GROUP[key][yearZhi] === zhi) uniquePush(result, {yiMa:'驿马', taoHua:'桃花', huaGai:'华盖', jiangXing:'将星', jieSha:'劫煞', zaiSha:'灾煞'}[key]);
+  const ganBases = [dayGan, yearGan];
+  addByTable('天乙贵人', SHEN_SHA_TABLES.tianYi, ganBases);
+  addByTable('太极贵人', SHEN_SHA_TABLES.taiJi, ganBases);
+  addByTable('文昌', SHEN_SHA_TABLES.wenChang, ganBases);
+  addByTable('福星贵人', SHEN_SHA_TABLES.fuXing, ganBases);
+  addByTable('国印贵人', SHEN_SHA_TABLES.guoYin, ganBases);
+  addByTable('羊刃', SHEN_SHA_TABLES.yangRen, [dayGan]);
+  addByTable('禄神', SHEN_SHA_TABLES.luShen, [dayGan]);
+  addByTable('金舆', SHEN_SHA_TABLES.jinYu, [dayGan]);
+  addByTable('红艳煞', SHEN_SHA_TABLES.hongYan, [dayGan]);
+  addByTable('流霞', SHEN_SHA_TABLES.liuXia, [dayGan]);
+
+  const branchBases = [yearZhi, dayZhi];
+  const branchNames = {yiMa:'驿马', taoHua:'桃花', huaGai:'华盖', jiangXing:'将星', jieSha:'劫煞', zaiSha:'灾煞', wangShen:'亡神'};
+  Object.keys(branchNames).forEach(groupKey => {
+    if (branchBases.some(base => SHEN_SHA_BY_GROUP[groupKey][base] === zhi)) uniquePush(result, branchNames[groupKey]);
+  });
+
+  if (zhi === CHANG_SHENG_START[dayGan]) uniquePush(result, '学堂');
+  addByTable('词馆', SHEN_SHA_TABLES.luShen, [dayGan]);
+
+  const tianYi = {寅:'丑', 卯:'寅', 辰:'卯', 巳:'辰', 午:'巳', 未:'午', 申:'未', 酉:'申', 戌:'酉', 亥:'戌', 子:'亥', 丑:'子'};
+  if (zhi === tianYi[monthZhi]) uniquePush(result, '天医');
+
+  const tianDe = {寅:'丁', 卯:'申', 辰:'壬', 巳:'辛', 午:'亥', 未:'甲', 申:'癸', 酉:'寅', 戌:'丙', 亥:'乙', 子:'巳', 丑:'庚'};
+  const yueDe = {寅:'丙', 午:'丙', 戌:'丙', 申:'壬', 子:'壬', 辰:'壬', 亥:'甲', 卯:'甲', 未:'甲', 巳:'庚', 酉:'庚', 丑:'庚'};
+  const tianDeValue = tianDe[monthZhi];
+  if (tianDeValue === gan || tianDeValue === zhi) uniquePush(result, '天德贵人');
+  if (GAN.includes(tianDeValue)) {
+    const heGan = GAN[(GAN.indexOf(tianDeValue) + 5) % 10];
+    if (heGan === gan) uniquePush(result, '天德合');
   }
-  const yearGroup = GROUP_TABLE[yearZhi] || [];
+  if (yueDe[monthZhi] === gan) uniquePush(result, '月德贵人');
+  if (GAN.includes(yueDe[monthZhi])) {
+    const heGan = GAN[(GAN.indexOf(yueDe[monthZhi]) + 5) % 10];
+    if (heGan === gan) uniquePush(result, '月德合');
+  }
+
   const guChen = {亥:'寅', 子:'寅', 丑:'寅', 寅:'巳', 卯:'巳', 辰:'巳', 巳:'申', 午:'申', 未:'申', 申:'亥', 酉:'亥', 戌:'亥'}[yearZhi];
   const guaSu = {亥:'戌', 子:'戌', 丑:'戌', 寅:'丑', 卯:'丑', 辰:'丑', 巳:'辰', 午:'辰', 未:'辰', 申:'未', 酉:'未', 戌:'未'}[yearZhi];
   if (zhi === guChen) uniquePush(result, '孤辰');
@@ -206,16 +243,25 @@ function shenShaForPillar(details, key, dayGan, yearZhi) {
   if (['辰','巳'].includes(yearZhi) && ['辰','巳'].includes(zhi)) uniquePush(result, '地网');
 
   const yinCha = ['丙子','丙午','丁丑','丁未','戊寅','戊申','辛卯','辛酉','壬辰','壬戌','癸巳','癸亥'];
-  if (key === 'day' && yinCha.includes(details[key].ganZhi)) uniquePush(result, '阴差阳错');
+  if (key === 'day' && yinCha.includes(pillar.ganZhi)) uniquePush(result, '阴差阳错');
   const shiLing = ['甲辰','乙亥','丙辰','丁酉','戊午','己卯','庚戌','辛亥','壬寅','癸未'];
-  if (key === 'day' && shiLing.includes(details[key].ganZhi)) uniquePush(result, '十灵日');
-  if (key === 'day' && ['庚辰','庚戌','壬辰','戊戌'].includes(details[key].ganZhi)) uniquePush(result, '魁罡');
-  const hongLuan = ZHI[(ZHI.indexOf('卯') - ZHI.indexOf(yearZhi) + 12) % 12];
-  const tianXi = ZHI[(ZHI.indexOf(hongLuan) + 6) % 12];
-  if (zhi === hongLuan) uniquePush(result, '红鸾');
-  if (zhi === tianXi) uniquePush(result, '天喜');
+  if (key === 'day' && shiLing.includes(pillar.ganZhi)) uniquePush(result, '十灵日');
+  if (key === 'day' && ['庚辰','庚戌','壬辰','戊戌'].includes(pillar.ganZhi)) uniquePush(result, '魁罡');
+
+  const season = ['寅','卯','辰'].includes(monthZhi) ? '春' : ['巳','午','未'].includes(monthZhi) ? '夏' :
+    ['申','酉','戌'].includes(monthZhi) ? '秋' : '冬';
+  const tianShe = {春:'戊寅', 夏:'甲午', 秋:'戊申', 冬:'甲子'};
+  if (key === 'day' && pillar.ganZhi === tianShe[season]) uniquePush(result, '天赦日');
+
+  const hongLuanBases = [yearZhi, dayZhi];
+  hongLuanBases.forEach(base => {
+    const hongLuan = ZHI[(ZHI.indexOf('卯') - ZHI.indexOf(base) + 12) % 12];
+    const tianXi = ZHI[(ZHI.indexOf(hongLuan) + 6) % 12];
+    if (zhi === hongLuan) uniquePush(result, '红鸾');
+    if (zhi === tianXi) uniquePush(result, '天喜');
+  });
   if (key === 'day' && dayZhi === zhi && result.length === 0) {
-    // 保持空列表，避免为了展示而虚构神煞。
+    // 无神煞时保留空列表，页面统一显示“无”。
   }
   return result;
 }

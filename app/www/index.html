@@ -2184,6 +2184,8 @@ const BZ2_GAN_COMBINE = {
   甲己:'土', 己甲:'土', 乙庚:'金', 庚乙:'金', 丙辛:'水', 辛丙:'水',
   丁壬:'木', 壬丁:'木', 戊癸:'火', 癸戊:'火'
 };
+const BZ2_GAN_CHONG = ['甲庚','庚甲','乙辛','辛乙','丙壬','壬丙','丁癸','癸丁'];
+const BZ2_GAN_CONTROL = ['甲戊','戊甲','乙己','己乙','丙庚','庚丙','丁辛','辛丁','戊壬','壬戊','己癸','癸己'];
 const BZ2_BRANCH_COMBINE = {
   子丑:'土', 丑子:'土', 寅亥:'木', 亥寅:'木', 卯戌:'火', 戌卯:'火',
   辰酉:'金', 酉辰:'金', 巳申:'水', 申巳:'水', 午未:'土', 未午:'土'
@@ -2199,6 +2201,13 @@ const BZ2_SAN_HUI = [
   {branches:['巳','午','未'], element:'火', name:'巳午未', direction:'南'},
   {branches:['申','酉','戌'], element:'金', name:'申酉戌', direction:'西'},
   {branches:['亥','子','丑'], element:'水', name:'亥子丑', direction:'北'}
+];
+const BZ2_AN_HE_PAIRS = [
+  {branches:['子','巳'], gan:'戊'},
+  {branches:['寅','丑'], gan:'己'},
+  {branches:['卯','申'], gan:'庚'},
+  {branches:['午','亥'], gan:'壬'},
+  {branches:['巳','丑'], gan:'辛'}
 ];
 const BZ2_XING_PAIRS = ['子卯','寅巳','巳申','寅申','丑戌','戌未','丑未'];
 const BZ2_SELF_XING = ['辰','午','酉','亥'];
@@ -2219,7 +2228,9 @@ function bz2Push(list, value){
   if(value && !list.includes(value)) list.push(value);
 }
 function analyzeBaziDetailRelations(items){
-  const gan = [];
+  const ganCombine = [];
+  const ganChong = [];
+  const ganControl = [];
   const liuHe = [];
   const sanHe = [];
   const banHe = [];
@@ -2239,7 +2250,7 @@ function analyzeBaziDetailRelations(items){
       const pair = items[i].gan + items[j].gan;
       const element = BZ2_GAN_COMBINE[pair];
       if(element){
-        bz2Push(gan, items[i].gan + items[j].gan + '合化' + element);
+        bz2Push(ganCombine, items[i].gan + items[j].gan + '合化' + element);
         combinePairs.push(pair);
       }
     }
@@ -2252,7 +2263,7 @@ function analyzeBaziDetailRelations(items){
   Object.keys(combineCounts).forEach(key => {
     if(combineCounts[key] > 1 || key.length > 4){
       const stems = key.slice(1).split('');
-      bz2Push(gan, stems[0] + stems[1] + '争合');
+      bz2Push(ganCombine, stems[0] + stems[1] + '争合');
     }
   });
 
@@ -2261,6 +2272,9 @@ function analyzeBaziDetailRelations(items){
   for(let i = 0; i < branchValues.length; i++){
     for(let j = i + 1; j < branchValues.length; j++){
       const a = branchValues[i], b = branchValues[j];
+      const ganPair = items[i].gan + items[j].gan;
+      if(BZ2_GAN_CHONG.includes(ganPair)) bz2Push(ganChong, ganPair + '相冲');
+      if(BZ2_GAN_CONTROL.includes(ganPair)) bz2Push(ganControl, ganPair + '相克');
       const combined = a + b;
       const combineElement = BZ2_BRANCH_COMBINE[combined];
       if(combineElement) bz2Push(liuHe, a + b + '合化' + combineElement);
@@ -2271,11 +2285,6 @@ function analyzeBaziDetailRelations(items){
       if(bz2HasPair(BZ2_HAI, a, b)) bz2Push(hai, a + b + '相害');
       const hiddenA = items[i].hidden.map(item => item.gan);
       const hiddenB = items[j].hidden.map(item => item.gan);
-      for(const ganA of hiddenA){
-        for(const ganB of hiddenB){
-          if(BZ2_GAN_COMBINE[ganA + ganB]) bz2Push(anHe, a + b + '见' + ganB + '暗合');
-        }
-      }
       BZ2_SAN_HUI.forEach(group => {
         const first = group.branches[0], middle = group.branches[1], last = group.branches[2];
         if((a === first && b === last) || (a === last && b === first)){
@@ -2288,6 +2297,11 @@ function analyzeBaziDetailRelations(items){
       });
     }
   }
+  BZ2_AN_HE_PAIRS.forEach(item => {
+    if(branchSet.has(item.branches[0]) && branchSet.has(item.branches[1])){
+      bz2Push(anHe, item.branches[0] + item.branches[1] + '见' + item.gan + '暗合');
+    }
+  });
   BZ2_SAN_HE.forEach(group => {
     const present = group.branches.filter(branch => branchSet.has(branch));
     if(present.length === 3){
@@ -2312,8 +2326,23 @@ function analyzeBaziDetailRelations(items){
     if(bz2Control(item.ganElement, item.zhiElement)) full.push(item.ganZhi + '盖头');
     if(bz2Control(item.zhiElement, item.ganElement)) full.push(item.ganZhi + '截脚');
   });
+  for(let i = 0; i < items.length; i++){
+    for(let j = i + 1; j < items.length; j++){
+      const left = items[i], right = items[j];
+      if(left.ganZhi === right.ganZhi) bz2Push(full, left.ganZhi + right.ganZhi + '伏吟');
+      const ganChongPair = BZ2_GAN_CHONG.includes(left.gan + right.gan);
+      const branchChong = bz2HasPair(BZ2_CHONG, left.zhi, right.zhi);
+      const branchCombine = BZ2_BRANCH_COMBINE[left.zhi + right.zhi];
+      if(ganChongPair && branchChong) bz2Push(full, left.ganZhi + right.ganZhi + '反吟');
+      if(left.gan === right.gan && branchChong) bz2Push(full, left.ganZhi + right.ganZhi + '天比地冲');
+      if(BZ2_GAN_COMBINE[left.gan + right.gan] && branchCombine) bz2Push(full, left.ganZhi + right.ganZhi + '天地合');
+      if(BZ2_GAN_CONTROL.includes(left.gan + right.gan) && bz2HasPair(BZ2_XING_PAIRS, left.zhi, right.zhi)){
+        bz2Push(full, left.ganZhi + right.ganZhi + '天克地刑');
+      }
+    }
+  }
   return {
-    gan,
+    gan:[].concat(ganCombine, ganChong, ganControl),
     zhi:[].concat(liuHe, sanHe, banHe, anHe, anHui, gongHe, gongHui, xing, chong, po, hai),
     full
   };
@@ -2425,8 +2454,7 @@ function renderBaziBasic(result){
   ).join('') + '</div></td>');
   basic += row('星运', item => '<td>' + escapeHtml(item.starLuck || '—') + '</td>');
   basic += row('自坐', item => '<td>' + escapeHtml(item.selfSeat || '—') + '</td>');
-  const dayKong = result.pillarDetails.day.xunKong || '';
-  basic += row('空亡', item => '<td>' + escapeHtml(dayKong.includes(item.zhi) ? dayKong : '—') + '</td>');
+  basic += row('空亡', item => '<td>' + escapeHtml(item.xunKong || '—') + '</td>');
   basic += row('纳音', item => '<td>' + escapeHtml(item.naYin || '—') + '</td>');
   basic += row('神煞', item => '<td>' + (item.shenSha.length
     ? '<div class="bz2-sha-list">' + item.shenSha.map(name =>
@@ -2591,7 +2619,6 @@ function renderBaziFineTable(result, dayun, liuNian){
   const liunianDetail = bz3FlowDetail(liuNian.ganZhi, result, '流年');
   const columns = [liunianDetail, dayunDetail].concat(result.columns);
   const active = [true, true, false, false, false, false];
-  const dayKong = result.pillarDetails.day.xunKong || '';
   const cell = (index, content, extraClass) =>
     '<td class="' + (active[index] ? 'bz3-active-col ' : '') + (extraClass || '') + '">' + content + '</td>';
   const row = (label, render) =>
@@ -2612,7 +2639,7 @@ function renderBaziFineTable(result, dayun, liuNian){
   ).join('') + '</div>');
   html += row('星运', item => escapeHtml(item.starLuck || '—'));
   html += row('自坐', item => escapeHtml(item.selfSeat || '—'));
-  html += row('空亡', item => escapeHtml(dayKong.includes(item.zhi) ? dayKong : '—'));
+  html += row('空亡', item => escapeHtml(item.xunKong || '—'));
   html += row('纳音', item => escapeHtml(item.naYin || '—'));
   html += row('神煞', item => '<div class="bz3-sha-list">' + (item.shenSha.length
     ? item.shenSha.map(name => '<span class="bz3-sha-line ' + (BZ2_GOOD_SHEN_SHA.has(name) ? 'bz2-sha-good' : 'bz2-sha-bad') + '">' + escapeHtml(name) + '</span>').join('')
