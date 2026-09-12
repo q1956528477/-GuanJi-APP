@@ -526,43 +526,63 @@
   .bz-group-actions button.danger{background:#fff0ed;color:#d9534f;}
 
   /* 八字基本盘 v2 */
-  .bz2-profile{background:#1a1a1a;border-radius:20px;padding:17px 16px;display:flex;align-items:center;gap:13px;margin-bottom:14px;}
-  .bz2-avatar{width:60px;height:60px;flex:0 0 60px;border:1.5px solid #c8a552;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .bz2-zodiac{font-size:31px;line-height:1;color:transparent;-webkit-text-stroke:1px #c8a552;font-weight:700;}
+  .bz2-profile{background:#1a1a1a;border-radius:1.25rem;padding:1.0625rem 1rem;display:flex;align-items:center;gap:.8125rem;margin-bottom:.875rem;}
+  .bz2-avatar{width:3.75rem;height:3.75rem;flex:0 0 3.75rem;border:1.5px solid #c8a552;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .bz2-zodiac{font-size:1.9375rem;line-height:1;color:transparent;-webkit-text-stroke:1px #c8a552;font-weight:700;}
   .bz2-profile-main{flex:1;min-width:0;}
   .bz2-profile-name{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .bz2-profile-line{font-size:10px;line-height:1.65;color:#b8b8b8;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .bz2-profile-actions{display:flex;align-items:center;gap:6px;align-self:flex-start;}
-  .bz2-icon-btn{width:29px;height:29px;border:1px solid rgba(200,165,82,.5);border-radius:9px;background:transparent;color:#c8a552;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit;}
-  .bz2-panel{background:#fff;border-radius:18px;padding:0 12px 12px;}
-  .bz2-table-scroll{overflow-x:auto;margin:0 -12px;padding:0 12px 2px;}
-  .bz2-table{width:100%;min-width:620px;border-collapse:collapse;table-layout:fixed;}
-  .bz2-table td{border-bottom:1px solid #f0f0f0;padding:8px 4px;text-align:center;vertical-align:top;font-size:11px;color:#666;line-height:1.45;}
+  .bz2-profile-line{font-size:.625rem;line-height:1.65;color:#b8b8b8;margin-top:.1875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .bz2-profile-actions{display:flex;align-items:center;gap:.375rem;align-self:flex-start;}
+  .bz2-icon-btn{width:1.8125rem;height:1.8125rem;border:1px solid rgba(200,165,82,.5);border-radius:.5625rem;background:transparent;color:#c8a552;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit;}
+  .bz2-panel{background:#fff;border-radius:1.125rem;padding:0 .75rem .75rem;}
+  .bz2-table-scroll{overflow:visible;max-width:100%;margin:0;padding:0;}
+  .bz2-table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;}
+  .bz2-table .bz2-col-label{width:64px;}
+  .bz2-table td{border-bottom:1px solid #f0f0f0;padding:.5rem .25rem;text-align:center;vertical-align:top;font-size:.6875rem;color:#666;line-height:1.45;overflow-wrap:anywhere;}
   .bz2-table tr:last-child td{border-bottom:none;}
-  .bz2-table .bz2-row-label{width:56px;text-align:left;color:#999;font-size:10px;font-weight:500;vertical-align:middle;white-space:nowrap;padding-left:0;}
-  .bz2-table .bz2-date-cell{color:#aaa;font-size:10px;padding-top:10px;padding-bottom:6px;}
-  .bz2-main-star{font-size:12px;font-weight:700;}
-  .bz2-gan,.bz2-zhi{font-size:30px;font-weight:800;line-height:1.05;letter-spacing:0;}
-  .bz2-elem{display:inline-block;font-size:8px;line-height:1.2;border:1px solid currentColor;border-radius:50%;padding:0 3px;margin-left:2px;vertical-align:5px;font-weight:700;}
-  .bz2-hidden-list,.bz2-sha-list{display:flex;flex-direction:column;align-items:center;gap:4px;}
-  .bz2-hidden-line{white-space:nowrap;font-size:12px;font-weight:700;}
-  .bz2-secondary-line{white-space:nowrap;font-size:10px;color:#888;}
+  .bz2-table .bz2-row-label{text-align:left;color:#999;font-size:.625rem;font-weight:500;vertical-align:middle;white-space:nowrap;padding-left:0;}
+  .bz2-table .bz2-date-cell{color:#aaa;font-size:.625rem;padding-top:.625rem;padding-bottom:.375rem;}
+  .bz2-main-star{font-size:.75rem;font-weight:700;}
+  .bz2-gan,.bz2-zhi{font-size:1.375rem;font-weight:800;line-height:1.05;letter-spacing:0;white-space:nowrap;}
+  .bz2-elem{display:inline-block;font-size:.5rem;line-height:1.2;border:1px solid currentColor;border-radius:50%;padding:0 .1875rem;margin-left:.125rem;vertical-align:.3125rem;font-weight:700;}
+  .bz2-hidden-list,.bz2-sha-list{display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:0;max-width:100%;}
+  .bz2-hidden-line{white-space:normal;overflow-wrap:anywhere;font-size:.75rem;font-weight:700;}
+  .bz2-secondary-line{white-space:normal;overflow-wrap:anywhere;font-size:.625rem;color:#888;}
   .bz2-row-label.star-label::after{content:"★";display:block;color:#bdbdbd;font-size:8px;line-height:1;margin-top:3px;}
-  .bz2-sha-good{color:#9b772d;font-size:10px;font-weight:700;white-space:nowrap;}
-  .bz2-sha-bad{color:#555;font-size:10px;font-weight:700;white-space:nowrap;}
-  .bz2-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0;}
-  .bz2-action-card{background:#f5f5f5;border-radius:14px;padding:14px 12px;color:#333;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:none;font-family:inherit;}
-  .bz2-action-card span:last-child{color:#8d8d8d;font-size:18px;line-height:1;}
-  .bz2-relations{background:#fff;border-radius:16px;padding:4px 14px;}
-  .bz2-relation-row{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid #f2f2f2;font-size:11px;line-height:1.7;}
+  .bz2-sha-good{color:#9b772d;font-size:.625rem;font-weight:700;white-space:normal;overflow-wrap:anywhere;text-align:center;}
+  .bz2-sha-bad{color:#555;font-size:.625rem;font-weight:700;white-space:normal;overflow-wrap:anywhere;text-align:center;}
+  .bz2-actions{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin:.8125rem 0;}
+  .bz2-action-card{background:#f5f5f5;border-radius:.875rem;padding:.875rem .75rem;color:#333;font-size:.8125rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:none;font-family:inherit;min-width:0;}
+  .bz2-action-card span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bz2-action-card span:last-child{color:#8d8d8d;font-size:1.125rem;line-height:1;}
+  .bz2-relations{background:#fff;border-radius:1rem;padding:.25rem .875rem;}
+  .bz2-relation-row{display:flex;align-items:flex-start;gap:.5rem;padding:.625rem 0;border-bottom:1px solid #f2f2f2;font-size:.6875rem;line-height:1.7;}
   .bz2-relation-row:last-child{border-bottom:none;}
-  .bz2-relation-label{flex:0 0 58px;color:#9b772d;font-weight:800;}
+  .bz2-relation-label{flex:0 0 3.625rem;color:#9b772d;font-weight:800;}
   .bz2-relation-value{flex:1;color:#777;word-break:break-word;}
   .bz2-el-fire{color:#c0392b!important;}
   .bz2-el-metal{color:#a08530!important;}
   .bz2-el-water{color:#5b7e9b!important;}
   .bz2-el-wood{color:#4e7a3a!important;}
   .bz2-el-earth{color:#8b7355!important;}
+
+  @media (max-width:360px){
+    #app{padding-left:.25rem;padding-right:.25rem;}
+    .bz2-panel{padding:0 .25rem .5rem;}
+    .bz2-table-scroll{margin:0;padding:0;}
+    .bz2-table .bz2-col-label{width:64px;}
+    .bz2-table td{padding:.375rem .125rem;font-size:.625rem;}
+    .bz2-table .bz2-row-label{font-size:.5625rem;}
+    .bz2-table .bz2-date-cell{font-size:.5625rem;}
+    .bz2-gan,.bz2-zhi{font-size:1.125rem;}
+    .bz2-elem{font-size:.4375rem;padding:0 .1rem;margin-left:.05rem;vertical-align:.2rem;}
+    .bz2-hidden-line{font-size:.6875rem;}
+    .bz2-secondary-line,.bz2-sha-good,.bz2-sha-bad{font-size:.5625rem;}
+    .bz2-action-card{padding:.7rem .45rem;font-size:.7rem;}
+  }
+  @media (min-width:768px){
+    #app{max-width:480px;}
+  }
 
 </style>
 </head>
@@ -2247,7 +2267,8 @@ function renderBaziBasic(result){
   const elementMark = element => '<i class="bz2-elem ' + bz2ElementClass(element) + '">' + escapeHtml(element) + '</i>';
   const textColor = (text, element) => '<span class="' + bz2ElementClass(element) + '">' + escapeHtml(text) + '</span>';
 
-  let basic = '<div class="bz2-panel"><div class="bz2-table-scroll"><table class="bz2-table"><tbody>';
+  let basic = '<div class="bz2-panel"><div class="bz2-table-scroll"><table class="bz2-table">' +
+    '<colgroup><col class="bz2-col-label">' + columns.map(() => '<col>').join('') + '</colgroup><tbody>';
   basic += '<tr><td class="bz2-row-label">日期</td>' + columns.map(item => '<td class="bz2-date-cell">' + escapeHtml(item.label) + '</td>').join('') + '</tr>';
   basic += row('主星', item => item.key === 'day'
     ? '<td>' + escapeHtml(item.shiShen) + '</td>'

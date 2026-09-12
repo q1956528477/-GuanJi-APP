@@ -47,6 +47,7 @@ const profileText = document.querySelector('.bz2-profile').textContent;
 check('顶部农历信息格式正确', profileText.includes('农历：1990年五月廿三 辰时 坤造'));
 check('顶部阳历信息格式正确', profileText.includes('阳历：1990年06月15日 08:32:00'));
 check('基本盘11行渲染完成', document.querySelectorAll('.bz2-table tbody tr').length === 11);
+check('五列等宽结构已生成', document.querySelectorAll('.bz2-table colgroup col').length === 5);
 check('五行着色元素已生成', document.querySelectorAll('.bz2-table [class*="bz2-el-"]').length > 0);
 check('占位卡片渲染正确', document.querySelectorAll('.bz2-action-card').length === 2);
 check('干支作用关系三行渲染完成', document.querySelectorAll('.bz2-relation-row').length === 3);
