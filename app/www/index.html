@@ -454,22 +454,54 @@
   .bz-switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:#faf8f4;border-radius:14px;font-size:13px;font-weight:600;}
   .bz-switch input{width:20px;height:20px;accent-color:#b8933a;}
   .bz-hint{font-size:11px;color:var(--ink-soft);line-height:1.6;margin-top:7px;}
-  .bz-group-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 8px;}
-  .bz-group-tab{white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:999px;padding:8px 13px;font-size:12px;font-weight:700;cursor:pointer;}
-  .bz-group-tab.active{background:#7a5d12;border-color:#7a5d12;color:#fff;}
-  .bz-group-tab.manage{border-style:dashed;color:#7a5d12;}
-  .bz-tools{display:grid;grid-template-columns:1fr 116px;gap:8px;margin-bottom:12px;}
-  .bz-tools input,.bz-tools select{padding:10px 12px;border-radius:12px;font-size:13px;}
-  .bz-person-list{display:flex;flex-direction:column;gap:10px;}
-  .bz-person-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);cursor:pointer;position:relative;overflow:hidden;}
-  .bz-person-card:active{transform:scale(.985);}
-  .bz-person-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-  .bz-person-name{font-size:16px;font-weight:800;color:var(--ink);}
-  .bz-person-name small{font-size:11px;font-weight:700;color:#7a5d12;background:#faf3df;border-radius:999px;padding:3px 7px;margin-left:6px;vertical-align:2px;}
-  .bz-person-more{border:none;background:#f5f1e8;color:#7a5d12;border-radius:9px;width:32px;height:32px;font-size:18px;cursor:pointer;}
-  .bz-person-meta{font-size:11px;color:var(--ink-soft);line-height:1.6;margin-top:7px;}
-  .bz-person-pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:10px;}
-  .bz-person-pillars span{background:#faf8f4;border-radius:9px;text-align:center;padding:7px 2px;font-size:13px;font-weight:800;color:#5d4509;}
+  .bz-records-panel{padding:0;overflow:hidden;background:#fff;}
+  .bz-records-search-row{display:flex;align-items:center;gap:.5rem;padding:.85rem .9rem .55rem;}
+  .bz-records-search{position:relative;flex:1;min-width:0;}
+  .bz-records-search svg{position:absolute;left:.7rem;top:50%;width:1rem;height:1rem;transform:translateY(-50%);color:#999;pointer-events:none;}
+  .bz-records-search input{height:2.45rem;padding:.55rem .7rem .55rem 2.15rem;border:none;border-radius:.75rem;background:#f2f2f2;font-size:.8rem;color:#333;}
+  .bz-records-search input:focus{background:#eee;border:none;}
+  .bz-records-filter{flex:0 0 auto;height:2.45rem;padding:0 .85rem;border:1px solid #ddd;border-radius:.75rem;background:#fff;color:#333;font-size:.78rem;font-weight:700;font-family:inherit;}
+  .bz-records-group-row{display:flex;align-items:center;gap:.35rem;padding:0 .9rem .45rem;border-bottom:1px solid #f2f2f2;}
+  .bz-group-tabs{display:flex;flex:1;min-width:0;gap:.85rem;overflow-x:auto;scrollbar-width:none;padding:.15rem 0;}
+  .bz-group-tabs::-webkit-scrollbar{display:none;}
+  .bz-group-tab{position:relative;flex:0 0 auto;border:none;background:transparent;color:#555;padding:.4rem 0 .55rem;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit;}
+  .bz-group-tab.active{color:#a08530;font-weight:800;}
+  .bz-group-tab.active::after{content:"";position:absolute;left:50%;bottom:.15rem;width:1.15rem;height:.12rem;border-radius:999px;background:#a08530;transform:translateX(-50%);}
+  .bz-records-group-actions{display:flex;align-items:center;gap:.3rem;flex:0 0 auto;}
+  .bz-records-group-more,.bz-records-edit-btn{height:1.85rem;border:1px solid #e2e2e2;border-radius:.62rem;background:#fff;color:#444;font-family:inherit;font-size:.72rem;font-weight:700;}
+  .bz-records-group-more{width:1.85rem;padding:0;font-size:1rem;line-height:1;letter-spacing:.02rem;}
+  .bz-records-edit-btn{padding:0 .65rem;}
+  .bz-records-edit-btn.active{background:#a08530;border-color:#a08530;color:#fff;}
+  .bz-records-list-wrap{position:relative;padding-right:1.35rem;}
+  .bz-person-list{display:block;}
+  .bz-records-section{scroll-margin-top:.75rem;}
+  .bz-records-section-title{height:2rem;display:flex;align-items:center;padding:0 .9rem;color:#999;font-size:.72rem;font-weight:700;background:#fff;}
+  .bz-record-row{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(8.5rem,1fr);align-items:center;gap:.55rem;min-height:4.6rem;padding:.65rem .45rem .65rem .9rem;border-bottom:1px solid #f2f2f2;cursor:pointer;background:#fff;transition:background .15s ease;}
+  .bz-record-row:last-child{border-bottom:none;}
+  .bz-record-row:active{background:#fafafa;}
+  .bz-record-row.selected{background:#faf6eb;}
+  .bz-record-row.edit-mode{grid-template-columns:.95rem minmax(0,1.18fr) minmax(8.5rem,1fr);}
+  .bz-record-check{width:.82rem;height:.82rem;border:1.5px solid #c9c9c9;border-radius:.22rem;background:#fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.62rem;font-weight:900;}
+  .bz-record-row.selected .bz-record-check{border-color:#a08530;background:#a08530;}
+  .bz-record-left{min-width:0;}
+  .bz-record-title-line{display:flex;align-items:baseline;gap:.32rem;min-width:0;}
+  .bz-record-name{min-width:0;max-width:8.4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#222;font-size:.92rem;font-weight:800;}
+  .bz-record-gender{flex:0 0 auto;color:#999;font-size:.66rem;}
+  .bz-record-date{margin-top:.35rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#888;font-size:.66rem;line-height:1.35;}
+  .bz-record-right{display:flex;align-items:center;justify-content:flex-end;gap:.42rem;min-width:0;}
+  .bz-record-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,1fr);flex:1;min-width:0;column-gap:.15rem;row-gap:.08rem;text-align:center;}
+  .bz-record-pillars span{min-width:0;font-size:clamp(.88rem,4.1vw,1rem);font-weight:700;line-height:1.25;}
+  .bz-record-ganzi-unknown{color:#999!important;font-weight:600!important;}
+  .bz-record-zodiac{flex:0 0 2.2rem;width:2.2rem;height:2.2rem;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;}
+  .bz-record-zodiac span{color:transparent;-webkit-text-stroke:.055rem #c8a552;font-size:1.18rem;font-weight:800;line-height:1;}
+  .bz-records-index{position:fixed;right:max(.25rem,calc((100vw - 480px)/2 + .25rem));top:50%;transform:translateY(-50%);z-index:80;display:flex;flex-direction:column;align-items:center;gap:.02rem;max-height:58vh;overflow-y:auto;scrollbar-width:none;padding:.2rem .1rem;border-radius:999px;background:rgba(255,255,255,.72);backdrop-filter:blur(6px);touch-action:none;}
+  .bz-records-index::-webkit-scrollbar{display:none;}
+  .bz-records-index-item{width:1.05rem;height:.92rem;border:none;background:transparent;color:#999;font-size:.57rem;font-weight:700;line-height:1;padding:0;font-family:inherit;cursor:pointer;}
+  .bz-records-index-item.active{color:#a08530;font-size:.66rem;}
+  .bz-records-bulk-bar{position:fixed;left:50%;bottom:calc(.8rem + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:90;width:min(28rem,calc(100vw - 2rem));display:flex;align-items:center;gap:.5rem;padding:.62rem .7rem;border:1px solid #eee;border-radius:1rem;background:rgba(255,255,255,.97);box-shadow:0 10px 28px rgba(0,0,0,.12);}
+  .bz-records-selected-count{flex:1;min-width:0;color:#666;font-size:.7rem;}
+  .bz-records-bulk-btn{flex:0 0 auto;border:none;border-radius:.7rem;padding:.58rem .72rem;background:#f2f2f2;color:#333;font-size:.7rem;font-weight:700;font-family:inherit;}
+  .bz-records-bulk-btn.danger{background:#d9534f;color:#fff;}
   .bz-empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:44px 12px;}
   .bz-info-head{background:linear-gradient(135deg,#fffdf7,#f7f0df);border:1px solid #eadfca;border-radius:20px;padding:18px;margin-bottom:14px;}
   .bz-info-name{font-size:23px;font-weight:800;color:#5d4509;}
@@ -640,6 +672,9 @@
 
   @media (max-width:360px){
     #app{padding-left:.25rem;padding-right:.25rem;}
+    .bz-records-list-wrap{padding-right:1.65rem;}
+    .bz-record-row{grid-template-columns:minmax(0,1.15fr) minmax(8rem,1fr);gap:.4rem;padding-left:.7rem;}
+    .bz-record-row.edit-mode{grid-template-columns:.85rem minmax(0,1.15fr) minmax(8rem,1fr);}
     .bz2-panel{padding:0 .25rem .5rem;}
     .bz2-table-scroll{margin:0;padding:0;}
     .bz2-table .bz2-col-label{width:64px;}
@@ -905,17 +940,31 @@
       <div class="today-chip">命例记录</div>
       <div class="bz-top-actions"><span id="bz-open-new">+ 新建</span></div>
     </div>
-    <div class="card">
-      <div class="bz-group-tabs" id="bz-group-tabs"></div>
-      <div class="bz-tools">
-        <input type="text" id="bz-search" placeholder="按姓名搜索">
-        <select id="bz-sort">
-          <option value="created_desc">创建时间倒序</option>
-          <option value="name_asc">姓名拼音排序</option>
-        </select>
+    <div class="card bz-records-panel">
+      <div class="bz-records-search-row">
+        <label class="bz-records-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input type="text" id="bz-search" placeholder="请输入搜索的内容" autocomplete="off">
+        </label>
+        <button type="button" class="bz-records-filter" id="bz-records-filter">筛选</button>
       </div>
-      <div class="bz-person-list" id="bz-person-list"></div>
+      <div class="bz-records-group-row">
+        <div class="bz-group-tabs" id="bz-group-tabs"></div>
+        <div class="bz-records-group-actions">
+          <button type="button" class="bz-records-group-more" id="bz-records-group-more" aria-label="分组管理">···</button>
+          <button type="button" class="bz-records-edit-btn" id="bz-records-edit-btn">编辑</button>
+        </div>
+      </div>
+      <div class="bz-records-list-wrap">
+        <div class="bz-person-list" id="bz-person-list"></div>
+        <div class="bz-records-index hidden" id="bz-records-index" aria-label="字母索引"></div>
+      </div>
       <div class="bz-empty hidden" id="bz-person-empty">还没有命例，点击右上角新建。</div>
+    </div>
+    <div class="bz-records-bulk-bar hidden" id="bz-records-bulk-bar">
+      <div class="bz-records-selected-count" id="bz-records-selected-count">已选 0 项</div>
+      <button type="button" class="bz-records-bulk-btn" id="bz-records-move-selected">移动到分组</button>
+      <button type="button" class="bz-records-bulk-btn danger" id="bz-records-delete-selected">删除</button>
     </div>
   </div>
 
@@ -1232,6 +1281,9 @@ function formatDuration(hours){
 function escapeHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+function escapeHtmlAttr(s){
+  return escapeHtml(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 function scoreTier(s){
   if(s==null) return {emoji:'🫥', color:'#c9c4d4', label:'未记录', name:'低'};
   if(s<20) return {emoji:'😫', color:'#5b7bd5', label:'极度疲惫', name:'极低'};
@@ -1271,6 +1323,7 @@ function showView(id){
   document.getElementById('bazi-form-view').classList.toggle('hidden', id!=='bazi-form');
   document.getElementById('bazi-records-view').classList.toggle('hidden', id!=='bazi-records');
   document.getElementById('bazi-info-view').classList.toggle('hidden', id!=='bazi-info');
+  if(id !== 'bazi-records') document.getElementById('req-float-btn').classList.remove('hidden');
   window.scrollTo(0,0);
   if(id==='energy') renderEnergy();
   if(id==='liuyao') renderLiuyaoForm();
@@ -1827,7 +1880,9 @@ if(window.Native && Native.isNative()){
 let baziEditingId = null;
 let baziActiveGroupId = null;
 let baziSearchText = '';
-let baziSortMode = 'created_desc';
+let baziRecordsEditMode = false;
+let baziRecordSelectedIds = new Set();
+let baziMovePersonIds = [];
 let baziCurrentPersonId = null;
 let baziInfoTab = 'basic';
 let baziOpenDaYun = 0;
@@ -2119,6 +2174,132 @@ function formatBaziAge(person){
   return year ? (new Date().getFullYear() - year + 1) + '岁' : '—';
 }
 
+const BZ_RECORD_COLLATOR = typeof Intl !== 'undefined' && Intl.Collator
+  ? new Intl.Collator('zh-CN-u-co-pinyin', {sensitivity:'base'})
+  : null;
+const BZ_RECORD_PINYIN_BOUNDARIES = [
+  ['A','阿'], ['B','八'], ['C','擦'], ['D','搭'], ['E','蛾'], ['F','发'], ['G','噶'],
+  ['H','哈'], ['J','击'], ['K','喀'], ['L','垃'], ['M','妈'], ['N','拿'], ['O','哦'],
+  ['P','啪'], ['Q','期'], ['R','然'], ['S','撒'], ['T','塔'], ['W','挖'], ['X','昔'],
+  ['Y','压'], ['Z','匝']
+];
+const BZ_RECORD_SURNAME_OVERRIDES = {
+  曾:'Z', 查:'Z', 单:'S', 解:'X', 仇:'Q', 区:'O', 朴:'P', 乐:'Y', 覃:'Q', 尉:'Y',
+  翟:'Z', 盖:'G', 缪:'M', 种:'C', 繁:'P', 过:'G', 华:'H', 纪:'J', 任:'R', 燕:'Y',
+  应:'Y', 訾:'Z', 都:'D', 阚:'K', 宁:'N', 召:'S', 折:'S', 祭:'Z'
+};
+const BZ_RECORD_ZODIAC = {子:'鼠', 丑:'牛', 寅:'虎', 卯:'兔', 辰:'龙', 巳:'蛇', 午:'马', 未:'羊', 申:'猴', 酉:'鸡', 戌:'狗', 亥:'猪'};
+
+function bzRecordNameInitial(name){
+  const first = String(name || '').trim().charAt(0);
+  if(!first) return '#';
+  const upper = first.toUpperCase();
+  if(/^[A-Z]$/.test(upper)) return upper;
+  if(Object.prototype.hasOwnProperty.call(BZ_RECORD_SURNAME_OVERRIDES, first)) {
+    return BZ_RECORD_SURNAME_OVERRIDES[first];
+  }
+  if(!/[\u3400-\u9fff]/.test(first) || !BZ_RECORD_COLLATOR) return '#';
+  let initial = '#';
+  BZ_RECORD_PINYIN_BOUNDARIES.forEach(([letter, boundary]) => {
+    if(BZ_RECORD_COLLATOR.compare(first, boundary) >= 0) initial = letter;
+  });
+  return initial;
+}
+
+function bzRecordInitialRank(letter){
+  return letter === '#' ? 26 : letter.charCodeAt(0) - 65;
+}
+
+function bzRecordCompare(a, b){
+  const ai = bzRecordNameInitial(a.name);
+  const bi = bzRecordNameInitial(b.name);
+  const rankDiff = bzRecordInitialRank(ai) - bzRecordInitialRank(bi);
+  if(rankDiff) return rankDiff;
+  const an = String(a.name || '');
+  const bn = String(b.name || '');
+  if(BZ_RECORD_COLLATOR) {
+    const compared = BZ_RECORD_COLLATOR.compare(an, bn);
+    if(compared) return compared;
+  }
+  return an.localeCompare(bn, 'zh-CN');
+}
+
+function bzRecordDateText(person){
+  if(person.calendarType === 'lunar'){
+    const lunar = String(person.lunarText || '').replace(/^农历/, '');
+    return lunar ? '农历' + lunar : '农历日期未知';
+  }
+  const source = String(person.solarDate || person.solarDatetime || '');
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(source);
+  if(!match) return '阳历日期未知';
+  return '阳历' + Number(match[1]) + '年' + Number(match[2]) + '月' + Number(match[3]) + '日';
+}
+
+function bzRecordPillarParts(person, key){
+  const raw = String((person.fourPillars || {})[key] || '');
+  const chars = Array.from(raw);
+  if(key === 'hour' && (person.timeMode === 'unknown' || chars.length < 2)){
+    return {gan:'*', zhi:'*'};
+  }
+  return {gan:chars[0] || '*', zhi:chars[1] || '*'};
+}
+
+function bzRecordCharClass(char, map){
+  if(char === '*') return 'bz-record-ganzi-unknown';
+  return bz2ElementClass(map[char]);
+}
+
+function bzRecordZodiac(person){
+  const yearPillar = String((person.fourPillars || {}).year || '');
+  return BZ_RECORD_ZODIAC[yearPillar[1]] || '命';
+}
+
+function updateBaziRecordsEditUi(){
+  const button = document.getElementById('bz-records-edit-btn');
+  const bar = document.getElementById('bz-records-bulk-bar');
+  const count = document.getElementById('bz-records-selected-count');
+  const reqButton = document.getElementById('req-float-btn');
+  button.textContent = baziRecordsEditMode ? '完成' : '编辑';
+  button.classList.toggle('active', baziRecordsEditMode);
+  bar.classList.toggle('hidden', !baziRecordsEditMode);
+  count.textContent = '已选 ' + baziRecordSelectedIds.size + ' 项';
+  reqButton.classList.toggle('hidden', baziRecordsEditMode);
+}
+
+function toggleBaziRecordSelection(id){
+  if(baziRecordSelectedIds.has(id)) baziRecordSelectedIds.delete(id);
+  else baziRecordSelectedIds.add(id);
+  renderBaziPersonList();
+}
+
+function setBaziRecordActiveLetter(letter){
+  document.querySelectorAll('#bz-records-index .bz-records-index-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.letter === letter);
+  });
+}
+
+function scrollToBaziRecordLetter(letter){
+  const section = document.getElementById('bz-records-letter-' + letter);
+  if(!section) return;
+  const top = section.getBoundingClientRect().top + window.scrollY - 10;
+  window.scrollTo({top, behavior:'smooth'});
+  setBaziRecordActiveLetter(letter);
+}
+
+function bzRecordHaptic(){
+  if(navigator.vibrate) navigator.vibrate(8);
+}
+
+function updateBaziRecordIndexOnScroll(){
+  const sections = Array.from(document.querySelectorAll('#bz-person-list .bz-records-section'));
+  if(!sections.length) return;
+  let active = sections[0].dataset.letter;
+  sections.forEach(section => {
+    if(section.getBoundingClientRect().top <= 130) active = section.dataset.letter;
+  });
+  setBaziRecordActiveLetter(active);
+}
+
 function renderBaziRecords(){
   const groups = getBaziGroups().slice().sort((a, b) => a.sortOrder - b.sortOrder);
   const tabs = document.getElementById('bz-group-tabs');
@@ -2127,79 +2308,191 @@ function renderBaziRecords(){
   allButton.type = 'button';
   allButton.className = 'bz-group-tab' + (baziActiveGroupId === null ? ' active' : '');
   allButton.textContent = '全部';
-  allButton.onclick = () => { baziActiveGroupId = null; renderBaziRecords(); };
+  allButton.onclick = () => {
+    baziActiveGroupId = null;
+    baziRecordsEditMode = false;
+    baziRecordSelectedIds.clear();
+    renderBaziRecords();
+  };
   tabs.appendChild(allButton);
   groups.forEach(group => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'bz-group-tab' + (baziActiveGroupId === group.id ? ' active' : '');
     button.textContent = group.name;
-    button.onclick = () => { baziActiveGroupId = group.id; renderBaziRecords(); };
+    button.onclick = () => {
+      baziActiveGroupId = group.id;
+      baziRecordsEditMode = false;
+      baziRecordSelectedIds.clear();
+      renderBaziRecords();
+    };
     tabs.appendChild(button);
   });
-  const manage = document.createElement('button');
-  manage.type = 'button';
-  manage.className = 'bz-group-tab manage';
-  manage.textContent = '管理';
-  manage.onclick = openBaziGroupManager;
-  tabs.appendChild(manage);
 
   document.getElementById('bz-search').value = baziSearchText;
-  document.getElementById('bz-sort').value = baziSortMode;
   renderBaziPersonList();
 }
 
 function renderBaziPersonList(){
   const listBox = document.getElementById('bz-person-list');
   const empty = document.getElementById('bz-person-empty');
+  const index = document.getElementById('bz-records-index');
   let persons = getBaziPersons();
   if(baziActiveGroupId) persons = persons.filter(person => person.groupId === baziActiveGroupId);
-  if(baziSearchText) persons = persons.filter(person => person.name.includes(baziSearchText));
-  persons = persons.slice().sort((a, b) => {
-    if(baziSortMode === 'name_asc') return a.name.localeCompare(b.name, 'zh-CN-u-co-pinyin');
-    return (b.createdAt || 0) - (a.createdAt || 0);
-  });
+  if(baziSearchText) {
+    const keyword = baziSearchText.toLowerCase();
+    persons = persons.filter(person => String(person.name || '').toLowerCase().includes(keyword));
+  }
+  persons = persons.slice().sort(bzRecordCompare);
+  updateBaziRecordsEditUi();
+
   if(!persons.length){
     listBox.innerHTML = '';
+    index.innerHTML = '';
+    index.classList.add('hidden');
+    empty.textContent = baziSearchText ? '未找到相关命例' : '还没有命例，点击右上角新建。';
     empty.classList.remove('hidden');
     return;
   }
   empty.classList.add('hidden');
-  listBox.innerHTML = persons.map(person => {
-    const four = person.fourPillars || {};
-    const preview = ['year','month','day','hour'].map(key => '<span>' + escapeHtml(four[key] || '—') + '</span>').join('');
-    return '<div class="bz-person-card" data-id="' + escapeHtml(person.id) + '">' +
-      '<div class="bz-person-head"><div class="bz-person-name">' + escapeHtml(person.name) +
-      '<small>' + (person.gender === 'female' ? '坤造' : '乾造') + '</small></div>' +
-      '<button type="button" class="bz-person-more">⋯</button></div>' +
-      '<div class="bz-person-meta">' + escapeHtml(person.solarDatetime || '') + ' · ' + escapeHtml(person.lunarText || '') +
-      '<br>当前虚岁：' + formatBaziAge(person) + '</div>' +
-      '<div class="bz-person-pillars">' + preview + '</div></div>';
+
+  const grouped = {};
+  persons.forEach(person => {
+    const letter = bzRecordNameInitial(person.name);
+    if(!grouped[letter]) grouped[letter] = [];
+    grouped[letter].push(person);
+  });
+  const letters = Object.keys(grouped).sort((a, b) => bzRecordInitialRank(a) - bzRecordInitialRank(b));
+
+  listBox.innerHTML = letters.map(letter => {
+    const rows = grouped[letter].map(person => {
+      const selected = baziRecordSelectedIds.has(person.id);
+      const year = bzRecordPillarParts(person, 'year');
+      const month = bzRecordPillarParts(person, 'month');
+      const day = bzRecordPillarParts(person, 'day');
+      const hour = bzRecordPillarParts(person, 'hour');
+      const parts = [year, month, day, hour];
+      const ganRow = parts.map(part => '<span class="' + bzRecordCharClass(part.gan, Bazi.GAN_ELEMENT) + '">' + escapeHtml(part.gan) + '</span>').join('');
+      const zhiRow = parts.map(part => '<span class="' + bzRecordCharClass(part.zhi, Bazi.ZHI_ELEMENT) + '">' + escapeHtml(part.zhi) + '</span>').join('');
+      return '<div class="bz-record-row' + (baziRecordsEditMode ? ' edit-mode' : '') + (selected ? ' selected' : '') + '" data-id="' + escapeHtml(person.id) + '">' +
+        (baziRecordsEditMode ? '<span class="bz-record-check">✓</span>' : '') +
+        '<div class="bz-record-left">' +
+          '<div class="bz-record-title-line"><span class="bz-record-name" title="' + escapeHtmlAttr(person.name) + '">' + escapeHtml(person.name) + '</span>' +
+          '<span class="bz-record-gender">' + (person.gender === 'female' ? '女' : '男') + '</span></div>' +
+          '<div class="bz-record-date" title="' + escapeHtmlAttr(bzRecordDateText(person)) + '">' + escapeHtml(bzRecordDateText(person)) + '</div>' +
+        '</div>' +
+        '<div class="bz-record-right">' +
+          '<div class="bz-record-pillars">' + ganRow + zhiRow + '</div>' +
+          '<div class="bz-record-zodiac"><span>' + escapeHtml(bzRecordZodiac(person)) + '</span></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    return '<section class="bz-records-section" id="bz-records-letter-' + letter + '" data-letter="' + letter + '">' +
+      '<div class="bz-records-section-title">' + letter + '</div>' + rows + '</section>';
   }).join('');
-  listBox.querySelectorAll('.bz-person-card').forEach(card => {
-    const id = card.dataset.id;
-    const more = card.querySelector('.bz-person-more');
-    more.onclick = event => { event.stopPropagation(); openBaziPersonActions(id); };
+
+  index.innerHTML = letters.map(letter =>
+    '<button type="button" class="bz-records-index-item" data-letter="' + letter + '">' + letter + '</button>'
+  ).join('');
+  index.classList.remove('hidden');
+
+  listBox.querySelectorAll('.bz-record-row').forEach(row => {
+    const id = row.dataset.id;
     let timer = null;
     let longPressed = false;
     const start = () => {
+      if(baziRecordsEditMode) return;
       longPressed = false;
       clearTimeout(timer);
-      timer = setTimeout(() => { longPressed = true; openBaziPersonActions(id); }, 550);
+      timer = setTimeout(() => {
+        longPressed = true;
+        openBaziPersonActions(id);
+      }, 550);
     };
     const cancel = () => clearTimeout(timer);
-    card.addEventListener('touchstart', start, {passive:true});
-    card.addEventListener('touchend', cancel);
-    card.addEventListener('touchmove', cancel);
-    card.addEventListener('mousedown', start);
-    card.addEventListener('mouseup', cancel);
-    card.addEventListener('mouseleave', cancel);
-    card.onclick = event => {
-      if(event.target.closest('.bz-person-more')) return;
-      if(longPressed){ longPressed = false; return; }
-      openBaziInfo(id);
+    row.addEventListener('touchstart', start, {passive:true});
+    row.addEventListener('touchend', cancel);
+    row.addEventListener('touchmove', cancel);
+    row.addEventListener('mousedown', start);
+    row.addEventListener('mouseup', cancel);
+    row.addEventListener('mouseleave', cancel);
+    row.onclick = () => {
+      if(longPressed){
+        longPressed = false;
+        return;
+      }
+      if(baziRecordsEditMode) toggleBaziRecordSelection(id);
+      else openBaziInfo(id);
     };
   });
+
+  index.querySelectorAll('.bz-records-index-item').forEach(item => {
+    item.onclick = () => scrollToBaziRecordLetter(item.dataset.letter);
+  });
+  requestAnimationFrame(() => {
+    updateBaziRecordIndexOnScroll();
+  });
+}
+
+function toggleBaziRecordsEditMode(){
+  baziRecordsEditMode = !baziRecordsEditMode;
+  baziRecordSelectedIds.clear();
+  renderBaziPersonList();
+}
+
+function moveSelectedBaziRecords(){
+  if(!baziRecordSelectedIds.size){
+    showToast('请先选择命例');
+    return;
+  }
+  baziMovePersonIds = Array.from(baziRecordSelectedIds);
+  renderBaziMoveGroups();
+  document.getElementById('bz-move-modal').classList.add('show');
+}
+
+function deleteSelectedBaziRecords(){
+  if(!baziRecordSelectedIds.size){
+    showToast('请先选择命例');
+    return;
+  }
+  if(!confirm('确定删除选中的 ' + baziRecordSelectedIds.size + ' 个命例吗？')) return;
+  const selected = new Set(baziRecordSelectedIds);
+  saveBaziPersons(getBaziPersons().filter(person => !selected.has(person.id)));
+  if(selected.has(baziCurrentPersonId)) baziCurrentPersonId = null;
+  baziRecordSelectedIds.clear();
+  baziRecordsEditMode = false;
+  renderBaziRecords();
+  showToast('已删除 ' + selected.size + ' 个命例');
+}
+
+let baziRecordIndexPointerId = null;
+let baziRecordIndexLastLetter = '';
+function handleBaziRecordIndexPointer(event){
+  if(baziRecordIndexPointerId === null && event.type === 'pointerdown'){
+    baziRecordIndexPointerId = event.pointerId;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+  if(baziRecordIndexPointerId !== event.pointerId) return;
+  event.preventDefault();
+  const items = Array.from(event.currentTarget.querySelectorAll('.bz-records-index-item'));
+  if(!items.length) return;
+  let item = items.find(candidate => {
+    const rect = candidate.getBoundingClientRect();
+    return event.clientY >= rect.top && event.clientY <= rect.bottom;
+  });
+  if(!item) item = event.clientY < items[0].getBoundingClientRect().top ? items[0] : items[items.length - 1];
+  const letter = item.dataset.letter;
+  if(letter && letter !== baziRecordIndexLastLetter){
+    baziRecordIndexLastLetter = letter;
+    bzRecordHaptic();
+    scrollToBaziRecordLetter(letter);
+  }
+}
+
+function endBaziRecordIndexPointer(event){
+  if(baziRecordIndexPointerId !== event.pointerId) return;
+  baziRecordIndexPointerId = null;
+  baziRecordIndexLastLetter = '';
 }
 
 function openBaziInfo(id){
@@ -2888,27 +3181,31 @@ function closeBaziPersonActions(){
 }
 
 function renderBaziMoveGroups(){
-  const person = getBaziPerson(baziActionPersonId);
   const box = document.getElementById('bz-move-list');
-  if(!person){ box.innerHTML = ''; return; }
+  const persons = getBaziPersons();
+  const targets = persons.filter(person => baziMovePersonIds.includes(person.id));
+  if(!targets.length){ box.innerHTML = ''; return; }
   box.innerHTML = getBaziGroups().slice().sort((a, b) => a.sortOrder - b.sortOrder).map(group =>
     '<div class="bz-group-row"><div><b>' + escapeHtml(group.name) + '</b><br><small>' +
     getBaziPersons().filter(item => item.groupId === group.id).length + ' 个命例</small></div>' +
-    '<div class="bz-group-actions"><button type="button" data-id="' + group.id + '"' + (group.id === person.groupId ? ' disabled' : '') + '>' +
-    (group.id === person.groupId ? '当前' : '移入') + '</button></div></div>'
+    '<div class="bz-group-actions"><button type="button" data-id="' + group.id + '"' + (targets.every(person => person.groupId === group.id) ? ' disabled' : '') + '>' +
+    (targets.every(person => person.groupId === group.id) ? '当前' : '移入') + '</button></div></div>'
   ).join('');
   box.querySelectorAll('button[data-id]').forEach(button => {
     button.onclick = () => {
-      const persons = getBaziPersons();
-      const target = persons.find(item => item.id === baziActionPersonId);
-      if(target){
-        target.groupId = button.dataset.id;
-        target.updatedAt = Date.now();
-        saveBaziPersons(persons);
-      }
+      const allPersons = getBaziPersons();
+      allPersons.forEach(person => {
+        if(!baziMovePersonIds.includes(person.id)) return;
+        person.groupId = button.dataset.id;
+        person.updatedAt = Date.now();
+      });
+      saveBaziPersons(allPersons);
       document.getElementById('bz-move-modal').classList.remove('show');
+      baziRecordSelectedIds.clear();
+      baziRecordsEditMode = false;
       renderBaziRecords();
-      showToast('已移动到新分组');
+      showToast('已移动 ' + baziMovePersonIds.length + ' 个命例');
+      baziMovePersonIds = [];
     };
   });
 }
@@ -3756,10 +4053,17 @@ document.getElementById('bz-search').addEventListener('input', event => {
   baziSearchText = event.target.value.trim();
   renderBaziPersonList();
 });
-document.getElementById('bz-sort').addEventListener('change', event => {
-  baziSortMode = event.target.value;
-  renderBaziPersonList();
-});
+document.getElementById('bz-records-filter').addEventListener('click', () => showToast('筛选功能敬请期待'));
+document.getElementById('bz-records-group-more').addEventListener('click', openBaziGroupManager);
+document.getElementById('bz-records-edit-btn').addEventListener('click', toggleBaziRecordsEditMode);
+document.getElementById('bz-records-move-selected').addEventListener('click', moveSelectedBaziRecords);
+document.getElementById('bz-records-delete-selected').addEventListener('click', deleteSelectedBaziRecords);
+const baziRecordsIndex = document.getElementById('bz-records-index');
+baziRecordsIndex.addEventListener('pointerdown', handleBaziRecordIndexPointer);
+baziRecordsIndex.addEventListener('pointermove', handleBaziRecordIndexPointer);
+baziRecordsIndex.addEventListener('pointerup', endBaziRecordIndexPointer);
+baziRecordsIndex.addEventListener('pointercancel', endBaziRecordIndexPointer);
+window.addEventListener('scroll', updateBaziRecordIndexOnScroll, {passive:true});
 document.getElementById('bz-action-close').addEventListener('click', closeBaziPersonActions);
 document.getElementById('bz-action-modal').addEventListener('click', event => {
   if(event.target === document.getElementById('bz-action-modal')) closeBaziPersonActions();
@@ -3771,6 +4075,7 @@ document.getElementById('bz-action-edit').addEventListener('click', () => {
 });
 document.getElementById('bz-action-move').addEventListener('click', () => {
   closeBaziPersonActions();
+  baziMovePersonIds = [baziActionPersonId];
   renderBaziMoveGroups();
   document.getElementById('bz-move-modal').classList.add('show');
 });
@@ -3784,9 +4089,15 @@ document.getElementById('bz-action-delete').addEventListener('click', () => {
   renderBaziRecords();
   showToast('命例已删除');
 });
-document.getElementById('bz-move-close').addEventListener('click', () => document.getElementById('bz-move-modal').classList.remove('show'));
+document.getElementById('bz-move-close').addEventListener('click', () => {
+  document.getElementById('bz-move-modal').classList.remove('show');
+  baziMovePersonIds = [];
+});
 document.getElementById('bz-move-modal').addEventListener('click', event => {
-  if(event.target === document.getElementById('bz-move-modal')) document.getElementById('bz-move-modal').classList.remove('show');
+  if(event.target === document.getElementById('bz-move-modal')) {
+    document.getElementById('bz-move-modal').classList.remove('show');
+    baziMovePersonIds = [];
+  }
 });
 document.getElementById('bz-group-close').addEventListener('click', () => document.getElementById('bz-group-modal').classList.remove('show'));
 document.getElementById('bz-group-modal').addEventListener('click', event => {
