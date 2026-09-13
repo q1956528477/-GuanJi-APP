@@ -842,8 +842,9 @@
       </div>
 
       <div id="bz-ganzhi-fields" class="hidden">
-        <label class="field">参考公历日期（用于大运流年）</label>
+        <label class="field">参考公历日期（用于定位四柱年份）</label>
         <input type="date" id="bz-reference-date">
+        <div class="bz-hint">保存时会按所选四柱反推最接近的真实公历出生时间。</div>
         <div class="bz-form-grid">
           <div><label class="field">年柱</label><select id="bz-gz-year"></select></div>
           <div><label class="field">月柱</label><select id="bz-gz-month"></select></div>
@@ -1273,6 +1274,8 @@ function showView(id){
   window.scrollTo(0,0);
   if(id==='energy') renderEnergy();
   if(id==='liuyao') renderLiuyaoForm();
+  if(id==='liuyao-history') renderLiuyaoHistoryList();
+  if(id==='req') renderReqList();
   if(id==='bazi-form') renderBaziForm();
   if(id==='bazi-records') renderBaziRecords();
   if(id==='bazi-info') renderBaziInfo();
@@ -1281,6 +1284,20 @@ function showView(id){
 function openEnergy(){ showView('energy'); }
 function openLiuyao(){ showView('liuyao'); }
 function openBaziRecords(){ showView('bazi-records'); }
+function currentPrimaryViewId(){
+  const views = [
+    ['req-view','req'],
+    ['liuyao-history-view','liuyao-history'],
+    ['bazi-info-view','bazi-info'],
+    ['bazi-records-view','bazi-records'],
+    ['bazi-form-view','bazi-form'],
+    ['liuyao-view','liuyao'],
+    ['energy-view','energy'],
+    ['home-view','home']
+  ];
+  const current = views.find(([id]) => !document.getElementById(id).classList.contains('hidden'));
+  return current ? current[1] : 'home';
+}
 
 /* ---------------- 主界面渲染 ---------------- */
 function renderHome(){
@@ -1773,12 +1790,21 @@ function showToast(msg){
 // ---- 返回键处理（原生返回键 / 侧滑返回）----
 let lastBackTime = 0;
 function handleBack(){
-  const energyVisible = !document.getElementById('energy-view').classList.contains('hidden');
+  const reqVisible = !document.getElementById('req-view').classList.contains('hidden');
+  const liuyaoHistoryVisible = !document.getElementById('liuyao-history-view').classList.contains('hidden');
   const liuyaoVisible = !document.getElementById('liuyao-view').classList.contains('hidden');
+  const liuyaoResultVisible = liuyaoVisible && !document.getElementById('liuyao-result-view').classList.contains('hidden');
+  const energyVisible = !document.getElementById('energy-view').classList.contains('hidden');
   const baziFormVisible = !document.getElementById('bazi-form-view').classList.contains('hidden');
   const baziRecordsVisible = !document.getElementById('bazi-records-view').classList.contains('hidden');
   const baziInfoVisible = !document.getElementById('bazi-info-view').classList.contains('hidden');
-  if(baziInfoVisible){
+  if(reqVisible){
+    closeReqView();
+  } else if(liuyaoHistoryVisible){
+    backFromHistory();
+  } else if(liuyaoResultVisible){
+    backFromResult();
+  } else if(baziInfoVisible){
     showView('bazi-records');
   } else if(energyVisible || liuyaoVisible || baziFormVisible || baziRecordsVisible){
     showView('home');  // 子页面 → 返回主界面
@@ -1941,7 +1967,7 @@ function renderBaziCalendarFields(){
   document.getElementById('bz-solar-fields').classList.toggle('hidden', type !== 'solar');
   document.getElementById('bz-lunar-fields').classList.toggle('hidden', type !== 'lunar');
   document.getElementById('bz-ganzhi-fields').classList.toggle('hidden', type !== 'ganzhi');
-  document.getElementById('bz-time-label').textContent = type === 'ganzhi' ? '参考出生时间（用于大运流年）' : '出生时间';
+  document.getElementById('bz-time-label').textContent = type === 'ganzhi' ? '参考出生时间（用于定位四柱年份）' : '出生时间';
 }
 
 function renderBaziForm(){
@@ -2054,6 +2080,18 @@ function saveBaziPerson(){
   let result;
   try{ result = Bazi.calculate(payload.input); }
   catch(err){ alert('排盘失败：' + err.message); return; }
+  if(payload.input.calendarType === 'ganzhi'){
+    if(!result.directTimeResolved){
+      alert('排盘失败：所选四柱无法匹配到公历出生时间，请检查四柱组合');
+      return;
+    }
+    payload.input.solarDate = result.resolvedSolarDate;
+    payload.input.time = result.resolvedTime;
+    payload.input.timeMode = 'exact';
+    // 四柱直排以选定四柱为最终结果，保存时不再叠加时区/日照修正。
+    payload.input.useTrueSolarTime = false;
+    payload.input.applyChinaDst = false;
+  }
 
   const persons = getBaziPersons();
   const oldIndex = baziEditingId ? persons.findIndex(item => item.id === baziEditingId) : -1;
@@ -3142,25 +3180,23 @@ function showLiuyaoResult(result){
 }
 
 function backFromHistory(){
-  document.getElementById('liuyao-history-view').classList.add('hidden');
-  document.getElementById('liuyao-view').classList.remove('hidden');
-  document.getElementById('liuyao-cast-view').classList.remove('hidden');
-  document.getElementById('liuyao-result-view').classList.add('hidden');
   isHistoryEditMode = false;
   selectedHistoryIds.clear();
+  showView('liuyao');
 }
 
 // ========== 迭代需求记录功能 ==========
+let reqReturnView = 'home';
 function openReqView(){
-  document.getElementById('home-view').classList.add('hidden');
-  document.getElementById('req-view').classList.remove('hidden');
-  renderReqList();
+  const current = currentPrimaryViewId();
+  if(current !== 'req') reqReturnView = current;
+  showView('req');
 }
 
 function closeReqView(){
-  document.getElementById('req-view').classList.add('hidden');
-  document.getElementById('home-view').classList.remove('hidden');
-  renderHome();
+  const target = reqReturnView || 'home';
+  reqReturnView = 'home';
+  showView(target);
 }
 
 function renderReqList(){
@@ -3279,10 +3315,8 @@ function backFromResult(){
     currentResultId = null;
     showLiuyaoHistory();
   } else {
-    // 从新起卦，返回主页
-    document.getElementById('liuyao-view').classList.add('hidden');
-    document.getElementById('home-view').classList.remove('hidden');
-    renderHome();
+    // 从新起卦返回主页
+    showView('home');
   }
 }
 
@@ -3511,11 +3545,7 @@ function getLiuyaoHistory(){
 }
 
 function showLiuyaoHistory(){
-  // 隐藏所有其他视图
-  document.getElementById('home-view').classList.add('hidden');
-  document.getElementById('liuyao-view').classList.add('hidden');
-  document.getElementById('liuyao-history-view').classList.remove('hidden');
-  renderLiuyaoHistoryList();
+  showView('liuyao-history');
 }
 
 function renderLiuyaoHistoryList(){
@@ -3649,8 +3679,7 @@ function viewLiuyaoHistoryRecord(id){
   currentResultId = id;
   
   // 显示结果页面
-  document.getElementById('liuyao-history-view').classList.add('hidden');
-  document.getElementById('liuyao-view').classList.remove('hidden');
+  showView('liuyao');
   document.getElementById('liuyao-cast-view').classList.add('hidden');
   document.getElementById('liuyao-result-view').classList.remove('hidden');
   // 问题标题在 renderLiuyaoResult 中显示

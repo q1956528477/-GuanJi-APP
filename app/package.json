@@ -1,15 +1,16 @@
 {
   "name": "guanji",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "description": "观己 - 身心状态记录",
   "private": true,
   "author": "",
   "scripts": {
     "build:bridges": "node scripts/build.js",
-    "test": "node test_liuyao.js && node test_bazi.js && node test_bazi_page.js",
+    "test": "node test_liuyao.js && node test_bazi.js && node test_bazi_page.js && node test_navigation.js",
     "test:liuyao": "node test_liuyao.js",
     "test:bazi": "node test_bazi.js",
     "test:bazi-page": "node test_bazi_page.js",
+    "test:navigation": "node test_navigation.js",
     "test:page": "node test_app.js",
     "build": "npm run build:bridges",
     "cap": "cap sync android",

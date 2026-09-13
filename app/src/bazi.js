@@ -494,6 +494,50 @@ function resolveSolar(input) {
   }
   return solar;
 }
+function solarSerial(solar) {
+  return Date.UTC(solar.getYear(), solar.getMonth() - 1, solar.getDay(), solar.getHour(), solar.getMinute(), solar.getSecond());
+}
+function rawPillarsFromSolar(solar) {
+  const parts = solarParts(solar);
+  const eightChar = solar.getLunar().getEightChar();
+  eightChar.setSect(2);
+  const pillars = {
+    year:eightChar.getYear(), month:eightChar.getMonth(),
+    day:eightChar.getDay(), hour:eightChar.getTime()
+  };
+  if (parts.hour === 23) {
+    const next = addMinutes(parts, 60 - parts.minute);
+    const nextSolar = Solar.fromYmdHms(next.year, next.month, next.day, 0, 0, 0);
+    const nextEightChar = nextSolar.getLunar().getEightChar();
+    nextEightChar.setSect(2);
+    pillars.day = nextEightChar.getDay();
+    const currentDayGan = eightChar.getDayGan();
+    pillars.hour = GAN[((GAN.indexOf(currentDayGan) % 5) * 2) % 10] + ZHI[0];
+  }
+  return pillars;
+}
+function samePillars(a, b) {
+  return a.year === b.year && a.month === b.month && a.day === b.day && a.hour === b.hour;
+}
+function resolveDirectSolar(pillars, reference) {
+  const candidates = Solar.fromBaZi(
+    pillars.year, pillars.month, pillars.day, pillars.hour, 2, reference.getYear()
+  );
+  if (!candidates || !candidates.length) return null;
+  const referenceTime = solarSerial(reference);
+  const candidate = candidates.reduce((best, item) => {
+    return Math.abs(solarSerial(item) - referenceTime) < Math.abs(solarSerial(best) - referenceTime) ? item : best;
+  }, candidates[0]);
+  const candidateParts = solarParts(candidate);
+  const atMinute = Solar.fromYmdHms(
+    candidateParts.year, candidateParts.month, candidateParts.day, candidateParts.hour, candidateParts.minute, 0
+  );
+  if (samePillars(rawPillarsFromSolar(atMinute), pillars)) return atMinute;
+  const next = addMinutes(candidateParts, 1);
+  const nextMinute = Solar.fromYmdHms(next.year, next.month, next.day, next.hour, next.minute, 0);
+  if (samePillars(rawPillarsFromSolar(nextMinute), pillars)) return nextMinute;
+  return null;
+}
 function calculate(input) {
   input = input || {};
   const chartType = input.calendarType || 'solar';
@@ -514,19 +558,7 @@ function calculate(input) {
   const lunar = chartSolar.getLunar();
   const eightChar = lunar.getEightChar();
   eightChar.setSect(2);
-  let rawPillars = {
-    year:eightChar.getYear(), month:eightChar.getMonth(),
-    day:eightChar.getDay(), hour:eightChar.getTime()
-  };
-  if (chartParts.hour === 23) {
-    const next = addMinutes(chartParts, 60 - chartParts.minute);
-    const nextSolar = Solar.fromYmdHms(next.year, next.month, next.day, 0, 0, 0);
-    const nextEightChar = nextSolar.getLunar().getEightChar();
-    nextEightChar.setSect(2);
-    rawPillars.day = nextEightChar.getDay();
-    const currentDayGan = eightChar.getDayGan();
-    rawPillars.hour = GAN[((GAN.indexOf(currentDayGan) % 5) * 2) % 10] + ZHI[0];
-  }
+  let rawPillars = rawPillarsFromSolar(chartSolar);
   if (chartType === 'ganzhi') {
     const direct = input.fourPillars || {};
     ['year','month','day','hour'].forEach(key => {
@@ -535,41 +567,51 @@ function calculate(input) {
     rawPillars = { year:direct.year, month:direct.month, day:direct.day, hour:direct.hour };
   }
 
+  let resolvedSolar = solar;
+  let directTimeResolved = true;
+  if (chartType === 'ganzhi') {
+    const directSolar = resolveDirectSolar(rawPillars, solar);
+    directTimeResolved = !!directSolar;
+    if (directSolar) resolvedSolar = directSolar;
+  }
+  const resolvedParts = solarParts(resolvedSolar);
+  const chartBaseSolar = chartType === 'ganzhi' ? resolvedSolar : chartSolar;
   const dayGan = rawPillars.day[0];
   const dayGender = input.gender === 'female' ? 'female' : 'male';
   const details = buildPillars(rawPillars, dayGan, dayGender, rawPillars.year[1]);
   let sourceEightChar = eightChar;
   if (chartType === 'ganzhi') {
-    try {
-      const matches = Solar.fromBaZi(rawPillars.year, rawPillars.month, rawPillars.day, rawPillars.hour, 2, original.year);
-      if (matches && matches.length) sourceEightChar = matches[0].getLunar().getEightChar();
-    } catch (e) {}
+    sourceEightChar = resolvedSolar.getLunar().getEightChar();
   }
   const extras = buildExtras(rawPillars, details, sourceEightChar);
-  extras.renYuanSiLing = getRenYuanSiLing(chartSolar, rawPillars.month[1]);
-  const birthLunar = solar.getLunar();
-  const yun = buildYun(chartSolar, rawPillars, input, original.year);
+  extras.renYuanSiLing = getRenYuanSiLing(chartBaseSolar, rawPillars.month[1]);
+  const birthLunar = resolvedSolar.getLunar();
+  const yun = buildYun(chartBaseSolar, rawPillars, input, resolvedParts.year);
 
   return {
     input:Object.assign({}, input, { gender:dayGender }),
     calendarType:chartType,
-    solarDatetime:fmtSolar(original),
-    chartSolarDatetime:fmtSolar(chartParts),
+    solarDatetime:fmtSolar(resolvedParts),
+    chartSolarDatetime:fmtSolar(solarParts(chartBaseSolar)),
     trueSolarDatetime:correctionMinutes ? fmtSolar(chartParts) : '',
     correctionMinutes,
     dstCorrectionMinutes,
     longitudeCorrectionMinutes,
     lunarText:birthLunar.toString(),
-    chartLunarText:lunar.toString(),
+    chartLunarText:chartBaseSolar.getLunar().toString(),
     zodiac:birthLunar.getYearShengXiao(),
-    constellation:solar.getXingZuo(),
+    constellation:resolvedSolar.getXingZuo(),
+    resolvedSolarDate:resolvedSolar.toYmd(),
+    resolvedTime:(resolvedSolar.getHour() < 10 ? '0' : '') + resolvedSolar.getHour() + ':' +
+      (resolvedSolar.getMinute() < 10 ? '0' : '') + resolvedSolar.getMinute(),
+    directTimeResolved,
     pillars:rawPillars,
     pillarDetails:details,
     columns:pillarListFromDetails(details),
     extras,
     yun,
     currentYear:new Date().getFullYear(),
-    virtualAge:new Date().getFullYear() - original.year + 1
+    virtualAge:new Date().getFullYear() - resolvedParts.year + 1
   };
 }
 function getLunarMonths(year) {

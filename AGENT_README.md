@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.0 (build 34)**　最后更新：2026-09-13
+> 当前版本：**v1.14.1 (build 35)**　最后更新：2026-09-13
 
 ---
 
@@ -99,7 +99,7 @@ app/
 │   └── notify.js               # 每日提醒调度
 ├── scripts/build.js / build.ps1 # 用 esbuild 生成四个 bundle.js（Node / PowerShell）
 ├── tools/generate-yijing-data.js  # 由《周易》结构化 JSON 生成 yijing-data.js
-├── test_liuyao.js / test_bazi.js / test_bazi_page.js # 六爻、八字与页面测试
+├── test_liuyao.js / test_bazi.js / test_bazi_page.js / test_navigation.js # 六爻、八字与导航测试
 ├── package.json                # 版本号三处之一
 └── android/                    # Android 原生工程
     └── app/
@@ -245,7 +245,7 @@ python -m http.server 8080 --directory app/www
 
 ```powershell
 cd app
-npm test            # 六爻引擎 + 八字引擎 + 八字页面集成测试
+npm test            # 六爻引擎 + 八字引擎 + 八字页面集成 + 导航测试
 npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不用
 ```
 
@@ -321,7 +321,7 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ## 10. 待开发 / 已知限制
 
-- [x] 八字排盘模块（当前版本 v1.14.0）
+- [x] 八字排盘模块（当前版本 v1.14.1）
 - [ ] 深色模式、云端同步、更多起卦方式
 - [ ] **iOS 版本**：技术上很顺（Capacitor 官方支持 iOS，且本项目无自定义原生代码），但需处理：
   - 必须有 macOS + Xcode + CocoaPods（或用云 Mac）

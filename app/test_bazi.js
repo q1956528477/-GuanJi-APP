@@ -97,12 +97,24 @@ check('四柱直排保持用户输入', JSON.stringify(direct.pillars) === JSON.
   year:'庚午', month:'壬午', day:'辛亥', hour:'壬辰'
 }));
 check('四柱直排附加信息完整', !!direct.extras.mingGong && !!direct.extras.shenGong && direct.yun.daYun.length === 10);
+check('四柱直排自动反推公历时间', direct.resolvedSolarDate === '1990-06-15' && direct.resolvedTime === '08:00');
+const directReopened = Bazi.calculate({
+  gender:'female', calendarType:'solar', solarDate:direct.resolvedSolarDate, time:direct.resolvedTime,
+  useTrueSolarTime:false, applyChinaDst:false
+});
+check('四柱直排反推时间可复现同一四柱', JSON.stringify(directReopened.pillars) === JSON.stringify(direct.pillars));
 check('人元司令按交节天数计算', direct.extras.renYuanSiLing.gan === '丁');
 
 const jieBoundaryCase = Bazi.calculate({
   gender:'female', calendarType:'solar', solarDate:'2023-02-04', time:'10:45', useTrueSolarTime:false
 });
 check('交节当日司令计算正确', jieBoundaryCase.extras.renYuanSiLing.gan === '戊');
+
+const directFuture = Bazi.calculate({
+  gender:'female', calendarType:'ganzhi', solarDate:'2023-02-04', time:'10:45', useTrueSolarTime:false,
+  fourPillars:{year:'癸卯', month:'甲寅', day:'癸巳', hour:'丁巳'}
+});
+check('四柱直排跟随节气边界反推', directFuture.resolvedSolarDate === '2023-02-04' && directFuture.resolvedTime === '10:43');
 
 // 流月使用真实交节日期
 const timeline = Bazi.calculate({

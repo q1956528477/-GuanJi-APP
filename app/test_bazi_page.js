@@ -115,6 +115,26 @@ const crossFlow = window.Bazi.calculate({
 const crossRelations = window.analyzeBaziCrossRelations(crossBase.columns, [crossFlow]);
 check('岁运关系包含原局与大运流年交叉', crossRelations.gan.includes('甲己合化土') && crossRelations.zhi.includes('子丑合化土'));
 
+window.openBaziForm();
+document.getElementById('bz-name').value = '直排测试';
+document.querySelector('#bz-calendar-tabs button[data-value="ganzhi"]').click();
+document.getElementById('bz-reference-date').value = '2023-02-04';
+document.getElementById('bz-exact-time').value = '10:45';
+document.getElementById('bz-gz-year').value = '癸卯';
+document.getElementById('bz-gz-month').value = '甲寅';
+document.getElementById('bz-gz-day').value = '癸巳';
+document.getElementById('bz-gz-hour').value = '丁巳';
+document.getElementById('bz-submit').click();
+const directPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
+const directPerson = directPersons.find(person => person.name === '直排测试');
+check('四柱直排保存时同步出生日期', !!directPerson && directPerson.solarDate === '2023-02-04' && directPerson.time === '10:43');
+check('四柱直排保存时同步出生农历', !!directPerson && directPerson.solarDatetime === '2023-02-04 10:43');
+const reopenedDirect = window.Bazi.calculate({
+  gender:directPerson.gender, calendarType:'solar', solarDate:directPerson.solarDate, time:directPerson.time,
+  useTrueSolarTime:directPerson.useTrueSolarTime, applyChinaDst:directPerson.applyChinaDst
+});
+check('四柱直排保存后重新排盘仍为同一四柱', JSON.stringify(reopenedDirect.pillars) === JSON.stringify(directPerson.fourPillars));
+
 console.log('\n===== 八字页面测试结果 =====');
 results.forEach(result => console.log(result));
 console.log('===== 结束 =====');
