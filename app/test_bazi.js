@@ -114,7 +114,42 @@ const directFuture = Bazi.calculate({
   gender:'female', calendarType:'ganzhi', solarDate:'2023-02-04', time:'10:45', useTrueSolarTime:false,
   fourPillars:{year:'癸卯', month:'甲寅', day:'癸巳', hour:'丁巳'}
 });
-check('四柱直排跟随节气边界反推', directFuture.resolvedSolarDate === '2023-02-04' && directFuture.resolvedTime === '10:43');
+check('四柱直排跟随节气边界反推', directFuture.resolvedSolarDate === '1963-02-19' && directFuture.resolvedTime === '10:00');
+
+const directAcrossCycles = Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'2026-09-13', time:'12:00', useTrueSolarTime:false,
+  fourPillars:{year:'甲子', month:'丙寅', day:'戊辰', hour:'壬子'}
+});
+check('四柱直排可向前跨 60 年周期反推', directAcrossCycles.hasBirthTime &&
+  directAcrossCycles.resolvedSolarDate === '1924-02-19' && directAcrossCycles.resolvedTime === '00:30');
+const directClockOnly = Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'2026-09-13', time:'12:00',
+  useTrueSolarTime:true, longitude:104.0665, fourPillars:{year:'甲子', month:'丙寅', day:'戊辰', hour:'壬子'}
+});
+check('四柱直排校验统一使用钟表时间', directClockOnly.resolvedSolarDate === directAcrossCycles.resolvedSolarDate &&
+  directClockOnly.resolvedTime === directAcrossCycles.resolvedTime);
+
+const directLateZi = Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'1990-06-01', time:'12:00', useTrueSolarTime:false,
+  fourPillars:{year:'庚午', month:'壬午', day:'壬子', hour:'戊子'}
+});
+check('四柱直排晚子时反推正确', directLateZi.hasBirthTime &&
+  directLateZi.resolvedSolarDate === '1990-06-15' && directLateZi.resolvedTime === '23:30');
+
+let fiveTigerMessage = '';
+try {
+  Bazi.validateDirectPillars({year:'甲子', month:'戊寅', day:'戊辰', hour:'壬子'});
+} catch (err) {
+  fiveTigerMessage = err.message;
+}
+check('矛盾年月柱给出五虎遁提示', fiveTigerMessage === '年柱与月柱不符合五虎遁规则，请检查');
+
+const directNoSolution = Bazi.calculate({
+  gender:'male', calendarType:'ganzhi', solarDate:'', time:'', useTrueSolarTime:false,
+  fourPillars:{year:'甲子', month:'丙寅', day:'癸丑', hour:'丙辰'}
+});
+check('合法四柱无解时返回四柱直录结果', !directNoSolution.hasBirthTime && !directNoSolution.directTimeResolved &&
+  directNoSolution.solarDatetime === '' && directNoSolution.yun === null && !!directNoSolution.extras.taiYuan);
 
 // 流月使用真实交节日期
 const timeline = Bazi.calculate({

@@ -127,13 +127,48 @@ document.getElementById('bz-gz-hour').value = '丁巳';
 document.getElementById('bz-submit').click();
 const directPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
 const directPerson = directPersons.find(person => person.name === '直排测试');
-check('四柱直排保存时同步出生日期', !!directPerson && directPerson.solarDate === '2023-02-04' && directPerson.time === '10:43');
-check('四柱直排保存时同步出生农历', !!directPerson && directPerson.solarDatetime === '2023-02-04 10:43');
+check('四柱直排保存时同步出生日期', !!directPerson && directPerson.solarDate === '1963-02-19' && directPerson.time === '10:00');
+check('四柱直排保存时同步出生农历', !!directPerson && directPerson.solarDatetime === '1963-02-19 10:00');
 const reopenedDirect = window.Bazi.calculate({
   gender:directPerson.gender, calendarType:'solar', solarDate:directPerson.solarDate, time:directPerson.time,
   useTrueSolarTime:directPerson.useTrueSolarTime, applyChinaDst:directPerson.applyChinaDst
 });
 check('四柱直排保存后重新排盘仍为同一四柱', JSON.stringify(reopenedDirect.pillars) === JSON.stringify(directPerson.fourPillars));
+
+let directAlertMessage = '';
+const originalAlert = window.alert;
+window.alert = message => { directAlertMessage = message; };
+window.openBaziForm();
+document.getElementById('bz-name').value = '矛盾四柱';
+document.querySelector('#bz-calendar-tabs button[data-value="ganzhi"]').click();
+document.getElementById('bz-gz-year').value = '甲子';
+document.getElementById('bz-gz-month').value = '戊寅';
+document.getElementById('bz-gz-day').value = '戊辰';
+document.getElementById('bz-gz-hour').value = '壬子';
+document.getElementById('bz-submit').click();
+check('矛盾年月柱显示五虎遁提示', directAlertMessage === '年柱与月柱不符合五虎遁规则，请检查');
+
+window.openBaziForm();
+document.getElementById('bz-name').value = '四柱直录测试';
+document.querySelector('#bz-calendar-tabs button[data-value="ganzhi"]').click();
+document.getElementById('bz-reference-date').value = '';
+document.getElementById('bz-exact-time').value = '';
+document.getElementById('bz-gz-year').value = '甲子';
+document.getElementById('bz-gz-month').value = '丙寅';
+document.getElementById('bz-gz-day').value = '癸丑';
+document.getElementById('bz-gz-hour').value = '丙辰';
+document.getElementById('bz-submit').click();
+window.alert = originalAlert;
+const fallbackPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
+const fallbackPerson = fallbackPersons.find(person => person.name === '四柱直录测试');
+check('合法四柱无解时仍可保存', !!fallbackPerson && fallbackPerson.directRecord === true &&
+  fallbackPerson.solarDate === '' && fallbackPerson.timeMode === 'unknown');
+check('四柱直录详情显示无出生时间', document.querySelector('.bz2-profile').textContent.includes('四柱直录（无出生时间）'));
+document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
+check('四柱直录无出生时间时不进入细盘', document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+window.showView('bazi-records');
+check('四柱直录命例卡片显示标记与完整四柱', document.querySelector('[data-id="' + fallbackPerson.id + '"] .bz-record-date').textContent === '四柱直录（无出生时间）' &&
+  document.querySelector('[data-id="' + fallbackPerson.id + '"] .bz-record-pillars').textContent === '甲丙癸丙子寅丑辰');
 
 const recordGroups = [
   {id:'group_1', name:'默认', sortOrder:0, isDefault:true, createdAt:1},
