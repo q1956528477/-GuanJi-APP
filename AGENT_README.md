@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.6 (build 40)**　最后更新：2026-09-14
+> 当前版本：**v1.14.7 (build 41)**　最后更新：2026-09-14
 
 ---
 
@@ -101,6 +101,7 @@ app/
 ├── tools/generate-yijing-data.js  # 由《周易》结构化 JSON 生成 yijing-data.js
 ├── test_liuyao.js / test_bazi.js / test_bazi_page.js / test_navigation.js
 ├── test_records_pin.js / test_energy.js / test_modules.js # 六爻、八字、导航、置顶、精力、模块注册表测试
+├── test_requirements.js        # 需求记录页 / 通用文本输入弹窗测试
 ├── package.json                # 版本号三处之一
 └── android/                    # Android 原生工程
     └── app/
@@ -262,6 +263,9 @@ npm run test:modules# 只跑主界面模块注册表
   排盘页返回回来源页；第 6 / 7 条「保持现状」也有断言兜底（防止别人顺手改掉）。
 - `test_records_pin.js` 用 jsdom 验证命例 / 起卦记录的长按置顶、取消置顶、排序与落盘。
 - `test_energy.js` 用 jsdom 验证精力状态：进入页面、打分表情联动、保存落盘、折线图、洞察统计、日历标记、补录超 7 天拦截、日详情修改回填。
+- `test_requirements.js` 用 jsdom 验证迭代需求记录页与**通用文本输入弹窗**：点「修改」必须回填原内容、
+  保存是原地更新（条数不变、`createdAt` 不被破坏、其它记录不受影响）、取消与返回键不写回、新增才追加。
+  另含「分组重命名必须回填原名」的同根因回归断言。
 - `test_modules.js` 用 jsdom 遍历主界面**每一个**模块卡片，验证徽标与上线状态一致、点击后只进入一个视图、返回键可逐级退回主界面。
   **刻意不写死模块数量与名称**：以后新增模块会自动被覆盖，加模块不需要改这个测试。
   ⚠️ 因此**不要再往测试里写「模块卡片数量 = N」「未上线模块只有 M 个」这类断言**——每加一个模块都会误报，属于倒退。
@@ -447,7 +451,8 @@ npm run test:modules# 只跑主界面模块注册表
 ### 环境坑（本机已知）
 
 - 中文路径：`app/android/gradle.properties` 需保留 `android.overridePathCheck=true`。
-- **工程若放在中文路径下，Node 跑 `npm test`（jsdom）和 `npm run build`（esbuild）都会直接崩（访问冲突 / 0xC0000005）**。把 `www/*.bundle.js`、`test_*.js` 和 `src/`、`scripts/` 复制到纯英文临时目录（如 `%TEMP%\guanji-build`，把 `app/node_modules` 一起带过去）再跑就正常——这是路径问题，不是代码问题。构建产物再拷回 `app/www/`。`test_app.js` 则是 jsdom 自身崩溃，任何路径都跑不了。
+- **工程若放在中文路径下，Node 跑 `npm test`（jsdom）和 `npm run build`（esbuild）都会直接崩（访问冲突 / 0xC0000005）**。把 `www/*.bundle.js`、`test_*.js` 和 `src/`、`scripts/` 复制到纯英文临时目录（如 `%TEMP%\guanji-build`，把 `app/node_modules` 一起带过去）再跑就正常——这是路径问题，不是代码问题。构建产物再拷回 `app/www/`。
+- **原生 `prompt()` 在本项目里是坏的，别再用**：Android WebView（Capacitor `BridgeWebChromeClient.onJsPrompt`）只 new 一个空 `EditText` 弹出来，**`defaultValue` 参数从头到尾没被使用**，所以「修改」类弹窗永远是空白的（v1.14.7 修的 Bug）；iOS WKWebView 干脆不支持 prompt。需要输入一律用自绘的 `openTextPrompt({title, value, multiline, placeholder, confirmText})`，它返回 Promise（确认得文本，取消/返回键/点遮罩得 `null`），已接进 `handleBack()`。
 - 删除文件：本环境 `rm` 与未 unset 的 node 删除会被 safe-delete 拦截，用 `unset NODE_OPTIONS && node -e "fs.rmSync(...)"`。
 - 清 build 目录：用 `robocopy 空目录 目标 /MIR`，**一次只清一个目录**（并行/循环会静默失败）。
 
@@ -462,7 +467,8 @@ npm run test:modules# 只跑主界面模块注册表
 - [ ] 深色模式、云端同步、更多起卦方式
 - [ ] **iOS 版本**：技术上很顺（Capacitor 官方支持 iOS，且本项目无自定义原生代码），但需处理：
   - 必须有 macOS + Xcode + CocoaPods（或用云 Mac）
-  - **`prompt()` 在 iOS WKWebView 不可用**，需把“改需求内容”“改所问事项”换成自绘输入弹窗
+  - ~~`prompt()` 在 iOS WKWebView 不可用~~ → 需求修改 / 所问事项 / 分组重命名已改为自绘弹窗（v1.14.7）；
+    仍剩 3 处 `prompt()` 只用于「输入新分组名称」这类**新建**场景（空白本来就是正确行为），上 iOS 前建议一并换掉
   - **CSV/JSON 的 `<a download>` 导出在 iOS 无效**，需改用 Filesystem + Share
   - 返回键逻辑（`App.addListener('backButton')`）是 Android 专属，iOS 不触发
   - 安装受苹果签名限制：免费 Apple ID 自签 7 天过期；正式分发需 $99/年开发者账号走 TestFlight 或 Ad Hoc；中国区上架还需 App 备案

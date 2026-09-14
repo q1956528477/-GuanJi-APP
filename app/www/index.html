@@ -89,11 +89,19 @@
   .btn:active{transform:scale(.98);}
   .btn.ghost{background:#f1eefb;color:var(--primary);box-shadow:none;}
   .btn.small{width:auto;padding:10px 16px;font-size:13px;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
   input[type=number],input[type=text],input[type=date],input[type=time],select{
     width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:14px;font-size:15px;
     color:var(--ink);background:#fbfaf8;outline:none;font-family:inherit;
   }
   input:focus,select:focus{border-color:var(--primary);background:#fff;}
+  textarea{
+    width:100%;min-height:110px;padding:13px 14px;border:1.5px solid var(--line);border-radius:14px;
+    font-size:15px;color:var(--ink);background:#fbfaf8;outline:none;font-family:inherit;
+    line-height:1.6;resize:vertical;
+  }
+  textarea:focus{border-color:var(--primary);background:#fff;}
+  .prompt-actions{display:flex;gap:10px;margin-top:14px;}
   label.field{display:block;font-size:12px;color:var(--ink-soft);font-weight:600;margin:12px 0 6px;}
 
   /* ---------- 打分输入 ---------- */
@@ -1159,6 +1167,25 @@
   </div>
 </div>
 
+<!-- 通用文本输入弹窗：
+     Android WebView（Capacitor 的 BridgeWebChromeClient.onJsPrompt）会忽略 prompt 的默认值，
+     导致「修改」类操作打开时输入框是空的；iOS WKWebView 更是完全不支持 prompt。
+     所以编辑/新增类输入一律走这个自绘弹窗。 -->
+<div class="modal-overlay" id="text-prompt-modal">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h3 id="text-prompt-title">请输入</h3>
+      <button class="modal-close" id="text-prompt-close">&times;</button>
+    </div>
+    <input type="text" id="text-prompt-input" placeholder="">
+    <textarea id="text-prompt-area" placeholder=""></textarea>
+    <div class="prompt-actions">
+      <button class="btn small ghost" id="text-prompt-cancel" style="flex:1;">取消</button>
+      <button class="btn small" id="text-prompt-ok" style="flex:1;">确定</button>
+    </div>
+  </div>
+</div>
+
 <!-- 出生时间选择弹层：公历 / 农历 / 四柱直排 -->
 <div class="modal-overlay gz-sheet-overlay" id="gz-sheet">
   <div class="gz-sheet">
@@ -1978,6 +2005,12 @@ function showToast(msg){
 // 返回层级遵循「后进先出」：先关掉最上层的弹层，再逐级退回上一层页面。
 let lastBackTime = 0;
 function handleBack(){
+  // 文本输入弹窗是最上层（可能从分组管理 / 命例记录等弹窗之上再打开），先关它。
+  // 关掉等于「取消」，不写回任何数据。
+  if(document.getElementById('text-prompt-modal').classList.contains('show')){
+    cancelTextPrompt();
+    return;
+  }
   // 出生时间弹层（公历 / 农历 / 四柱直排）是排盘页之上的一层：
   // 返回键必须先关弹层，且底下的排盘页要保持原样（未确认的改动不写回）。
   if(gzSheet){
@@ -3799,11 +3832,14 @@ function closeBaziGroupModal(){
   document.getElementById('bz-group-modal').classList.remove('show');
 }
 
-function renameBaziGroup(id){
+async function renameBaziGroup(id){
   const groups = getBaziGroups();
   const group = groups.find(item => item.id === id);
   if(!group) return;
-  const name = prompt('输入新的分组名称：', group.name);
+  // 同样必须回填原名（原生 prompt 在 Android WebView 会丢默认值）
+  const name = await openTextPrompt({
+    title:'重命名分组', value:group.name, placeholder:'请输入分组名称'
+  });
   if(name === null) return;
   const clean = name.trim();
   if(!clean){ alert('分组名称不能为空'); return; }
@@ -4050,6 +4086,79 @@ function backFromHistory(){
 }
 
 // ========== 迭代需求记录功能 ==========
+/* ---------------- 通用文本输入弹窗（替代原生 prompt） ----------------
+   原生 prompt 在本项目的运行环境里有两个坑：
+   ① Android WebView：Capacitor 的 onJsPrompt 只丢一个空 EditText 出来，**忽略默认值**，
+      于是「修改」打开后没有回填（Bug 根因）；
+   ② iOS WKWebView：直接不支持 prompt。
+   这个自绘弹窗把默认值明确写进控件，且不依赖任何原生能力。 */
+let textPromptResolver = null;
+let textPromptConfig = { allowEmpty:false, multiline:false };
+
+function textPromptValueEl(){
+  return document.getElementById(textPromptConfig.multiline ? 'text-prompt-area' : 'text-prompt-input');
+}
+
+function syncTextPromptConfirm(){
+  const btn = document.getElementById('text-prompt-ok');
+  const empty = textPromptValueEl().value.trim() === '';
+  btn.disabled = empty && !textPromptConfig.allowEmpty;
+}
+
+function settleTextPrompt(value){
+  const resolve = textPromptResolver;
+  textPromptResolver = null;
+  textPromptConfig = { allowEmpty:false, multiline:false };
+  document.getElementById('text-prompt-modal').classList.remove('show');
+  if(resolve) resolve(value);
+}
+
+function cancelTextPrompt(){ settleTextPrompt(null); }
+
+function confirmTextPrompt(){
+  if(document.getElementById('text-prompt-ok').disabled) return;
+  settleTextPrompt(textPromptValueEl().value.trim());
+}
+
+// 打开输入弹窗，返回 Promise：确认得到文本，取消 / 返回键 / 点遮罩得到 null
+function openTextPrompt(options){
+  const o = options || {};
+  const input = document.getElementById('text-prompt-input');
+  const area = document.getElementById('text-prompt-area');
+  const value = o.value == null ? '' : String(o.value);
+  textPromptConfig = { allowEmpty: !!o.allowEmpty, multiline: !!o.multiline };
+
+  document.getElementById('text-prompt-title').textContent = o.title || '请输入';
+  document.getElementById('text-prompt-ok').textContent = o.confirmText || '确定';
+
+  // 关键：把已有内容写进控件，而不是指望原生弹窗帮忙带过去
+  if(textPromptConfig.multiline){
+    area.value = value;
+    area.placeholder = o.placeholder || '';
+    area.classList.remove('hidden');
+    input.classList.add('hidden');
+  } else {
+    input.value = value;
+    input.placeholder = o.placeholder || '';
+    input.classList.remove('hidden');
+    area.classList.add('hidden');
+  }
+
+  syncTextPromptConfirm();
+  document.getElementById('text-prompt-modal').classList.add('show');
+
+  // 光标落到末尾，方便继续改；等弹窗动画起来再聚焦
+  const focusEl = textPromptConfig.multiline ? area : input;
+  setTimeout(() => {
+    try{
+      focusEl.focus();
+      if(focusEl.setSelectionRange) focusEl.setSelectionRange(value.length, value.length);
+    }catch(e){}
+  }, 40);
+
+  return new Promise(resolve => { textPromptResolver = resolve; });
+}
+
 let reqReturnView = 'home';
 function openReqView(){
   const current = currentPrimaryViewId();
@@ -4107,8 +4216,10 @@ function renderReqList(){
   });
 }
 
-function addNewReq(){
-  const text = prompt('请输入新需求：');
+async function addNewReq(){
+  const text = await openTextPrompt({
+    title:'添加新需求', placeholder:'请输入新的迭代需求…', multiline:true
+  });
   if(text === null || text.trim() === '') return;
   
   const list = ReqStorage.load();
@@ -4118,16 +4229,24 @@ function addNewReq(){
   showToast('需求已添加');
 }
 
-function editReqItem(index){
+// 编辑已有需求：必须回填原内容，保存时**原地更新**该条（保留 createdAt 等其它字段），
+// 与下面的 addNewReq（push 一条新的）是两条不同的路径。
+async function editReqItem(index){
   const list = ReqStorage.load();
   const item = list[index];
   if(!item) return;
-  
-  const newText = prompt('修改需求内容：', item.text || '');
+
+  const newText = await openTextPrompt({
+    title:'修改需求', value:item.text || '', placeholder:'请输入需求内容…', multiline:true
+  });
   if(newText === null || newText.trim() === '') return;
-  
-  list[index].text = newText.trim();
-  ReqStorage.save(list);
+
+  const list2 = ReqStorage.load();   // 弹窗期间列表可能已变动，重新取一次
+  const target = list2[index];
+  if(!target) return;
+  // 只改 text，其余字段（createdAt 等）原样保留；长度不变，不会新增记录
+  target.text = newText.trim();
+  ReqStorage.save(list2);
   renderReqList();
   showToast('需求已更新');
 }
@@ -4563,11 +4682,16 @@ function deleteSingleHistory(id, event){
   renderLiuyaoHistoryList();
 }
 
-function editResultQuestion(){
+async function editResultQuestion(){
   const el = document.getElementById('ly-result-question-text');
   if(!el) return;
   const oldQuestion = el.textContent;
-  const newQuestion = prompt('修改所问事项：', oldQuestion === '未填写' ? '' : oldQuestion);
+  // 同样必须回填原所问事项（原生 prompt 在 Android WebView 会丢默认值）
+  const newQuestion = await openTextPrompt({
+    title:'修改所问事项',
+    value: oldQuestion === '未填写' ? '' : oldQuestion,
+    placeholder:'请输入所问事项'
+  });
   if(newQuestion !== null && newQuestion.trim() !== ''){
     el.textContent = newQuestion;
     // 更新记录
@@ -4630,6 +4754,21 @@ document.getElementById('req-back').addEventListener('click', closeReqView);
 document.getElementById('req-add-new').addEventListener('click', addNewReq);
 document.getElementById('req-copy-all').addEventListener('click', copyAllReq);
 document.getElementById('req-clear-all-btn').addEventListener('click', clearAllReq);
+
+// 通用文本输入弹窗事件
+document.getElementById('text-prompt-ok').addEventListener('click', confirmTextPrompt);
+document.getElementById('text-prompt-cancel').addEventListener('click', cancelTextPrompt);
+document.getElementById('text-prompt-close').addEventListener('click', cancelTextPrompt);
+document.getElementById('text-prompt-modal').addEventListener('click', event => {
+  if(event.target === document.getElementById('text-prompt-modal')) cancelTextPrompt();
+});
+['text-prompt-input', 'text-prompt-area'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', syncTextPromptConfirm);
+  el.addEventListener('keydown', event => {
+    if(event.key === 'Enter' && id === 'text-prompt-input'){ event.preventDefault(); confirmTextPrompt(); }
+  });
+});
 
 // 八字模块事件监听
 document.querySelectorAll('#bz-gender-tabs button').forEach(button => {
