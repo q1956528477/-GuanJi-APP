@@ -66,6 +66,26 @@ window.showView('home');
 window.handleBack();
 check('隐藏的六爻结果页不会劫持主页返回键', visible('home-view'));
 
+// 出生时间弹层（四柱直排）是一层返回层级：返回键先关弹层，再逐级退页面
+window.showView('bazi-form');
+window.openGzSheet();
+check('弹层已打开且位于排盘页之上', document.getElementById('gz-sheet').classList.contains('show') && visible('bazi-form-view'));
+window.handleBack();
+check('弹层打开时返回键关闭弹层本身', !document.getElementById('gz-sheet').classList.contains('show'));
+check('关弹层后仍停留在排盘页，父页面未被销毁', visible('bazi-form-view') && !visible('home-view'));
+window.handleBack();
+check('再次返回才离开排盘页回到主界面', visible('home-view') && !visible('bazi-form-view'));
+
+// 弹层里改了草稿但未确认，返回关闭后不得写回出生时间
+window.showView('bazi-form');
+const timeBeforeBack = document.getElementById('bz-time-value').textContent;
+window.openGzSheet();
+window.document.querySelector('#gz-sheet-tabs button[data-tab="solar"]').click();
+window.document.getElementById('gz-solar-date').value = '2001-02-03';
+window.document.getElementById('gz-solar-date').dispatchEvent(new window.Event('change', {bubbles:true}));
+window.handleBack();
+check('返回关闭弹层不保存未确认的改动', document.getElementById('bz-time-value').textContent === timeBeforeBack);
+
 console.log('\n===== 页面导航测试结果 =====');
 results.forEach(result => console.log(result));
 console.log('===== 结束 =====');

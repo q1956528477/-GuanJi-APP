@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.4 (build 38)**　最后更新：2026-09-14
+> 当前版本：**v1.14.5 (build 39)**　最后更新：2026-09-14
 
 ---
 
@@ -99,7 +99,7 @@ app/
 │   └── notify.js               # 每日提醒调度
 ├── scripts/build.js / build.ps1 # 用 esbuild 生成四个 bundle.js（Node / PowerShell）
 ├── tools/generate-yijing-data.js  # 由《周易》结构化 JSON 生成 yijing-data.js
-├── test_liuyao.js / test_bazi.js / test_bazi_page.js / test_navigation.js # 六爻、八字与导航测试
+├── test_liuyao.js / test_bazi.js / test_bazi_page.js / test_navigation.js / test_records_pin.js # 六爻、八字、导航与置顶测试
 ├── package.json                # 版本号三处之一
 └── android/                    # Android 原生工程
     └── app/
@@ -146,6 +146,7 @@ app/
 - 四柱严格以立春、节气为界；23:00–23:59 按晚子时规则，日柱进位、时干按当日日干起算。
 - 四柱直排在弹层里按 **1801–2099** 范围反推全部匹配日期（选中的日期直接回写出生时间）；排盘/保存链路仍走原引擎，无解时降级为“四柱直录（无出生时间）”，不阻断保存。
 - 命例按分组保存，预置默认、自己、家人、朋友、客户五组；列表按姓名拼音分节并支持搜索、字母索引、批量移动、编辑和删除。
+- **命例置顶（v1.14.5）**：长按命例 → 操作菜单「置顶 / 取消置顶」。置顶命例单独成「📌 置顶」区固定在最前，带暖色底 + 左侧金条 + 置顶徽标；取消置顶后回到原字母分节的原位置。排序规则见 9.1。
 - 信息页包含基本盘（十神、藏干、星运、自坐、纳音、空亡、神煞、胎元、命宫、身宫、五行统计）和大运流年细盘（每步大运、10 个流年、12 个流月）。
 - 历法计算使用 `lunar-javascript`；神煞和司令分野的补充校验使用只读规则库 `bazi-lite`。
 
@@ -168,6 +169,8 @@ app/
 
 **起卦记录**：存 `liuyao_history`，最多 100 条；支持查看、改事项、单条删除、编辑模式批量删除。
 
+**记录置顶（v1.14.5）**：长按记录 → 操作菜单「置顶 / 取消置顶」，置顶记录排到列表最前并带暖色底 + 置顶徽标；取消后按原时间顺序归位。
+
 ### 4.4 迭代需求记录（Requirements）
 
 - 独立全屏页；增 / 改 / 删、一键复制全部、一键清空
@@ -183,9 +186,9 @@ app/
 |---|---|---|
 | `guanji_data_v1` | 精力状态：`{records:{[date]:{score,note,sleepTime,wakeTime,updatedAt}}, settings:{remindTime,lowThreshold}}` | `Storage` 对象 |
 | `guanji_requirements_v2` | 迭代需求数组 | `ReqStorage` 对象 |
-| `liuyao_history` | 六爻起卦记录数组（`fullResult` 存完整卦象） | `getLiuyaoHistory()` 等 |
+| `liuyao_history` | 六爻起卦记录数组（`fullResult` 存完整卦象；`pinned` / `pinnedAt` 存置顶状态） | `getLiuyaoHistory()` 等 |
 | `guanji_bazi_groups_v1` | 八字命例分组数组 | `BaziStorage` 对象 |
-| `guanji_bazi_persons_v1` | 八字命例数组（输入信息与四柱缓存） | `BaziStorage` 对象 |
+| `guanji_bazi_persons_v1` | 八字命例数组（输入信息、四柱缓存与 `pinned` / `pinnedAt` 置顶状态） | `BaziStorage` 对象 |
 
 **备份 / 恢复**：`native.js` 的 `writeBackup / readBackup` 会把 JSON 写到应用 Documents 目录（覆盖安装保留，卸载清除）；页面同时支持下载 JSON 与选择文件恢复。
 
@@ -252,6 +255,8 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 - `test_liuyao.js` / `test_bazi.js` 直接读取对应 bundle 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑**。
 - `test_bazi_page.js` 用 jsdom 验证八字入口、保存命例、基本盘、大运流年和流月展开。
+- `test_navigation.js` 用 jsdom 验证顶级页面互斥、需求页返回目标，以及返回键对出生时间弹层的逐级消费。
+- `test_records_pin.js` 用 jsdom 验证命例 / 起卦记录的长按置顶、取消置顶、排序与落盘。
 - `test_app.js` 是旧版本（v1.3 时代）的 jsdom 页面测试，检查的 DOM 结构早已不存在，且 jsdom 在本机运行会直接让 Node 崩（访问冲突），**不要用它判断代码对错**，页面一律以浏览器预览为准。
 
 ---
@@ -334,7 +339,51 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ---
 
-## 9. 代码规范
+## 9. 返回层级与返回栈（Android 物理返回键 / 侧滑返回）
+
+返回键只有一个入口：原生插件回调 → `Native.onBackButton(() => handleBack())`（`window.Native` 仅在原生环境注册）。
+`handleBack()` 必须严格按**后进先出**判定，先关最上层，再逐级退页面。
+
+**9.1 判定顺序（改动前务必先读）**
+
+| 顺序 | 层级 | 返回行为 |
+|---|---|---|
+| 1 | `gzSheet` 非空（出生时间弹层 `#gz-sheet`） | `closeGzSheet()`，**留在排盘页**，未确认的草稿不写回 |
+| 2 | `#ly-action-modal` 可见（起卦记录长按菜单） | `closeLiuyaoHistoryActions()`，留在起卦记录页 |
+| 3 | `#req-view` 可见 | `closeReqView()` → 回到打开它的页面（`reqReturnView`） |
+| 4 | `#liuyao-history-view` 可见 | `backFromHistory()` → 六爻起卦页 |
+| 5 | 六爻结果页可见 | `backFromResult()` → 从历史点进则回历史，否则回主界面 |
+| 6 | `#bazi-info-view` 可见 | → 命例记录页 |
+| 7 | 精力 / 六爻 / 排盘页 / 命例记录页 | → 主界面 |
+| 8 | 已经在主界面 | 2 秒内再按一次退出 App |
+
+> 新增任何弹窗/浮层时，**必须把它加进 `handleBack()` 的最前面那几层**，否则会出现「返回键作用到底层页面、弹窗还浮在上面」的错乱。
+
+**9.2 已入栈的层级**：出生时间弹层（v1.14.4 修复）、起卦记录操作菜单（v1.14.5）。
+
+**9.3 尚未入栈的既有弹窗（已知问题，待后续迭代修）**：
+
+| 弹窗 | 打开位置 | 现在按返回会怎样 | 期望 |
+|---|---|---|---|
+| `#day-modal` | 精力状态 → 点某天 | 回主界面，弹窗仍浮着 | 只关弹窗，留在精力页 |
+| `#bz-action-modal` | 命例记录 → 长按命例 | 回主界面，弹窗仍浮着 | 只关菜单，留在命例记录页 |
+| `#bz-move-modal` | 命例记录 → 长按 → 移动到分组 | 回主界面，弹窗仍浮着 | 只关弹窗，留在命例记录页 |
+| `#bz-group-modal` | 命例记录 → 分组管理 | 回主界面，弹窗仍浮着 | 只关弹窗，留在命例记录页 |
+
+**9.4 跳级返回（已知问题，待后续迭代修）**：
+
+| 路径 | 现在按返回 | 期望 |
+|---|---|---|
+| 命例记录 → 长按 → 编辑重新排盘 → 排盘页 | 直接回主界面（跳过命例记录） | 回命例记录页 |
+| 排盘页 → 保存（自动进信息页）→ 信息页 | 回命例记录页（跳过排盘页） | 回排盘页 |
+| 六爻起卦页 → 起卦完成进结果页 | 回起卦记录页（用户并没打开过它） | 回六爻起卦页 |
+
+> 这几条的根因：顶层视图只有 `.hidden` 互斥切换、没有保存「从哪来」；`showLiuyaoResult()` 里把 `currentResultId` 直接赋了新记录 id，
+> 与 `backFromResult()` 注释里「currentResultId 表示结果页是从历史记录点进来的」的约定相矛盾。
+
+---
+
+## 10. 代码规范
 
 - 全部逻辑写在 `index.html` 的单个 `<script>` 内，**无模块、无依赖**；桥接能力通过 `window.LiuYao` / `window.Native` / `window.Notify` 暴露。
 - 视图切换统一用 `.hidden` 类，不引入路由库。
@@ -345,7 +394,7 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ---
 
-## 10. 常见问题
+## 11. 常见问题
 
 **Q1 改完页面全白？** 单页架构里一个语法错误就全废。检查大括号/圆括号是否配平，浏览器控制台看第一条报错；提交前可用 `node --check` 校验抽出的脚本。
 
@@ -369,6 +418,8 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 **Q11 弹层里选甲却出现阴支？** 见第 8 节第 2 条，阴阳判断写错了。
 
+**Q12 按返回键弹窗还浮着、背景跳到主界面？** 该弹窗没进 `handleBack()` 的返回层级（见 9.1 / 9.3）；把它按顺序加进去即可。
+
 ### 环境坑（本机已知）
 
 - 中文路径：`app/android/gradle.properties` 需保留 `android.overridePathCheck=true`。
@@ -378,9 +429,11 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ---
 
-## 11. 待开发 / 已知限制
+## 12. 待开发 / 已知限制
 
-- [x] 八字排盘模块（当前版本 v1.14.4，含四柱直排底部弹层）
+- [x] 八字排盘模块（当前版本 v1.14.5，含四柱直排底部弹层）
+- [x] 命例 / 起卦记录置顶（v1.14.5）
+- [ ] **返回栈待修**：4 个既有弹窗未入栈 + 3 条跳级返回，清单见 9.3 / 9.4
 - [ ] 深色模式、云端同步、更多起卦方式
 - [ ] **iOS 版本**：技术上很顺（Capacitor 官方支持 iOS，且本项目无自定义原生代码），但需处理：
   - 必须有 macOS + Xcode + CocoaPods（或用云 Mac）
@@ -391,7 +444,7 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ---
 
-## 12. 提交前自检清单
+## 13. 提交前自检清单
 
 1. 脚本大括号/圆括号配平，浏览器控制台无报错。
 2. 在 `http://localhost:8080` 走一遍受影响流程（起卦 → 结果页 → 历史记录 → 返回）。

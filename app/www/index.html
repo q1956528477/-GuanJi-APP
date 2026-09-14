@@ -374,6 +374,13 @@
   .ly-history-item{padding:14px;padding-right:70px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .2s;position:relative;}
   .ly-history-item:hover{background:#fafafa;}
   .ly-history-item:last-child{border-bottom:none;}
+  /* 置顶记录：暖色底 + 左侧金色竖条，与非置顶明显区分 */
+  .ly-history-item.pinned{background:#FFF4DC;box-shadow:inset 4px 0 0 #d9a441;}
+  .ly-pin-flag{
+    display:inline-block;vertical-align:middle;margin-right:6px;
+    background:#d9a441;color:#fff;font-size:10px;font-weight:700;
+    padding:2px 6px;border-radius:999px;white-space:nowrap;
+  }
   .ly-history-title{font-size:15px;font-weight:700;color:#333;margin-bottom:6px;}
   .ly-history-meta{font-size:12px;color:#999;display:flex;justify-content:space-between;align-items:center;}
   .ly-history-date{flex:1;}
@@ -476,10 +483,18 @@
   .bz-person-list{display:block;}
   .bz-records-section{scroll-margin-top:.75rem;}
   .bz-records-section-title{height:2rem;display:flex;align-items:center;padding:0 .9rem;color:#999;font-size:.72rem;font-weight:700;background:#fff;}
+  .bz-records-section-title.pinned-title{color:#8a6a1e;background:#FFF9EA;}
   .bz-record-row{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(8.5rem,1fr);align-items:center;gap:.55rem;min-height:4.6rem;padding:.65rem .45rem .65rem .9rem;border-bottom:1px solid #f2f2f2;cursor:pointer;background:#fff;transition:background .15s ease;}
   .bz-record-row:last-child{border-bottom:none;}
   .bz-record-row:active{background:#fafafa;}
   .bz-record-row.selected{background:#faf6eb;}
+  /* 置顶命例：暖色底 + 左侧金色竖条 */
+  .bz-record-row.pinned{background:#FFF4DC;box-shadow:inset .2rem 0 0 #d9a441;}
+  .bz-record-pin{
+    flex:0 0 auto;display:inline-flex;align-items:center;
+    background:#d9a441;color:#fff;font-size:.58rem;font-weight:800;
+    line-height:1;padding:.14rem .26rem;border-radius:.5rem;white-space:nowrap;
+  }
   .bz-record-row.edit-mode{grid-template-columns:.95rem minmax(0,1.18fr) minmax(8.5rem,1fr);}
   .bz-record-check{width:.82rem;height:.82rem;border:1.5px solid #c9c9c9;border-radius:.22rem;background:#fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.62rem;font-weight:900;}
   .bz-record-row.selected .bz-record-check{border-color:#a08530;background:#a08530;}
@@ -1102,6 +1117,7 @@
       <button class="modal-close" id="bz-action-close">&times;</button>
     </div>
     <div class="bz-modal-actions">
+      <button type="button" id="bz-action-pin">置顶</button>
       <button type="button" id="bz-action-edit">编辑重新排盘</button>
       <button type="button" id="bz-action-move">移动到分组</button>
       <button type="button" class="danger" id="bz-action-delete">删除命例</button>
@@ -1127,6 +1143,19 @@
     </div>
     <div id="bz-group-list"></div>
     <button class="btn ghost" id="bz-group-add" style="margin-top:12px;">+ 新建分组</button>
+  </div>
+</div>
+
+<!-- 六爻起卦记录操作弹窗（长按记录打开） -->
+<div class="modal-overlay" id="ly-action-modal">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h3 id="ly-action-title">记录操作</h3>
+      <button class="modal-close" id="ly-action-close">&times;</button>
+    </div>
+    <div class="bz-modal-actions">
+      <button type="button" id="ly-action-pin">置顶</button>
+    </div>
   </div>
 </div>
 
@@ -1946,8 +1975,20 @@ function showToast(msg){
 }
 
 // ---- 返回键处理（原生返回键 / 侧滑返回）----
+// 返回层级遵循「后进先出」：先关掉最上层的弹层，再逐级退回上一层页面。
 let lastBackTime = 0;
 function handleBack(){
+  // 出生时间弹层（公历 / 农历 / 四柱直排）是排盘页之上的一层：
+  // 返回键必须先关弹层，且底下的排盘页要保持原样（未确认的改动不写回）。
+  if(gzSheet){
+    closeGzSheet();
+    return;
+  }
+  // 本轮新增的起卦记录操作菜单，同样作为一层入栈处理
+  if(document.getElementById('ly-action-modal').classList.contains('show')){
+    closeLiuyaoHistoryActions();
+    return;
+  }
   const reqVisible = !document.getElementById('req-view').classList.contains('hidden');
   const liuyaoHistoryVisible = !document.getElementById('liuyao-history-view').classList.contains('hidden');
   const liuyaoVisible = !document.getElementById('liuyao-view').classList.contains('hidden');
@@ -2662,6 +2703,52 @@ function bzRecordCompare(a, b){
   return an.localeCompare(bn, 'zh-CN');
 }
 
+// 排序：先按置顶状态，再按原有默认排序（置顶组内同样沿用默认排序，保持稳定）
+function bzRecordCompareWithPin(a, b){
+  const pinDiff = (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+  return pinDiff ? pinDiff : bzRecordCompare(a, b);
+}
+
+function bzRecordRowHtml(person){
+  const selected = baziRecordSelectedIds.has(person.id);
+  const year = bzRecordPillarParts(person, 'year');
+  const month = bzRecordPillarParts(person, 'month');
+  const day = bzRecordPillarParts(person, 'day');
+  const hour = bzRecordPillarParts(person, 'hour');
+  const parts = [year, month, day, hour];
+  const ganRow = parts.map(part => '<span class="' + bzRecordCharClass(part.gan, Bazi.GAN_ELEMENT) + '">' + escapeHtml(part.gan) + '</span>').join('');
+  const zhiRow = parts.map(part => '<span class="' + bzRecordCharClass(part.zhi, Bazi.ZHI_ELEMENT) + '">' + escapeHtml(part.zhi) + '</span>').join('');
+  return '<div class="bz-record-row' + (baziRecordsEditMode ? ' edit-mode' : '') + (selected ? ' selected' : '') +
+      (person.pinned ? ' pinned' : '') + '" data-id="' + escapeHtml(person.id) + '">' +
+    (baziRecordsEditMode ? '<span class="bz-record-check">✓</span>' : '') +
+    '<div class="bz-record-left">' +
+      '<div class="bz-record-title-line">' +
+        (person.pinned ? '<span class="bz-record-pin">📌 置顶</span>' : '') +
+        '<span class="bz-record-name" title="' + escapeHtmlAttr(person.name) + '">' + escapeHtml(person.name) + '</span>' +
+        '<span class="bz-record-gender">' + (person.gender === 'female' ? '女' : '男') + '</span></div>' +
+      '<div class="bz-record-date" title="' + escapeHtmlAttr(bzRecordDateText(person)) + '">' + escapeHtml(bzRecordDateText(person)) + '</div>' +
+    '</div>' +
+    '<div class="bz-record-right">' +
+      '<div class="bz-record-pillars">' + ganRow + zhiRow + '</div>' +
+      '<div class="bz-record-zodiac"><span>' + escapeHtml(bzRecordZodiac(person)) + '</span></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleBaziPersonPin(id){
+  const persons = getBaziPersons();
+  const person = persons.find(item => item.id === id);
+  if(!person) return;
+  person.pinned = !person.pinned;
+  if(person.pinned) person.pinnedAt = Date.now();
+  else delete person.pinnedAt;
+  person.updatedAt = Date.now();
+  saveBaziPersons(persons);
+  closeBaziPersonActions();
+  renderBaziRecords();
+  showToast(person.pinned ? '已置顶' : '已取消置顶');
+}
+
 function bzRecordDateText(person){
   if(person.directRecord || (person.calendarType === 'ganzhi' && !person.solarDate && !person.solarDatetime)){
     return '四柱直录（无出生时间）';
@@ -2784,7 +2871,7 @@ function renderBaziPersonList(){
     const keyword = baziSearchText.toLowerCase();
     persons = persons.filter(person => String(person.name || '').toLowerCase().includes(keyword));
   }
-  persons = persons.slice().sort(bzRecordCompare);
+  persons = persons.slice().sort(bzRecordCompareWithPin);
   updateBaziRecordsEditUi();
 
   if(!persons.length){
@@ -2797,37 +2884,26 @@ function renderBaziPersonList(){
   }
   empty.classList.add('hidden');
 
+  // 置顶命例单独成组放在最前，其余按原有字母分组排序
+  const pinnedPersons = persons.filter(person => person.pinned);
+  const restPersons = persons.filter(person => !person.pinned);
   const grouped = {};
-  persons.forEach(person => {
+  restPersons.forEach(person => {
     const letter = bzRecordNameInitial(person.name);
     if(!grouped[letter]) grouped[letter] = [];
     grouped[letter].push(person);
   });
   const letters = Object.keys(grouped).sort((a, b) => bzRecordInitialRank(a) - bzRecordInitialRank(b));
 
-  listBox.innerHTML = letters.map(letter => {
-    const rows = grouped[letter].map(person => {
-      const selected = baziRecordSelectedIds.has(person.id);
-      const year = bzRecordPillarParts(person, 'year');
-      const month = bzRecordPillarParts(person, 'month');
-      const day = bzRecordPillarParts(person, 'day');
-      const hour = bzRecordPillarParts(person, 'hour');
-      const parts = [year, month, day, hour];
-      const ganRow = parts.map(part => '<span class="' + bzRecordCharClass(part.gan, Bazi.GAN_ELEMENT) + '">' + escapeHtml(part.gan) + '</span>').join('');
-      const zhiRow = parts.map(part => '<span class="' + bzRecordCharClass(part.zhi, Bazi.ZHI_ELEMENT) + '">' + escapeHtml(part.zhi) + '</span>').join('');
-      return '<div class="bz-record-row' + (baziRecordsEditMode ? ' edit-mode' : '') + (selected ? ' selected' : '') + '" data-id="' + escapeHtml(person.id) + '">' +
-        (baziRecordsEditMode ? '<span class="bz-record-check">✓</span>' : '') +
-        '<div class="bz-record-left">' +
-          '<div class="bz-record-title-line"><span class="bz-record-name" title="' + escapeHtmlAttr(person.name) + '">' + escapeHtml(person.name) + '</span>' +
-          '<span class="bz-record-gender">' + (person.gender === 'female' ? '女' : '男') + '</span></div>' +
-          '<div class="bz-record-date" title="' + escapeHtmlAttr(bzRecordDateText(person)) + '">' + escapeHtml(bzRecordDateText(person)) + '</div>' +
-        '</div>' +
-        '<div class="bz-record-right">' +
-          '<div class="bz-record-pillars">' + ganRow + zhiRow + '</div>' +
-          '<div class="bz-record-zodiac"><span>' + escapeHtml(bzRecordZodiac(person)) + '</span></div>' +
-        '</div>' +
-      '</div>';
-    }).join('');
+  const pinnedHtml = pinnedPersons.length
+    ? '<section class="bz-records-section" id="bz-records-pinned" data-letter="pinned">' +
+        '<div class="bz-records-section-title pinned-title">📌 置顶</div>' +
+        pinnedPersons.map(bzRecordRowHtml).join('') +
+      '</section>'
+    : '';
+
+  listBox.innerHTML = pinnedHtml + letters.map(letter => {
+    const rows = grouped[letter].map(bzRecordRowHtml).join('');
     return '<section class="bz-records-section" id="bz-records-letter-' + letter + '" data-letter="' + letter + '">' +
       '<div class="bz-records-section-title">' + letter + '</div>' + rows + '</section>';
   }).join('');
@@ -2835,7 +2911,7 @@ function renderBaziPersonList(){
   index.innerHTML = letters.map(letter =>
     '<button type="button" class="bz-records-index-item" data-letter="' + letter + '">' + letter + '</button>'
   ).join('');
-  index.classList.remove('hidden');
+  index.classList.toggle('hidden', !letters.length);
 
   listBox.querySelectorAll('.bz-record-row').forEach(row => {
     const id = row.dataset.id;
@@ -3622,6 +3698,7 @@ function openBaziPersonActions(id){
   if(!person) return;
   baziActionPersonId = id;
   document.getElementById('bz-action-title').textContent = person.name + ' · 命例操作';
+  document.getElementById('bz-action-pin').textContent = person.pinned ? '取消置顶' : '置顶';
   document.getElementById('bz-action-modal').classList.add('show');
 }
 
@@ -4294,8 +4371,41 @@ function showLiuyaoHistory(){
   showView('liuyao-history');
 }
 
-function renderLiuyaoHistoryList(){
+// 排序：先按置顶状态，再按原有默认排序（稳定排序，置顶组内保持原先后）
+function lyHistoryCompareWithPin(a, b){
+  return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+}
+
+let lyActionRecordId = null;
+
+function openLiuyaoHistoryActions(id){
+  const record = getLiuyaoHistory().find(item => item.id === id);
+  if(!record) return;
+  lyActionRecordId = id;
+  document.getElementById('ly-action-title').textContent = record.question + ' · 记录操作';
+  document.getElementById('ly-action-pin').textContent = record.pinned ? '取消置顶' : '置顶';
+  document.getElementById('ly-action-modal').classList.add('show');
+}
+
+function closeLiuyaoHistoryActions(){
+  document.getElementById('ly-action-modal').classList.remove('show');
+}
+
+function toggleLiuyaoHistoryPin(id){
   const history = getLiuyaoHistory();
+  const record = history.find(item => item.id === id);
+  if(!record) return;
+  record.pinned = !record.pinned;
+  if(record.pinned) record.pinnedAt = Date.now();
+  else delete record.pinnedAt;
+  localStorage.setItem('liuyao_history', JSON.stringify(history));
+  closeLiuyaoHistoryActions();
+  renderLiuyaoHistoryList();
+  showToast(record.pinned ? '已置顶' : '已取消置顶');
+}
+
+function renderLiuyaoHistoryList(){
+  const history = getLiuyaoHistory().slice().sort(lyHistoryCompareWithPin);
   const listEl = document.getElementById('ly-history-list');
   const emptyEl = document.getElementById('ly-history-empty');
   
@@ -4309,13 +4419,13 @@ function renderLiuyaoHistoryList(){
   let html = '';
   history.forEach(record => {
     const isSelected = selectedHistoryIds.has(record.id);
-    html += '<div class="ly-history-item'+(isHistoryEditMode?' edit-mode':'')+(isSelected?' selected':'')+'" data-id="'+record.id+'">';
+    html += '<div class="ly-history-item'+(isHistoryEditMode?' edit-mode':'')+(isSelected?' selected':'')+(record.pinned?' pinned':'')+'" data-id="'+record.id+'">';
     if(isHistoryEditMode){
       html += '<input type="checkbox" class="ly-history-checkbox" '+(isSelected?'checked':'')+' onclick="toggleHistorySelect('+record.id+',event)">';
     } else {
       html += '<button class="ly-delete-btn" onclick="deleteSingleHistory('+record.id+',event)">删除</button>';
     }
-    html += '<div class="ly-history-title">'+escapeHtml(record.question)+'</div>';
+    html += '<div class="ly-history-title">'+(record.pinned?'<span class="ly-pin-flag">📌 置顶</span>':'')+escapeHtml(record.question)+'</div>';
     html += '<div class="ly-history-meta">';
     html += '<span class="ly-history-date">'+escapeHtml(record.timestamp)+'</span>';
     html += '<span class="ly-history-gua">'+escapeHtml(record.benGua)+(record.zhiGua?' → '+escapeHtml(record.zhiGua):'')+'</span>';
@@ -4324,24 +4434,38 @@ function renderLiuyaoHistoryList(){
   });
   listEl.innerHTML = html;
   
-  // 绑定点击事件
-  if(!isHistoryEditMode){
-    listEl.querySelectorAll('.ly-history-item').forEach(item => {
-      item.addEventListener('click', function(e){
-        if(e.target.classList.contains('ly-delete-btn')) return;
-        const id = parseInt(this.dataset.id);
-        viewLiuyaoHistoryRecord(id);
-      });
+  // 绑定点击与长按事件：长按打开操作菜单（置顶 / 取消置顶）
+  listEl.querySelectorAll('.ly-history-item').forEach(item => {
+    const id = parseInt(item.dataset.id);
+    let timer = null;
+    let longPressed = false;
+    const startPress = () => {
+      if(isHistoryEditMode) return;
+      longPressed = false;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        longPressed = true;
+        openLiuyaoHistoryActions(id);
+      }, 550);
+    };
+    const cancelPress = () => clearTimeout(timer);
+    item.addEventListener('touchstart', startPress, {passive:true});
+    item.addEventListener('touchend', cancelPress);
+    item.addEventListener('touchmove', cancelPress);
+    item.addEventListener('mousedown', startPress);
+    item.addEventListener('mouseup', cancelPress);
+    item.addEventListener('mouseleave', cancelPress);
+    item.addEventListener('click', function(e){
+      if(longPressed){
+        longPressed = false;
+        return;
+      }
+      if(e.target.classList.contains('ly-delete-btn')) return;
+      if(e.target.type === 'checkbox') return;
+      if(isHistoryEditMode) toggleHistorySelect(id, e);
+      else viewLiuyaoHistoryRecord(id);
     });
-  } else {
-    listEl.querySelectorAll('.ly-history-item').forEach(item => {
-      item.addEventListener('click', function(e){
-        if(e.target.type === 'checkbox') return;
-        const id = parseInt(this.dataset.id);
-        toggleHistorySelect(id, e);
-      });
-    });
-  }
+  });
 }
 
 function toggleEditMode(){
@@ -4448,6 +4572,13 @@ document.getElementById('ly-recast').addEventListener('click', function(){
 document.getElementById('ly-history-btn').addEventListener('click', showLiuyaoHistory);
 document.getElementById('liuyao-history-back').addEventListener('click', backFromHistory);
 document.getElementById('ly-history-edit-btn').addEventListener('click', toggleEditMode);
+document.getElementById('ly-action-close').addEventListener('click', closeLiuyaoHistoryActions);
+document.getElementById('ly-action-modal').addEventListener('click', event => {
+  if(event.target === document.getElementById('ly-action-modal')) closeLiuyaoHistoryActions();
+});
+document.getElementById('ly-action-pin').addEventListener('click', () => {
+  if(lyActionRecordId) toggleLiuyaoHistoryPin(lyActionRecordId);
+});
 document.getElementById('ly-select-all-btn').addEventListener('click', selectAllHistory);
 document.getElementById('ly-delete-selected-btn').addEventListener('click', deleteSelectedHistory);
 // 编辑事项的事件在渲染结果时动态绑定
@@ -4570,6 +4701,10 @@ window.addEventListener('scroll', updateBaziRecordIndexOnScroll, {passive:true})
 document.getElementById('bz-action-close').addEventListener('click', closeBaziPersonActions);
 document.getElementById('bz-action-modal').addEventListener('click', event => {
   if(event.target === document.getElementById('bz-action-modal')) closeBaziPersonActions();
+});
+document.getElementById('bz-action-pin').addEventListener('click', () => {
+  const id = baziActionPersonId;
+  if(id) toggleBaziPersonPin(id);
 });
 document.getElementById('bz-action-edit').addEventListener('click', () => {
   const id = baziActionPersonId;
