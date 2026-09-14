@@ -99,7 +99,8 @@ app/
 │   └── notify.js               # 每日提醒调度
 ├── scripts/build.js / build.ps1 # 用 esbuild 生成四个 bundle.js（Node / PowerShell）
 ├── tools/generate-yijing-data.js  # 由《周易》结构化 JSON 生成 yijing-data.js
-├── test_liuyao.js / test_bazi.js / test_bazi_page.js / test_navigation.js / test_records_pin.js # 六爻、八字、导航与置顶测试
+├── test_liuyao.js / test_bazi.js / test_bazi_page.js / test_navigation.js
+├── test_records_pin.js / test_energy.js / test_modules.js # 六爻、八字、导航、置顶、精力、模块注册表测试
 ├── package.json                # 版本号三处之一
 └── android/                    # Android 原生工程
     └── app/
@@ -249,8 +250,9 @@ python -m http.server 8080 --directory app/www
 
 ```powershell
 cd app
-npm test            # 六爻引擎 + 八字引擎 + 八字页面集成 + 导航测试
-npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不用
+npm test            # 全量：精力 + 模块注册表 + 六爻 + 八字 + 八字页面 + 导航 + 置顶
+npm run test:energy # 只跑精力状态模块
+npm run test:modules# 只跑主界面模块注册表
 ```
 
 - `test_liuyao.js` / `test_bazi.js` 直接读取对应 bundle 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑**。
@@ -259,7 +261,12 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
   出生时间弹层、`#day-modal`、`#bz-action-modal`、`#bz-move-modal`、`#bz-group-modal` 各只关自身；
   排盘页返回回来源页；第 6 / 7 条「保持现状」也有断言兜底（防止别人顺手改掉）。
 - `test_records_pin.js` 用 jsdom 验证命例 / 起卦记录的长按置顶、取消置顶、排序与落盘。
-- `test_app.js` 是旧版本（v1.3 时代）的 jsdom 页面测试，检查的 DOM 结构早已不存在，且 jsdom 在本机运行会直接让 Node 崩（访问冲突），**不要用它判断代码对错**，页面一律以浏览器预览为准。
+- `test_energy.js` 用 jsdom 验证精力状态：进入页面、打分表情联动、保存落盘、折线图、洞察统计、日历标记、补录超 7 天拦截、日详情修改回填。
+- `test_modules.js` 用 jsdom 遍历主界面**每一个**模块卡片，验证徽标与上线状态一致、点击后只进入一个视图、返回键可逐级退回主界面。
+  **刻意不写死模块数量与名称**：以后新增模块会自动被覆盖，加模块不需要改这个测试。
+  ⚠️ 因此**不要再往测试里写「模块卡片数量 = N」「未上线模块只有 M 个」这类断言**——每加一个模块都会误报，属于倒退。
+- 旧的 `test_app.js`（v1.3/v1.4 时代的整页快照测试）已删除：它写死了模块数量，且部分断言对应早已重构掉的界面，
+  既不参与 `npm test`，又容易让接手的人误以为功能坏了。它的有效部分已迁入 `test_energy.js` 与 `test_modules.js`，历史可在 git 里翻 `4599232` / `0465f51`。
 
 ---
 
@@ -467,7 +474,7 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 1. 脚本大括号/圆括号配平，浏览器控制台无报错。
 2. 在 `http://localhost:8080` 走一遍受影响流程（起卦 → 结果页 → 历史记录 → 返回）。
 3. 320 / 375 / 428px / 平板（≥768px）四档宽度下无横向溢出（尤其六爻卦象表格和出生时间弹层）。
-4. 改了 `app/src/*.js` → 已 `npm run build`，并跑过 `npm test`（六爻引擎测试）。
+4. 改过代码 → 在英文临时目录（见「环境坑」）跑过 `npm test` 全量；加了新模块 → 确认 `test_modules.js` 自动覆盖到、无需改断言。
 5. 改了 `app/www/` → 已同步到 `android/app/src/main/assets/public`。
 6. 版本号三处一致、已递增。
 7. 已 `git commit` 并 `git push`。
