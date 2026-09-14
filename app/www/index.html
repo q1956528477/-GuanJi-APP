@@ -1989,6 +1989,24 @@ function handleBack(){
     closeLiuyaoHistoryActions();
     return;
   }
+  // 以下四个既有弹窗同样各占一层：返回键只关弹窗，底下的页面保持不动。
+  // 顺序按「后打开的先关」：移动到分组是从命例操作菜单里打开的，排在它前面。
+  if(document.getElementById('bz-move-modal').classList.contains('show')){
+    closeBaziMoveModal();
+    return;
+  }
+  if(document.getElementById('bz-action-modal').classList.contains('show')){
+    closeBaziPersonActions();
+    return;
+  }
+  if(document.getElementById('bz-group-modal').classList.contains('show')){
+    closeBaziGroupModal();
+    return;
+  }
+  if(document.getElementById('day-modal').classList.contains('show')){
+    closeDayDetail();
+    return;
+  }
   const reqVisible = !document.getElementById('req-view').classList.contains('hidden');
   const liuyaoHistoryVisible = !document.getElementById('liuyao-history-view').classList.contains('hidden');
   const liuyaoVisible = !document.getElementById('liuyao-view').classList.contains('hidden');
@@ -2005,7 +2023,9 @@ function handleBack(){
     backFromResult();
   } else if(baziInfoVisible){
     showView('bazi-records');
-  } else if(energyVisible || liuyaoVisible || baziFormVisible || baziRecordsVisible){
+  } else if(baziFormVisible){
+    backFromBaziForm();  // 排盘页回它自己的来源页（主界面 / 命例记录 / 命盘信息页）
+  } else if(energyVisible || liuyaoVisible || baziRecordsVisible){
     showView('home');  // 子页面 → 返回主界面
   } else {
     const now = Date.now();
@@ -2034,6 +2054,9 @@ let baziInfoTab = 'basic';
 let baziOpenDaYun = 0;
 let baziOpenLiuNian = -1;
 let baziActionPersonId = null;
+// 排盘页的返回目标：进入排盘页时记住「从哪来」，返回时逐级退回那一页（默认主界面）
+let baziFormReturnView = 'home';
+const BAZI_FORM_RETURN_VIEWS = ['home', 'bazi-records', 'bazi-info'];
 let baziFormState = Object.assign({ gender:'male' }, baziTimeStateFromPerson(null));
 let baziFineDaYunIndex = 0;
 let baziFineLiuNianIndex = 0;
@@ -2056,6 +2079,9 @@ function saveBaziGroups(groups){ BaziStorage.saveGroups(groups); }
 function saveBaziPersons(persons){ BaziStorage.savePersons(persons); }
 
 function openBaziForm(personId){
+  // 记住来源页：主界面进入 / 命例记录新建或编辑 / 命盘信息页点编辑
+  const origin = currentPrimaryViewId();
+  if(origin !== 'bazi-form' && BAZI_FORM_RETURN_VIEWS.indexOf(origin) >= 0) baziFormReturnView = origin;
   baziEditingId = typeof personId === 'string' ? personId : null;
   const person = baziEditingId ? getBaziPerson(baziEditingId) : null;
   baziFormState = Object.assign(
@@ -2063,6 +2089,12 @@ function openBaziForm(personId){
     baziTimeStateFromPerson(person)
   );
   showView('bazi-form');
+}
+
+function backFromBaziForm(){
+  const target = BAZI_FORM_RETURN_VIEWS.indexOf(baziFormReturnView) >= 0 ? baziFormReturnView : 'home';
+  baziFormReturnView = 'home';
+  showView(target);
 }
 
 function baziTimeStateFromPerson(person){
@@ -3706,6 +3738,11 @@ function closeBaziPersonActions(){
   document.getElementById('bz-action-modal').classList.remove('show');
 }
 
+function closeBaziMoveModal(){
+  document.getElementById('bz-move-modal').classList.remove('show');
+  baziMovePersonIds = [];
+}
+
 function renderBaziMoveGroups(){
   const box = document.getElementById('bz-move-list');
   const persons = getBaziPersons();
@@ -3756,6 +3793,10 @@ function renderBaziGroupList(){
 function openBaziGroupManager(){
   renderBaziGroupList();
   document.getElementById('bz-group-modal').classList.add('show');
+}
+
+function closeBaziGroupModal(){
+  document.getElementById('bz-group-modal').classList.remove('show');
 }
 
 function renameBaziGroup(id){
@@ -4673,7 +4714,7 @@ document.getElementById('bz-group-select').addEventListener('change', event => {
   const group = createBaziGroup(prompt('输入新分组名称：'));
   renderBaziGroupSelect(group ? group.id : getDefaultBaziGroupId());
 });
-document.getElementById('bz-form-back').addEventListener('click', () => showView('home'));
+document.getElementById('bz-form-back').addEventListener('click', () => backFromBaziForm());
 document.getElementById('bz-form-records').addEventListener('click', openBaziRecords);
 document.getElementById('bz-save-open-records').addEventListener('click', () => {
   renderBaziRecords();
@@ -4727,19 +4768,13 @@ document.getElementById('bz-action-delete').addEventListener('click', () => {
   renderBaziRecords();
   showToast('命例已删除');
 });
-document.getElementById('bz-move-close').addEventListener('click', () => {
-  document.getElementById('bz-move-modal').classList.remove('show');
-  baziMovePersonIds = [];
-});
+document.getElementById('bz-move-close').addEventListener('click', closeBaziMoveModal);
 document.getElementById('bz-move-modal').addEventListener('click', event => {
-  if(event.target === document.getElementById('bz-move-modal')) {
-    document.getElementById('bz-move-modal').classList.remove('show');
-    baziMovePersonIds = [];
-  }
+  if(event.target === document.getElementById('bz-move-modal')) closeBaziMoveModal();
 });
-document.getElementById('bz-group-close').addEventListener('click', () => document.getElementById('bz-group-modal').classList.remove('show'));
+document.getElementById('bz-group-close').addEventListener('click', closeBaziGroupModal);
 document.getElementById('bz-group-modal').addEventListener('click', event => {
-  if(event.target === document.getElementById('bz-group-modal')) document.getElementById('bz-group-modal').classList.remove('show');
+  if(event.target === document.getElementById('bz-group-modal')) closeBaziGroupModal();
 });
 document.getElementById('bz-group-add').addEventListener('click', addBaziGroupFromPrompt);
 

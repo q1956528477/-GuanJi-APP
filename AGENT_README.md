@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.5 (build 39)**　最后更新：2026-09-14
+> 当前版本：**v1.14.6 (build 40)**　最后更新：2026-09-14
 
 ---
 
@@ -255,7 +255,9 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 - `test_liuyao.js` / `test_bazi.js` 直接读取对应 bundle 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑**。
 - `test_bazi_page.js` 用 jsdom 验证八字入口、保存命例、基本盘、大运流年和流月展开。
-- `test_navigation.js` 用 jsdom 验证顶级页面互斥、需求页返回目标，以及返回键对出生时间弹层的逐级消费。
+- `test_navigation.js` 用 jsdom 验证顶级页面互斥、需求页返回目标，以及**返回栈逐级消费**：
+  出生时间弹层、`#day-modal`、`#bz-action-modal`、`#bz-move-modal`、`#bz-group-modal` 各只关自身；
+  排盘页返回回来源页；第 6 / 7 条「保持现状」也有断言兜底（防止别人顺手改掉）。
 - `test_records_pin.js` 用 jsdom 验证命例 / 起卦记录的长按置顶、取消置顶、排序与落盘。
 - `test_app.js` 是旧版本（v1.3 时代）的 jsdom 页面测试，检查的 DOM 结构早已不存在，且 jsdom 在本机运行会直接让 Node 崩（访问冲突），**不要用它判断代码对错**，页面一律以浏览器预览为准。
 
@@ -350,36 +352,51 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 |---|---|---|
 | 1 | `gzSheet` 非空（出生时间弹层 `#gz-sheet`） | `closeGzSheet()`，**留在排盘页**，未确认的草稿不写回 |
 | 2 | `#ly-action-modal` 可见（起卦记录长按菜单） | `closeLiuyaoHistoryActions()`，留在起卦记录页 |
-| 3 | `#req-view` 可见 | `closeReqView()` → 回到打开它的页面（`reqReturnView`） |
-| 4 | `#liuyao-history-view` 可见 | `backFromHistory()` → 六爻起卦页 |
-| 5 | 六爻结果页可见 | `backFromResult()` → 从历史点进则回历史，否则回主界面 |
-| 6 | `#bazi-info-view` 可见 | → 命例记录页 |
-| 7 | 精力 / 六爻 / 排盘页 / 命例记录页 | → 主界面 |
-| 8 | 已经在主界面 | 2 秒内再按一次退出 App |
+| 3 | `#bz-move-modal` 可见（移动到分组） | `closeBaziMoveModal()`，留在命例记录页（清空 `baziMovePersonIds`） |
+| 4 | `#bz-action-modal` 可见（命例长按菜单） | `closeBaziPersonActions()`，留在命例记录页 |
+| 5 | `#bz-group-modal` 可见（分组管理） | `closeBaziGroupModal()`，留在命例记录页 |
+| 6 | `#day-modal` 可见（精力状态日期详情） | `closeDayDetail()`，留在精力状态页 |
+| 7 | `#req-view` 可见 | `closeReqView()` → 回到打开它的页面（`reqReturnView`） |
+| 8 | `#liuyao-history-view` 可见 | `backFromHistory()` → 六爻起卦页 |
+| 9 | 六爻结果页可见 | `backFromResult()` → 从历史点进则回历史，否则回起卦记录页 |
+| 10 | `#bazi-info-view` 可见 | → 命例记录页（**按需求刻意如此**，见 9.4） |
+| 11 | 排盘页 `#bazi-form-view` 可见 | `backFromBaziForm()` → 回**进入排盘页时的来源页**（`baziFormReturnView`） |
+| 12 | 精力 / 六爻 / 命例记录页 | → 主界面 |
+| 13 | 已经在主界面 | 2 秒内再按一次退出 App |
 
 > 新增任何弹窗/浮层时，**必须把它加进 `handleBack()` 的最前面那几层**，否则会出现「返回键作用到底层页面、弹窗还浮在上面」的错乱。
 
-**9.2 已入栈的层级**：出生时间弹层（v1.14.4 修复）、起卦记录操作菜单（v1.14.5）。
+**9.2 已入栈的层级**：出生时间弹层（v1.14.4 修复）、起卦记录操作菜单（v1.14.5）、
+`#day-modal` / `#bz-action-modal` / `#bz-move-modal` / `#bz-group-modal`（v1.14.6 修复）。
 
-**9.3 尚未入栈的既有弹窗（已知问题，待后续迭代修）**：
+**9.3 既有弹窗入栈修复（v1.14.6 已完成，勿再回退）**：
 
-| 弹窗 | 打开位置 | 现在按返回会怎样 | 期望 |
+| 弹窗 | 打开位置 | 修复前按返回 | 现在的行为 |
 |---|---|---|---|
-| `#day-modal` | 精力状态 → 点某天 | 回主界面，弹窗仍浮着 | 只关弹窗，留在精力页 |
+| `#day-modal` | 精力状态 → 点某天 | 回主界面，弹窗仍浮着 | 只关弹窗，留在精力状态页 |
 | `#bz-action-modal` | 命例记录 → 长按命例 | 回主界面，弹窗仍浮着 | 只关菜单，留在命例记录页 |
 | `#bz-move-modal` | 命例记录 → 长按 → 移动到分组 | 回主界面，弹窗仍浮着 | 只关弹窗，留在命例记录页 |
 | `#bz-group-modal` | 命例记录 → 分组管理 | 回主界面，弹窗仍浮着 | 只关弹窗，留在命例记录页 |
 
-**9.4 跳级返回（已知问题，待后续迭代修）**：
+另外把原先**合并在一起**的页面分支拆开了：原来 `energyVisible || liuyaoVisible || baziFormVisible || baziRecordsVisible` 一律 `showView('home')`，
+现在排盘页单列一支走 `backFromBaziForm()`，其余维持回主界面。
 
-| 路径 | 现在按返回 | 期望 |
-|---|---|---|
-| 命例记录 → 长按 → 编辑重新排盘 → 排盘页 | 直接回主界面（跳过命例记录） | 回命例记录页 |
-| 排盘页 → 保存（自动进信息页）→ 信息页 | 回命例记录页（跳过排盘页） | 回排盘页 |
-| 六爻起卦页 → 起卦完成进结果页 | 回起卦记录页（用户并没打开过它） | 回六爻起卦页 |
+**9.4 跳级返回：1 条已修，2 条按需求刻意保留**
 
-> 这几条的根因：顶层视图只有 `.hidden` 互斥切换、没有保存「从哪来」；`showLiuyaoResult()` 里把 `currentResultId` 直接赋了新记录 id，
-> 与 `backFromResult()` 注释里「currentResultId 表示结果页是从历史记录点进来的」的约定相矛盾。
+| 路径 | 之前按返回 | 现在按返回 | 状态 |
+|---|---|---|---|
+| 命例记录 → 长按 → 编辑重新排盘 → 排盘页 | 直接回主界面（跳过命例记录） | 回命例记录页 | ✅ v1.14.6 已修 |
+| 排盘页 → 保存（自动进信息页）→ 信息页 | 回命例记录页（跳过排盘页） | 回命例记录页 | ⛔ **按需求刻意保持现状** |
+| 六爻起卦页 → 起卦完成进结果页 | 回起卦记录页 | 回起卦记录页 | ⛔ **按需求刻意保持现状** |
+
+> 修法：排盘页新增来源记忆 `baziFormReturnView`（取值 `home` / `bazi-records` / `bazi-info`），
+> `openBaziForm()` 进入时用 `currentPrimaryViewId()` 记下来源，返回时 `backFromBaziForm()` 退回该页并复位为 `home`。
+> 排盘页左上角「← 返回」按钮与物理返回键共用同一条路径。
+>
+> **第 2、3 条为什么保持现状**：产品把「保存后自动进入的命盘信息页」和「起卦完成后的结果页」当作流程终点，
+> 返回到达记录列表比退回中间输入页更符合使用习惯。**不要「顺手修掉」，这是产品决定。**
+> 副作用记一笔：`showLiuyaoResult()` 仍会把 `currentResultId` 赋成新记录 id，与 `backFromResult()` 注释里
+> 「currentResultId 表示结果页是从历史点进来的」的表述不一致；注释与实现以**实现**为准。
 
 ---
 
@@ -431,9 +448,10 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ## 12. 待开发 / 已知限制
 
-- [x] 八字排盘模块（当前版本 v1.14.5，含四柱直排底部弹层）
+- [x] 八字排盘模块（当前版本 v1.14.6，含四柱直排底部弹层）
 - [x] 命例 / 起卦记录置顶（v1.14.5）
-- [ ] **返回栈待修**：4 个既有弹窗未入栈 + 3 条跳级返回，清单见 9.3 / 9.4
+- [x] **返回栈**：4 个既有弹窗已入栈、排盘页已改为回来源页（v1.14.6），清单见 9.3
+- [ ] **返回栈保留项（产品决定，非缺陷）**：① 保存后信息页返回 → 回命例记录页；② 起卦结果页返回 → 回起卦记录页。详见 9.4
 - [ ] 深色模式、云端同步、更多起卦方式
 - [ ] **iOS 版本**：技术上很顺（Capacitor 官方支持 iOS，且本项目无自定义原生代码），但需处理：
   - 必须有 macOS + Xcode + CocoaPods（或用云 Mac）
