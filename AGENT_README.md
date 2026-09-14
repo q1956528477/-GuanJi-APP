@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.3 (build 37)**　最后更新：2026-09-13
+> 当前版本：**v1.14.4 (build 38)**　最后更新：2026-09-14
 
 ---
 
@@ -141,10 +141,10 @@ app/
 
 ### 4.2 八字排盘（Bazi）
 
-- 主页入口进入排盘页，支持公历、农历（含闰月）、四柱直排三种模式；支持 12 时辰与精确分钟。
+- 主页入口进入排盘页，支持公历、农历（含闰月）、四柱直排三种模式；三种模式统一收进**底部弹层选择器**（v1.14.4 改版，详见第 8 节）；支持 12 时辰与精确分钟。
 - 默认开启真太阳时；选择内置城市后按经度与均时差近似校正。
 - 四柱严格以立春、节气为界；23:00–23:59 按晚子时规则，日柱进位、时干按当日日干起算。
-- 四柱直排在 1900–2100 范围反推钟表时间；无解时降级为“四柱直录（无出生时间）”，不阻断保存。
+- 四柱直排在弹层里按 **1801–2099** 范围反推全部匹配日期（选中的日期直接回写出生时间）；排盘/保存链路仍走原引擎，无解时降级为“四柱直录（无出生时间）”，不阻断保存。
 - 命例按分组保存，预置默认、自己、家人、朋友、客户五组；列表按姓名拼音分节并支持搜索、字母索引、批量移动、编辑和删除。
 - 信息页包含基本盘（十神、藏干、星运、自坐、纳音、空亡、神煞、胎元、命宫、身宫、五行统计）和大运流年细盘（每步大运、10 个流年、12 个流月）。
 - 历法计算使用 `lunar-javascript`；神煞和司令分野的补充校验使用只读规则库 `bazi-lite`。
@@ -280,7 +280,61 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ---
 
-## 8. 代码规范
+## 8. 出生时间弹层（v1.14.4 改版，第二容易被改坏的地方）
+
+排盘表单里原来那套「历法类型分段控件 + 内联日期/时间输入」已经**整体删掉**，只剩一行触发行，
+点它有且只有一个入口：`openGzSheet()`。
+
+```html
+<div class="modal-overlay gz-sheet-overlay" id="gz-sheet">   <!-- 遮罩 rgba(0,0,0,.4)，点空白处关闭且不保存 -->
+  <div class="gz-sheet">                                     <!-- 白色、顶部两角圆角、max-width 480 / max-height 85vh -->
+    <div class="gz-sheet-head">                              <!-- 固定不滚动 -->
+      <div class="gz-sheet-tabs" id="gz-sheet-tabs">          <!-- 公历 / 农历 / 四柱，默认四柱 -->
+      <button id="gz-sheet-confirm">确定</button>             <!-- 黑色圆角；不可确认时置灰 -->
+    </div>
+    <div class="gz-sheet-body">                              <!-- 唯一滚动容器 -->
+      <div class="gz-pane" id="gz-pane-solar">               <!-- #gz-solar-date -->
+      <div class="gz-pane" id="gz-pane-lunar">               <!-- #gz-lunar-year / #gz-lunar-month / #gz-lunar-day -->
+      <div class="gz-time-block" id="gz-time-block">         <!-- 精确到分钟 / 十二时辰；四柱 tab 下隐藏 -->
+      <div class="gz-pane" id="gz-pane-ganzhi">
+        <div id="gz-pillars">                                <!-- 四列：年/月/日/时，每列上干下支两个圆形槽位 -->
+        <div id="gz-picker">                                 <!-- 十干 2×5 或六支 3×2 -->
+        <div class="gz-range-row">查找范围：1801~2099年 + #gz-clear
+        <div id="gz-results">                                <!-- 反推结果卡片列表 -->
+```
+
+**交互铁律（改之前先读完）**
+
+1. 点天干槽 → 铺开十天干面板；点定某天干 → 天干落槽，面板**自动切成地支面板**。
+2. 地支面板只列与所选天干**阴阳相同**的 6 个支（阳干甲丙戊庚壬 → 子寅辰午申戌；阴干乙丁己辛癸 → 丑卯巳未酉亥）。
+   阴阳判断在 `renderGzPicker()`：`Bazi.GAN.indexOf(pillar.gan) % 2 === 0`——**别改成拿天干去查地支数组**（曾写错过一次）。
+   这样从 UI 层就杜绝了非六十甲子组合，不需要事后校验报错。
+3. 点地支 → 落槽、面板回到待命态（`activeSlot = null`）；点已填槽位可重选；**改选天干后原地支必须清空**（`pickGzGan()`）。
+4. 八个字齐 → `refreshGzMatches()` 调 `Bazi.findDirectMatches(pillars, {startYear:1801, endYear:2099})`，
+   每张卡取该日该时辰的**起始时刻**（子时即 00:00:00）。无匹配只显示灰字「查找范围内无匹配结果」，不弹错、不阻断。
+5. 结果卡片未选中时 `#gz-sheet-confirm` 必须保持 `disabled`（`gzDraftConfirmable()`）；确定才把时间回写 `baziFormState` 并关层。
+6. 点遮罩只关层、`gzSheet` 置 null，**草稿不得写回** `baziFormState`。
+
+**引擎侧（`app/src/bazi.js`）**
+
+- 新增 `findDirectMatches()` / `collectDirectMatches()` / `directMatchSerial()`，导出 `findDirectMatches`。
+- `resolveDirectSolar()` 默认区间仍是 1900–2100；**仅当参考日期落在区间外时**按参考年把窗口扩到覆盖它。
+  原因：弹层能选到 19 世纪的匹配日期，回推时必须落在同一天，否则会串到另一甲子周期。
+- 文案与常量对齐：`DIRECT_MATCH_YEAR_START/END = 1801/2099`。
+
+**样式要点**
+
+- 五行字色 `.gz-el-mu/huo/tu/jin/shui`（木 `#4E7A3A`、火 `#C0392B`、土 `#8B7355`、金 `#A08530`、水 `#5B7E9B`），
+  对应极浅底色 `.gz-tint-*`；刚填的槽位加 `.gz-slot.active`（浅绿描边）。
+- 槽位圆 `clamp(44px,14.5vw,56px)`，干支单元格 `.gz-cell` 尺寸全部用相对单位，320px 下不得溢出、干支单字不得换行。
+- 视口 ≥768px 时 `#app{max-width:480px}`，弹层靠 `.modal-overlay` 自带的 `justify-content:center` 居中。
+
+> 如果以后要给表单加回「历法类型」控件，先想清楚会不会和弹层 Tab 打架——现在 `collectBaziForm()` 全部读 `baziFormState`，
+> 不再从 DOM 里取日期/时间/历法字段。
+
+---
+
+## 9. 代码规范
 
 - 全部逻辑写在 `index.html` 的单个 `<script>` 内，**无模块、无依赖**；桥接能力通过 `window.LiuYao` / `window.Native` / `window.Notify` 暴露。
 - 视图切换统一用 `.hidden` 类，不引入路由库。
@@ -291,7 +345,7 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ---
 
-## 9. 常见问题
+## 10. 常见问题
 
 **Q1 改完页面全白？** 单页架构里一个语法错误就全废。检查大括号/圆括号是否配平，浏览器控制台看第一条报错；提交前可用 `node --check` 校验抽出的脚本。
 
@@ -311,18 +365,22 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 **Q9 打完包界面还是旧的？** WebView 缓存；确认 `assets/public/index.html` 已更新（用 `Get-FileHash` 比对），必要时卸载重装。
 
+**Q10 四柱弹层点不动 / 点了就关？** 弹层打开后遮罩铺满全屏，此时再去点表单里的「出生时间」触发行，点到的是遮罩——会按规格关层（不保存）。这是预期行为，不是 bug。
+
+**Q11 弹层里选甲却出现阴支？** 见第 8 节第 2 条，阴阳判断写错了。
+
 ### 环境坑（本机已知）
 
 - 中文路径：`app/android/gradle.properties` 需保留 `android.overridePathCheck=true`。
-- **工程若放在中文路径下，Node 跑 `npm test` 会直接崩（访问冲突 / 0xC0000005）**。把 `www/liuyao.bundle.js` 和 `test_liuyao.js` 复制到纯英文路径（如 `%TEMP%\guanji-test`）再跑就正常——这是路径问题，不是代码问题。`test_app.js` 则是 jsdom 自身崩溃，任何路径都跑不了。
+- **工程若放在中文路径下，Node 跑 `npm test`（jsdom）和 `npm run build`（esbuild）都会直接崩（访问冲突 / 0xC0000005）**。把 `www/*.bundle.js`、`test_*.js` 和 `src/`、`scripts/` 复制到纯英文临时目录（如 `%TEMP%\guanji-build`，把 `app/node_modules` 一起带过去）再跑就正常——这是路径问题，不是代码问题。构建产物再拷回 `app/www/`。`test_app.js` 则是 jsdom 自身崩溃，任何路径都跑不了。
 - 删除文件：本环境 `rm` 与未 unset 的 node 删除会被 safe-delete 拦截，用 `unset NODE_OPTIONS && node -e "fs.rmSync(...)"`。
 - 清 build 目录：用 `robocopy 空目录 目标 /MIR`，**一次只清一个目录**（并行/循环会静默失败）。
 
 ---
 
-## 10. 待开发 / 已知限制
+## 11. 待开发 / 已知限制
 
-- [x] 八字排盘模块（当前版本 v1.14.3）
+- [x] 八字排盘模块（当前版本 v1.14.4，含四柱直排底部弹层）
 - [ ] 深色模式、云端同步、更多起卦方式
 - [ ] **iOS 版本**：技术上很顺（Capacitor 官方支持 iOS，且本项目无自定义原生代码），但需处理：
   - 必须有 macOS + Xcode + CocoaPods（或用云 Mac）
@@ -333,11 +391,11 @@ npm run test:page   # test_app.js 页面测试，已过时且会崩，一般不�
 
 ---
 
-## 11. 提交前自检清单
+## 12. 提交前自检清单
 
 1. 脚本大括号/圆括号配平，浏览器控制台无报错。
 2. 在 `http://localhost:8080` 走一遍受影响流程（起卦 → 结果页 → 历史记录 → 返回）。
-3. 320 / 360 / 390px 宽度下无横向溢出（尤其卦象表格）。
+3. 320 / 375 / 428px / 平板（≥768px）四档宽度下无横向溢出（尤其六爻卦象表格和出生时间弹层）。
 4. 改了 `app/src/*.js` → 已 `npm run build`，并跑过 `npm test`（六爻引擎测试）。
 5. 改了 `app/www/` → 已同步到 `android/app/src/main/assets/public`。
 6. 版本号三处一致、已递增。

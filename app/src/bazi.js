@@ -528,6 +528,13 @@ const DIRECT_MONTH_JIE = {
 };
 const DIRECT_SEARCH_START = Date.UTC(1900, 0, 1, 0, 0, 0);
 const DIRECT_SEARCH_END = Date.UTC(2100, 11, 31, 23, 59, 59);
+const DIRECT_SEARCH_YEAR_START = 1900;
+const DIRECT_SEARCH_YEAR_END = 2100;
+// 输入弹层的查找范围，与界面提示「查找范围：1801~2099年」保持一致
+const DIRECT_MATCH_START = Date.UTC(1801, 0, 1, 0, 0, 0);
+const DIRECT_MATCH_END = Date.UTC(2099, 11, 31, 23, 59, 59);
+const DIRECT_MATCH_YEAR_START = 1801;
+const DIRECT_MATCH_YEAR_END = 2099;
 const DIRECT_JIE_MARGIN_MS = 30 * 60 * 1000;
 
 function directExpectedMonthGan(yearGan, monthZhi) {
@@ -601,11 +608,28 @@ function directSolarFromSerial(serial) {
 function resolveDirectSolar(pillars, reference) {
   const candidates = [];
   const seen = new Set();
-  for (let year = 1900; year <= 2100; year++) {
+  // 参考日期落在默认区间之外时（例如弹层里选到 19 世纪），把搜索区间扩到能覆盖它，
+  // 以免反推到另一甲子周期的日期。
+  let yearStart = DIRECT_SEARCH_YEAR_START;
+  let yearEnd = DIRECT_SEARCH_YEAR_END;
+  let rangeStart = DIRECT_SEARCH_START;
+  let rangeEnd = DIRECT_SEARCH_END;
+  if (reference) {
+    const referenceYear = reference.getYear();
+    if (referenceYear < yearStart) {
+      yearStart = referenceYear - 1;
+      rangeStart = Date.UTC(yearStart, 0, 1, 0, 0, 0);
+    }
+    if (referenceYear > yearEnd) {
+      yearEnd = referenceYear + 1;
+      rangeEnd = Date.UTC(yearEnd, 11, 31, 23, 59, 59);
+    }
+  }
+  for (let year = yearStart; year <= yearEnd; year++) {
     if (directYearPillar(year) !== pillars.year) continue;
     const [windowStartSolar, windowEndSolar] = directMonthWindow(year, pillars.month[1]);
-    const safeStart = Math.max(DIRECT_SEARCH_START, solarSerial(windowStartSolar) + DIRECT_JIE_MARGIN_MS);
-    const safeEnd = Math.min(DIRECT_SEARCH_END, solarSerial(windowEndSolar) - DIRECT_JIE_MARGIN_MS);
+    const safeStart = Math.max(rangeStart, solarSerial(windowStartSolar) + DIRECT_JIE_MARGIN_MS);
+    const safeEnd = Math.min(rangeEnd, solarSerial(windowEndSolar) - DIRECT_JIE_MARGIN_MS);
     if (safeStart > safeEnd) continue;
     const firstDate = Date.UTC(windowStartSolar.getYear(), windowStartSolar.getMonth() - 1, windowStartSolar.getDay());
     const lastDate = Date.UTC(windowEndSolar.getYear(), windowEndSolar.getMonth() - 1, windowEndSolar.getDay());
@@ -636,6 +660,75 @@ function resolveDirectSolar(pillars, reference) {
   return candidates.reduce((best, item) => {
     return Math.abs(solarSerial(item) - referenceSerial) < Math.abs(solarSerial(best) - referenceSerial) ? item : best;
   }, candidates[0]);
+}
+function directMatchSerial(year, month, day, hourZhi, safeStart, safeEnd) {
+  const windows = directHourWindows(year, month, day, hourZhi);
+  for (let index = 0; index < windows.length; index++) {
+    const candidateStart = Math.max(safeStart, windows[index][0]);
+    const candidateEnd = Math.min(safeEnd, windows[index][1]);
+    if (candidateStart > candidateEnd) return null;
+    const minuteStart = Math.ceil(candidateStart / 60000) * 60000;
+    const minuteEnd = Math.floor(candidateEnd / 60000) * 60000;
+    if (minuteStart > minuteEnd) return null;
+    return minuteStart;
+  }
+  return null;
+}
+// 四柱直排：枚举查找范围内所有匹配的日期，每个匹配日取该时辰起始时刻。
+function collectDirectMatches(pillars) {
+  const matches = [];
+  const seen = new Set();
+  for (let year = DIRECT_MATCH_YEAR_START; year <= DIRECT_MATCH_YEAR_END; year++) {
+    if (directYearPillar(year) !== pillars.year) continue;
+    const window = directMonthWindow(year, pillars.month[1]);
+    if (!window || !window[0] || !window[1]) continue;
+    const safeStart = Math.max(DIRECT_MATCH_START, solarSerial(window[0]) + DIRECT_JIE_MARGIN_MS);
+    const safeEnd = Math.min(DIRECT_MATCH_END, solarSerial(window[1]) - DIRECT_JIE_MARGIN_MS);
+    if (safeStart > safeEnd) continue;
+    const firstDate = Date.UTC(window[0].getYear(), window[0].getMonth() - 1, window[0].getDay());
+    const lastDate = Date.UTC(window[1].getYear(), window[1].getMonth() - 1, window[1].getDay());
+    for (let dateSerial = firstDate; dateSerial <= lastDate; dateSerial += 86400000) {
+      const date = new Date(dateSerial);
+      const serial = directMatchSerial(
+        date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(),
+        pillars.hour[1], safeStart, safeEnd
+      );
+      if (serial === null || seen.has(serial)) continue;
+      const candidate = directSolarFromSerial(serial);
+      if (!samePillars(rawPillarsFromSolar(candidate), pillars)) continue;
+      seen.add(serial);
+      matches.push(candidate);
+    }
+  }
+  return matches;
+}
+function findDirectMatches(pillars, options) {
+  const opts = options || {};
+  const list = [];
+  try {
+    validateDirectPillars(pillars);
+  } catch (err) {
+    return list;
+  }
+  const startYear = Number(opts.startYear);
+  const endYear = Number(opts.endYear);
+  const limit = Number(opts.limit);
+  collectDirectMatches(pillars).forEach(solar => {
+    const parts = solarParts(solar);
+    if (isFinite(startYear) && parts.year < startYear) return;
+    if (isFinite(endYear) && parts.year > endYear) return;
+    const lunar = solar.getLunar();
+    list.push({
+      solarDatetime:fmtSolar(parts),
+      solarDate:solar.toYmd(),
+      solarText:solar.toYmdHms(),
+      time:pad2(parts.hour) + ':' + pad2(parts.minute),
+      lunarText:lunar.getYear() + '年' + lunar.getMonthInChinese() + '月' + lunar.getDayInChinese(),
+      hourBranch:lunar.getTimeZhi()
+    });
+  });
+  if (isFinite(limit) && limit > 0 && list.length > limit) return list.slice(0, limit);
+  return list;
 }
 function calculate(input) {
   input = input || {};
@@ -753,6 +846,6 @@ function getHiddenGan(zhi) {
 }
 
 export {
-  calculate, validateDirectPillars, getLunarMonths, getLunarDays, getNaYin, getHiddenGan,
+  calculate, validateDirectPillars, findDirectMatches, getLunarMonths, getLunarDays, getNaYin, getHiddenGan,
   CITIES, JIAZI, GAN, ZHI, GAN_ELEMENT, ZHI_ELEMENT, tenGod, changSheng
 };

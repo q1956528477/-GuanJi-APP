@@ -25,6 +25,28 @@ function check(name, cond) {
   if (!cond) process.exitCode = 1;
 }
 
+// ---- 出生时间弹层操作辅助 ----
+function openTimeSheet(tab) {
+  document.getElementById('bz-time-trigger').click();
+  if (tab) document.querySelector('#gz-sheet-tabs button[data-tab="' + tab + '"]').click();
+}
+function setSheetValue(id, value) {
+  const el = document.getElementById(id);
+  el.value = value;
+  el.dispatchEvent(new window.Event('change', {bubbles:true}));
+}
+function pickPillar(key, gan, zhi) {
+  document.querySelector('.gz-slot[data-slot="' + key + '-gan"]').click();
+  document.querySelector('#gz-picker .gz-cell[data-kind="gan"][data-value="' + gan + '"]').click();
+  document.querySelector('#gz-picker .gz-cell[data-kind="zhi"][data-value="' + zhi + '"]').click();
+}
+function sheetResultCards() {
+  return [...document.querySelectorAll('#gz-results .gz-result')];
+}
+function sheetConfirm() {
+  document.getElementById('gz-sheet-confirm').click();
+}
+
 const baziCard = [...document.querySelectorAll('.mod-card')].find(card => card.textContent.includes('八字排盘'));
 check('主页存在八字排盘入口', !!baziCard);
 baziCard.click();
@@ -32,8 +54,10 @@ check('八字排盘入口可打开', !document.getElementById('bazi-form-view').
 
 document.getElementById('bz-name').value = '测试命例';
 document.querySelector('#bz-gender-tabs button[data-value="female"]').click();
-document.getElementById('bz-solar-date').value = '1990-06-15';
-document.getElementById('bz-exact-time').value = '08:32';
+openTimeSheet('solar');
+setSheetValue('gz-solar-date', '1990-06-15');
+setSheetValue('gz-exact-time', '08:32');
+sheetConfirm();
 document.getElementById('bz-true-solar').checked = false;
 document.getElementById('bz-submit').click();
 
@@ -117,13 +141,23 @@ check('岁运关系包含原局与大运流年交叉', crossRelations.gan.includ
 
 window.openBaziForm();
 document.getElementById('bz-name').value = '直排测试';
-document.querySelector('#bz-calendar-tabs button[data-value="ganzhi"]').click();
-document.getElementById('bz-reference-date').value = '2023-02-04';
-document.getElementById('bz-exact-time').value = '10:45';
-document.getElementById('bz-gz-year').value = '癸卯';
-document.getElementById('bz-gz-month').value = '甲寅';
-document.getElementById('bz-gz-day').value = '癸巳';
-document.getElementById('bz-gz-hour').value = '丁巳';
+document.getElementById('bz-time-trigger').click();
+check('弹层默认选中四柱', document.querySelector('#gz-sheet-tabs button.active').dataset.tab === 'ganzhi');
+pickPillar('year', '癸', '卯');
+pickPillar('month', '甲', '寅');
+pickPillar('day', '癸', '巳');
+pickPillar('hour', '丁', '巳');
+check('四柱直排弹层列出匹配结果', sheetResultCards().length === 2);
+check('结果卡片含阳历与阴历两行', sheetResultCards().some(card =>
+  card.textContent.includes('阳历：1963-02-19 09:00:00') && card.textContent.includes('阴历：') &&
+  card.textContent.includes('巳时')));
+check('未选中结果时确定置灰', document.getElementById('gz-sheet-confirm').disabled === true);
+sheetResultCards().find(card => card.textContent.includes('1963-02-19')).click();
+check('选中结果卡片高亮', (document.querySelector('#gz-results .gz-result.active') || {}).textContent.includes('1963-02-19'));
+check('选中结果后确定可点', document.getElementById('gz-sheet-confirm').disabled === false);
+sheetConfirm();
+check('点确定关闭弹层', !document.getElementById('gz-sheet').classList.contains('show'));
+check('点确定回写出生时间字段', document.getElementById('bz-time-value').textContent.includes('1963-02-19 09:00'));
 document.getElementById('bz-submit').click();
 const directPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
 const directPerson = directPersons.find(person => person.name === '直排测试');
@@ -135,30 +169,77 @@ const reopenedDirect = window.Bazi.calculate({
 });
 check('四柱直排保存后重新排盘仍为同一四柱', JSON.stringify(reopenedDirect.pillars) === JSON.stringify(directPerson.fourPillars));
 
+// 验收用例：己巳 丙子 丙寅 戊子 在 1801~2099 范围内的反推结果
+window.openBaziForm();
+openTimeSheet('ganzhi');
+pickPillar('year', '己', '巳');
+pickPillar('month', '丙', '子');
+pickPillar('day', '丙', '寅');
+pickPillar('hour', '戊', '子');
+const acceptanceCards = sheetResultCards().map(card => card.textContent);
+check('反推结果包含 1990-01-01', acceptanceCards.some(text => text.includes('阳历：1990-01-01 00:00:00')));
+check('反推结果包含 2049-12-17', acceptanceCards.some(text => text.includes('阳历：2049-12-17 00:00:00')));
+check('子时结果农历行含冬月廿三', acceptanceCards.some(text => text.includes('阴历：2049年冬月廿三 子时')));
+sheetResultCards().find(card => card.textContent.includes('2049-12-17')).click();
+sheetConfirm();
+check('选中 2049-12-17 后回写出生时间', document.getElementById('bz-time-value').textContent.includes('2049-12-17 00:00'));
+
+// 干支面板的阴阳约束与改选/清除
+openTimeSheet('ganzhi');
+document.querySelector('.gz-slot[data-slot="year-gan"]').click();
+check('天干面板为十天干', document.querySelectorAll('#gz-picker .gz-cell').length === 10);
+document.querySelector('#gz-picker .gz-cell[data-value="甲"]').click();
+check('选甲后地支只剩六个阳支',
+  [...document.querySelectorAll('#gz-picker .gz-cell')].map(cell => cell.textContent).join('') === '子寅辰午申戌');
+document.querySelector('.gz-slot[data-slot="year-gan"]').click();
+document.querySelector('#gz-picker .gz-cell[data-value="乙"]').click();
+check('选乙后地支只剩六个阴支',
+  [...document.querySelectorAll('#gz-picker .gz-cell')].map(cell => cell.textContent).join('') === '丑卯巳未酉亥');
+document.querySelector('#gz-picker .gz-cell[data-value="丑"]').click();
+check('年柱可选中乙丑', document.querySelector('.gz-slot[data-slot="year-zhi"]').textContent === '丑');
+document.querySelector('.gz-slot[data-slot="year-gan"]').click();
+document.querySelector('#gz-picker .gz-cell[data-value="丙"]').click();
+check('改选天干后原地支清空', document.querySelector('.gz-slot[data-slot="year-zhi"]').textContent === '');
+document.getElementById('gz-clear').click();
+check('清除按钮清空四柱槽位', document.querySelectorAll('.gz-slot.filled').length === 0);
+check('清除按钮清空结果列表', sheetResultCards().length === 0);
+
+// 点遮罩关闭不保存修改
+const timeTextBefore = document.getElementById('bz-time-value').textContent;
+openTimeSheet('ganzhi');
+pickPillar('year', '壬', '申');
+document.getElementById('gz-sheet').click();
+check('点遮罩关闭弹层且不保存', !document.getElementById('gz-sheet').classList.contains('show') &&
+  document.getElementById('bz-time-value').textContent === timeTextBefore);
+
 let directAlertMessage = '';
 const originalAlert = window.alert;
 window.alert = message => { directAlertMessage = message; };
 window.openBaziForm();
 document.getElementById('bz-name').value = '矛盾四柱';
-document.querySelector('#bz-calendar-tabs button[data-value="ganzhi"]').click();
-document.getElementById('bz-gz-year').value = '甲子';
-document.getElementById('bz-gz-month').value = '戊寅';
-document.getElementById('bz-gz-day').value = '戊辰';
-document.getElementById('bz-gz-hour').value = '壬子';
-document.getElementById('bz-submit').click();
-check('矛盾年月柱显示五虎遁提示', directAlertMessage === '年柱与月柱不符合五虎遁规则，请检查');
+openTimeSheet('ganzhi');
+pickPillar('year', '甲', '子');
+pickPillar('month', '戊', '寅');
+pickPillar('day', '戊', '辰');
+pickPillar('hour', '壬', '子');
+check('五虎遁不合时列表提示无匹配结果', document.getElementById('gz-results').textContent.includes('查找范围内无匹配结果'));
+check('五虎遁不合时补出原因提示', document.getElementById('gz-results').textContent.includes('年柱与月柱不符合五虎遁规则，请检查'));
+check('无匹配结果时确定保持置灰', document.getElementById('gz-sheet-confirm').disabled === true);
+document.getElementById('gz-sheet').click();
+check('点遮罩关闭弹层', !document.getElementById('gz-sheet').classList.contains('show'));
 
-window.openBaziForm();
-document.getElementById('bz-name').value = '四柱直录测试';
-document.querySelector('#bz-calendar-tabs button[data-value="ganzhi"]').click();
-document.getElementById('bz-reference-date').value = '';
-document.getElementById('bz-exact-time').value = '';
-document.getElementById('bz-gz-year').value = '甲子';
-document.getElementById('bz-gz-month').value = '丙寅';
-document.getElementById('bz-gz-day').value = '癸丑';
-document.getElementById('bz-gz-hour').value = '丙辰';
+// 老版本保存下来的“四柱直录”命例（无解、无出生时间）重新保存时应保持原状
+const directRecordSeed = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
+directRecordSeed.unshift({
+  id:'p_legacy_direct', name:'四柱直录测试', gender:'male', calendarType:'ganzhi',
+  fourPillars:{year:'甲子', month:'丙寅', day:'癸丑', hour:'丙辰'},
+  solarDate:'', time:'', timeMode:'unknown', groupId:directPersons[0].groupId, createdAt:1
+});
+window.localStorage.setItem('guanji_bazi_persons_v1', JSON.stringify(directRecordSeed));
+window.openBaziForm('p_legacy_direct');
 document.getElementById('bz-submit').click();
 window.alert = originalAlert;
+check('四柱直录保存过程无弹窗', directAlertMessage === '');
 const fallbackPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
 const fallbackPerson = fallbackPersons.find(person => person.name === '四柱直录测试');
 check('合法四柱无解时仍可保存', !!fallbackPerson && fallbackPerson.directRecord === true &&

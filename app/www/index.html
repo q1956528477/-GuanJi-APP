@@ -704,6 +704,99 @@
     #app{max-width:480px;}
   }
 
+  /* ---------- 出生时间弹层：公历 / 农历 / 四柱直排 ---------- */
+  .gz-sheet-overlay{background:rgba(0,0,0,.4);align-items:flex-end;}
+  .gz-sheet{
+    width:100%;max-width:480px;max-height:85vh;background:#fff;border-radius:24px 24px 0 0;
+    display:flex;flex-direction:column;overflow:hidden;transform:translateY(24px);transition:transform .22s ease;
+  }
+  .gz-sheet-overlay.show .gz-sheet{transform:translateY(0);}
+  .gz-sheet-head{
+    flex:0 0 auto;display:flex;align-items:center;gap:8px;
+    padding:14px clamp(10px,3.2vw,16px) 10px;border-bottom:1px solid var(--line);
+  }
+  .gz-sheet-tabs{flex:1 1 auto;display:flex;gap:4px;background:#f2f0ee;border-radius:12px;padding:3px;min-width:0;}
+  .gz-sheet-tabs button{
+    flex:1 1 0;min-width:0;border:none;background:transparent;border-radius:9px;padding:8px 2px;
+    font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit;white-space:nowrap;
+  }
+  .gz-sheet-tabs button.active{background:#fff;color:var(--ink);box-shadow:var(--shadow-sm);}
+  .gz-sheet-confirm{
+    flex:0 0 auto;border:none;background:#1c1b22;color:#fff;font-size:14px;font-weight:700;
+    border-radius:12px;padding:9px clamp(12px,4vw,18px);cursor:pointer;font-family:inherit;white-space:nowrap;
+  }
+  .gz-sheet-confirm:disabled{background:#dcd8d4;cursor:default;}
+  .gz-sheet-body{
+    flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:12px clamp(10px,3.2vw,16px) calc(20px + env(safe-area-inset-bottom));
+  }
+  .gz-pane.hidden,.gz-time-block.hidden{display:none;}
+
+  .gz-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
+  .gz-pillar{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;}
+  .gz-pillar-label{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+  .gz-slot{
+    width:clamp(44px,14.5vw,56px);height:clamp(44px,14.5vw,56px);border-radius:50%;
+    background:#EFEFEF;border:2px solid transparent;padding:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-family:inherit;font-size:clamp(18px,5.8vw,23px);font-weight:600;line-height:1;
+    color:var(--ink-faint);white-space:nowrap;
+  }
+  .gz-slot.filled{color:var(--ink);}
+  .gz-slot.active{border-color:#7fbf8a;}
+
+  .gz-el-mu{color:#4E7A3A;}
+  .gz-el-huo{color:#C0392B;}
+  .gz-el-tu{color:#8B7355;}
+  .gz-el-jin{color:#A08530;}
+  .gz-el-shui{color:#5B7E9B;}
+  .gz-tint-mu{background:#EDF3E9;}
+  .gz-tint-huo{background:#FBEAE7;}
+  .gz-tint-tu{background:#F4EEE7;}
+  .gz-tint-jin{background:#F6F1E2;}
+  .gz-tint-shui{background:#EAF0F5;}
+
+  .gz-picker{margin-top:16px;}
+  .gz-picker-title{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+  .gz-picker-hint{font-size:12px;color:var(--ink-faint);text-align:center;padding:14px 0;}
+  .gz-grid{display:grid;gap:clamp(4px,1.2vw,8px);}
+  .gz-grid-gan{grid-template-columns:repeat(5,minmax(0,1fr));}
+  .gz-grid-zhi{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .gz-cell{
+    border:none;background:#F2F0EE;border-radius:10px;padding:10px 0;min-height:42px;
+    font-family:inherit;font-size:clamp(15px,4.6vw,18px);font-weight:600;line-height:1.2;
+    cursor:pointer;white-space:nowrap;
+  }
+  .gz-cell.selected{background:#EDE6D6;}
+
+  .gz-range-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;}
+  .gz-range{font-size:12px;color:var(--ink-soft);}
+  .gz-clear{
+    border:none;background:#F2F0EE;border-radius:10px;padding:8px 12px;font-size:12px;
+    color:#6c6779;cursor:pointer;font-family:inherit;white-space:nowrap;
+  }
+  .gz-results{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+  .gz-result{
+    width:100%;border:none;background:#F7F6F4;border-radius:14px;padding:10px 12px;
+    text-align:left;cursor:pointer;font-family:inherit;
+  }
+  .gz-result.active{background:#EDE6D6;}
+  .gz-result-main{font-size:14px;font-weight:600;color:var(--ink);}
+  .gz-result-sub{font-size:12px;color:var(--ink-soft);margin-top:3px;}
+  .gz-result-note{font-size:12px;color:var(--ink-faint);text-align:center;padding:14px 0;}
+
+  .bz-time-trigger{
+    width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    border:1.5px solid var(--line);background:#fbfaf8;border-radius:14px;padding:13px 14px;
+    font-family:inherit;font-size:15px;color:var(--ink);cursor:pointer;text-align:left;
+  }
+  .bz-time-trigger .arr{color:var(--ink-soft);font-size:16px;}
+
+  @media (max-width:360px){
+    .gz-sheet-tabs button{font-size:13px;padding:8px 0;}
+    .gz-sheet-confirm{padding:9px 12px;}
+  }
+
 </style>
 </head>
 <body>
@@ -849,67 +942,11 @@
         <button type="button" data-value="female">坤造（女）</button>
       </div>
 
-      <label class="field">历法类型</label>
-      <div class="bz-seg" id="bz-calendar-tabs">
-        <button type="button" data-value="solar">公历</button>
-        <button type="button" data-value="lunar">农历</button>
-        <button type="button" data-value="ganzhi">四柱直排</button>
-      </div>
-
-      <div id="bz-solar-fields">
-        <label class="field">公历出生日期</label>
-        <input type="date" id="bz-solar-date">
-      </div>
-
-      <div id="bz-lunar-fields" class="hidden">
-        <div class="bz-form-grid">
-          <div>
-            <label class="field">农历年</label>
-            <input type="number" id="bz-lunar-year" min="1900" max="2100" inputmode="numeric">
-          </div>
-          <div>
-            <label class="field">农历月</label>
-            <select id="bz-lunar-month"></select>
-          </div>
-        </div>
-        <label class="field">农历日</label>
-        <select id="bz-lunar-day"></select>
-      </div>
-
-      <div id="bz-ganzhi-fields" class="hidden">
-        <label class="field">参考公历日期（选填，用于定位四柱年份）</label>
-        <input type="date" id="bz-reference-date">
-        <div class="bz-hint">反推成功会回写公历出生时间；无解时按“四柱直录”保存，不阻断命例。</div>
-        <div class="bz-form-grid">
-          <div><label class="field">年柱</label><select id="bz-gz-year"></select></div>
-          <div><label class="field">月柱</label><select id="bz-gz-month"></select></div>
-          <div><label class="field">日柱</label><select id="bz-gz-day"></select></div>
-          <div><label class="field">时柱</label><select id="bz-gz-hour"></select></div>
-        </div>
-      </div>
-
-      <div id="bz-time-fields">
-        <label class="field" id="bz-time-label">出生时间</label>
-        <div class="bz-seg two" id="bz-time-mode-tabs">
-          <button type="button" data-value="exact">精确到分钟</button>
-          <button type="button" data-value="branch">十二时辰</button>
-        </div>
-        <input type="time" id="bz-exact-time" value="12:00" style="margin-top:8px;">
-        <select id="bz-branch-time" class="hidden" style="margin-top:8px;">
-          <option value="00:30">子时 23:00–01:00</option>
-          <option value="02:00">丑时 01:00–03:00</option>
-          <option value="04:00">寅时 03:00–05:00</option>
-          <option value="06:00">卯时 05:00–07:00</option>
-          <option value="08:00">辰时 07:00–09:00</option>
-          <option value="10:00">巳时 09:00–11:00</option>
-          <option value="12:00">午时 11:00–13:00</option>
-          <option value="14:00">未时 13:00–15:00</option>
-          <option value="16:00">申时 15:00–17:00</option>
-          <option value="18:00">酉时 17:00–19:00</option>
-          <option value="20:00">戌时 19:00–21:00</option>
-          <option value="22:00">亥时 21:00–23:00</option>
-        </select>
-      </div>
+      <label class="field">出生时间</label>
+      <button type="button" class="bz-time-trigger" id="bz-time-trigger">
+        <span id="bz-time-value">公历</span>
+        <span class="arr">›</span>
+      </button>
 
       <label class="field">出生地（可选）</label>
       <select id="bz-city"><option value="">不校正（按东八区标准时）</option></select>
@@ -1090,6 +1127,74 @@
     </div>
     <div id="bz-group-list"></div>
     <button class="btn ghost" id="bz-group-add" style="margin-top:12px;">+ 新建分组</button>
+  </div>
+</div>
+
+<!-- 出生时间选择弹层：公历 / 农历 / 四柱直排 -->
+<div class="modal-overlay gz-sheet-overlay" id="gz-sheet">
+  <div class="gz-sheet">
+    <div class="gz-sheet-head">
+      <div class="gz-sheet-tabs" id="gz-sheet-tabs">
+        <button type="button" data-tab="solar">公历</button>
+        <button type="button" data-tab="lunar">农历</button>
+        <button type="button" data-tab="ganzhi">四柱</button>
+      </div>
+      <button type="button" class="gz-sheet-confirm" id="gz-sheet-confirm" disabled>确定</button>
+    </div>
+    <div class="gz-sheet-body">
+      <div class="gz-pane" id="gz-pane-solar">
+        <label class="field">公历出生日期</label>
+        <input type="date" id="gz-solar-date">
+      </div>
+
+      <div class="gz-pane hidden" id="gz-pane-lunar">
+        <div class="bz-form-grid">
+          <div>
+            <label class="field">农历年</label>
+            <input type="number" id="gz-lunar-year" min="1801" max="2099" inputmode="numeric">
+          </div>
+          <div>
+            <label class="field">农历月</label>
+            <select id="gz-lunar-month"></select>
+          </div>
+        </div>
+        <label class="field">农历日</label>
+        <select id="gz-lunar-day"></select>
+      </div>
+
+      <div class="gz-time-block" id="gz-time-block">
+        <label class="field">出生时间</label>
+        <div class="bz-seg two" id="gz-time-mode-tabs">
+          <button type="button" data-value="exact">精确到分钟</button>
+          <button type="button" data-value="branch">十二时辰</button>
+        </div>
+        <input type="time" id="gz-exact-time" value="12:00" style="margin-top:8px;">
+        <select id="gz-branch-time" class="hidden" style="margin-top:8px;">
+          <option value="00:30">子时 23:00–01:00</option>
+          <option value="02:00">丑时 01:00–03:00</option>
+          <option value="04:00">寅时 03:00–05:00</option>
+          <option value="06:00">卯时 05:00–07:00</option>
+          <option value="08:00">辰时 07:00–09:00</option>
+          <option value="10:00">巳时 09:00–11:00</option>
+          <option value="12:00">午时 11:00–13:00</option>
+          <option value="14:00">未时 13:00–15:00</option>
+          <option value="16:00">申时 15:00–17:00</option>
+          <option value="18:00">酉时 17:00–19:00</option>
+          <option value="20:00">戌时 19:00–21:00</option>
+          <option value="22:00">亥时 21:00–23:00</option>
+        </select>
+      </div>
+
+      <div class="gz-pane hidden" id="gz-pane-ganzhi">
+        <div class="gz-pillars" id="gz-pillars"></div>
+        <div class="gz-picker" id="gz-picker"></div>
+        <div class="gz-range-row">
+          <span class="gz-range">查找范围：1801~2099年</span>
+          <button type="button" class="gz-clear" id="gz-clear">🗑️ 清除</button>
+        </div>
+        <div class="gz-results" id="gz-results"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1888,7 +1993,7 @@ let baziInfoTab = 'basic';
 let baziOpenDaYun = 0;
 let baziOpenLiuNian = -1;
 let baziActionPersonId = null;
-let baziFormState = { gender:'male', calendarType:'solar', timeMode:'exact' };
+let baziFormState = Object.assign({ gender:'male' }, baziTimeStateFromPerson(null));
 let baziFineDaYunIndex = 0;
 let baziFineLiuNianIndex = 0;
 let baziFineLiuYueIndex = 0;
@@ -1912,12 +2017,26 @@ function saveBaziPersons(persons){ BaziStorage.savePersons(persons); }
 function openBaziForm(personId){
   baziEditingId = typeof personId === 'string' ? personId : null;
   const person = baziEditingId ? getBaziPerson(baziEditingId) : null;
-  baziFormState = {
-    gender:(person && person.gender) || 'male',
-    calendarType:(person && person.calendarType) || 'solar',
-    timeMode:person && person.timeMode === 'unknown' ? 'exact' : ((person && person.timeMode) || 'exact')
-  };
+  baziFormState = Object.assign(
+    { gender:(person && person.gender) || 'male' },
+    baziTimeStateFromPerson(person)
+  );
   showView('bazi-form');
+}
+
+function baziTimeStateFromPerson(person){
+  return {
+    calendarType:(person && person.calendarType) || 'solar',
+    timeMode:person && person.timeMode === 'unknown' ? 'exact' : ((person && person.timeMode) || 'exact'),
+    solarDate:person ? (person.solarDate || (person.solarDatetime || '').slice(0, 10)) : todayStr(),
+    lunarYear:person ? (person.lunarYear || 1990) : 1990,
+    lunarMonth:person ? (person.lunarMonth || 1) : 1,
+    lunarDay:person ? (person.lunarDay || 1) : 1,
+    time:person ? (person.time || '12:00') : '12:00',
+    fourPillars:person && person.fourPillars
+      ? Object.assign({}, person.fourPillars)
+      : { year:'', month:'', day:'', hour:'' }
+  };
 }
 
 function syncBaziSegment(id, value){
@@ -1952,19 +2071,6 @@ function renderBaziCityOptions(selectedCity){
   }
 }
 
-function renderBaziPillarSelects(){
-  ['bz-gz-year','bz-gz-month','bz-gz-day','bz-gz-hour'].forEach(id => {
-    const select = document.getElementById(id);
-    if(select.options.length) return;
-    Bazi.JIAZI.forEach(ganZhi => {
-      const option = document.createElement('option');
-      option.value = ganZhi;
-      option.textContent = ganZhi;
-      select.appendChild(option);
-    });
-  });
-}
-
 function renderBaziGroupSelect(selectedId){
   const select = document.getElementById('bz-group-select');
   const groups = getBaziGroups().slice().sort((a, b) => a.sortOrder - b.sortOrder);
@@ -1982,81 +2088,407 @@ function renderBaziGroupSelect(selectedId){
   select.value = groups.some(group => group.id === selectedId) ? selectedId : getDefaultBaziGroupId();
 }
 
-function renderBaziLunarMonths(preferred){
-  const yearInput = document.getElementById('bz-lunar-year');
-  const monthSelect = document.getElementById('bz-lunar-month');
-  const year = Number(yearInput.value) || new Date().getFullYear();
-  let months = [];
-  try{ months = Bazi.getLunarMonths(year); }catch(e){ months = Bazi.getLunarMonths(new Date().getFullYear()); }
-  const oldValue = preferred != null ? String(preferred) : monthSelect.value;
-  monthSelect.innerHTML = '';
-  months.forEach(month => {
-    const option = document.createElement('option');
-    option.value = String(month.value);
-    option.textContent = month.label + '（' + month.days + '天）';
-    monthSelect.appendChild(option);
-  });
-  if(months.some(month => String(month.value) === oldValue)) monthSelect.value = oldValue;
-  renderBaziLunarDays();
-}
-
-function renderBaziLunarDays(preferred){
-  const year = Number(document.getElementById('bz-lunar-year').value) || new Date().getFullYear();
-  const month = Number(document.getElementById('bz-lunar-month').value) || 1;
-  const daySelect = document.getElementById('bz-lunar-day');
-  let count = 30;
-  try{ count = Bazi.getLunarDays(year, month); }catch(e){ count = 30; }
-  const oldValue = preferred != null ? String(preferred) : daySelect.value;
-  daySelect.innerHTML = '';
-  for(let day = 1; day <= count; day++){
-    const option = document.createElement('option');
-    option.value = String(day);
-    option.textContent = day + '日';
-    daySelect.appendChild(option);
-  }
-  if(daySelect.querySelector('option[value="' + oldValue + '"]')) daySelect.value = oldValue;
-}
-
-function renderBaziCalendarFields(){
-  const type = baziFormState.calendarType;
-  document.getElementById('bz-solar-fields').classList.toggle('hidden', type !== 'solar');
-  document.getElementById('bz-lunar-fields').classList.toggle('hidden', type !== 'lunar');
-  document.getElementById('bz-ganzhi-fields').classList.toggle('hidden', type !== 'ganzhi');
-  document.getElementById('bz-time-label').textContent = type === 'ganzhi' ? '参考出生时间（选填，用于定位四柱年份）' : '出生时间';
-}
-
 function renderBaziForm(){
   const person = baziEditingId ? getBaziPerson(baziEditingId) : null;
   document.getElementById('bz-form-title').textContent = person ? '编辑命例' : '八字排盘';
   document.getElementById('bz-submit').textContent = person ? '保存修改' : '开始排盘';
   syncBaziSegment('bz-gender-tabs', baziFormState.gender);
-  syncBaziSegment('bz-calendar-tabs', baziFormState.calendarType);
-  syncBaziSegment('bz-time-mode-tabs', baziFormState.timeMode);
-  document.getElementById('bz-exact-time').classList.toggle('hidden', baziFormState.timeMode !== 'exact');
-  document.getElementById('bz-branch-time').classList.toggle('hidden', baziFormState.timeMode !== 'branch');
-
-  renderBaziPillarSelects();
   renderBaziCityOptions(person && person.birthCity);
   renderBaziGroupSelect(person ? person.groupId : getDefaultBaziGroupId());
-
   document.getElementById('bz-name').value = person ? person.name : '';
-  document.getElementById('bz-solar-date').value = person ? (person.solarDate || (person.solarDatetime || '').slice(0, 10)) : todayStr();
-  document.getElementById('bz-lunar-year').value = person ? (person.lunarYear || 1990) : 1990;
-  renderBaziLunarMonths(person ? person.lunarMonth : 1);
-  renderBaziLunarDays(person ? person.lunarDay : 1);
-  document.getElementById('bz-reference-date').value = person ? (person.solarDate || (person.solarDatetime || '').slice(0, 10)) : todayStr();
-  document.getElementById('bz-exact-time').value = person ? (person.time || '12:00') : '12:00';
-  document.getElementById('bz-branch-time').value = person ? (person.time || '12:00') : '12:00';
   document.getElementById('bz-true-solar').checked = person ? person.useTrueSolarTime !== false : true;
   document.getElementById('bz-remark').value = person ? (person.remark || '') : '';
+  renderBaziTimeTrigger();
+}
 
-  if(person && person.fourPillars){
-    ['year','month','day','hour'].forEach(key => {
-      const select = document.getElementById('bz-gz-' + key);
-      if(person.fourPillars[key]) select.value = person.fourPillars[key];
-    });
+/* ---------- 出生时间弹层：公历 / 农历 / 四柱直排 ---------- */
+const GZ_PILLAR_KEYS = ['year','month','day','hour'];
+const GZ_PILLAR_LABELS = {year:'年柱', month:'月柱', day:'日柱', hour:'时柱'};
+const GZ_ELEMENT_CLASS = {木:'mu', 火:'huo', 土:'tu', 金:'jin', 水:'shui'};
+const GZ_YANG_ZHI = ['子','寅','辰','午','申','戌'];
+const GZ_YIN_ZHI = ['丑','卯','巳','未','酉','亥'];
+let gzSheet = null;
+
+function renderBaziTimeTrigger(){
+  document.getElementById('bz-time-value').textContent = baziTimeSummaryText();
+}
+
+function baziLunarMonthLabel(year, month){
+  try{
+    const found = Bazi.getLunarMonths(Number(year)).find(item => Number(item.value) === Number(month));
+    if(found) return found.label;
+  }catch(e){}
+  return Number(month) + '月';
+}
+
+function baziTimeSummaryText(){
+  const state = baziFormState;
+  if(state.calendarType === 'ganzhi'){
+    const four = state.fourPillars || {};
+    const pillars = GZ_PILLAR_KEYS.map(key => four[key] || '——').join(' ');
+    return '四柱 ' + pillars + (state.solarDate ? ' · ' + state.solarDate + ' ' + (state.time || '') : '');
   }
-  renderBaziCalendarFields();
+  if(state.calendarType === 'lunar'){
+    return '农历 ' + (state.lunarYear || '') + '年' + baziLunarMonthLabel(state.lunarYear, state.lunarMonth) +
+      (state.lunarDay || '') + '日 ' + (state.time || '');
+  }
+  return '公历 ' + (state.solarDate || '未选择') + ' ' + (state.time || '');
+}
+
+function gzElementClass(char){
+  const element = (Bazi.GAN_ELEMENT && Bazi.GAN_ELEMENT[char]) ||
+    (Bazi.ZHI_ELEMENT && Bazi.ZHI_ELEMENT[char]) || '';
+  return GZ_ELEMENT_CLASS[element] || '';
+}
+
+function gzPillarText(pillar){
+  return pillar && pillar.gan && pillar.zhi ? pillar.gan + pillar.zhi : '';
+}
+
+function gzPillarsComplete(pillars){
+  return GZ_PILLAR_KEYS.every(key => !!(pillars[key] && pillars[key].gan && pillars[key].zhi));
+}
+
+function gzPillarsObject(pillars){
+  const out = {};
+  GZ_PILLAR_KEYS.forEach(key => { out[key] = gzPillarText(pillars[key]); });
+  return out;
+}
+
+function gzDraftPillars(source){
+  const pillars = {};
+  GZ_PILLAR_KEYS.forEach(key => {
+    const value = String((source && source[key]) || '');
+    pillars[key] = { gan:value.slice(0, 1), zhi:value.slice(1, 2) };
+  });
+  return pillars;
+}
+
+function openGzSheet(){
+  const state = baziFormState;
+  gzSheet = {
+    // 规格要求：弹层默认选中「四柱」。
+    tab:'ganzhi',
+    timeMode:state.timeMode || 'exact',
+    solarDate:state.solarDate || todayStr(),
+    lunarYear:state.lunarYear || 1990,
+    lunarMonth:state.lunarMonth || 1,
+    lunarDay:state.lunarDay || 1,
+    time:state.time || '12:00',
+    pillars:gzDraftPillars(state.fourPillars),
+    activeSlot:null,
+    justFilled:null,
+    matches:[],
+    selectedIndex:-1
+  };
+  renderGzSheet();
+  document.getElementById('gz-sheet').classList.add('show');
+}
+
+function closeGzSheet(){
+  document.getElementById('gz-sheet').classList.remove('show');
+  gzSheet = null;
+}
+
+function renderGzSheet(){
+  if(!gzSheet) return;
+  const draft = gzSheet;
+  const isGanzhi = draft.tab === 'ganzhi';
+  document.querySelectorAll('#gz-sheet-tabs button').forEach(button => {
+    button.classList.toggle('active', button.dataset.tab === draft.tab);
+  });
+  document.getElementById('gz-pane-solar').classList.toggle('hidden', draft.tab !== 'solar');
+  document.getElementById('gz-pane-lunar').classList.toggle('hidden', draft.tab !== 'lunar');
+  document.getElementById('gz-pane-ganzhi').classList.toggle('hidden', !isGanzhi);
+  document.getElementById('gz-time-block').classList.toggle('hidden', isGanzhi);
+
+  document.getElementById('gz-solar-date').value = draft.solarDate || '';
+  document.getElementById('gz-lunar-year').value = draft.lunarYear || '';
+  renderGzLunarMonths();
+  syncBaziSegment('gz-time-mode-tabs', draft.timeMode);
+  document.getElementById('gz-exact-time').value = draft.time || '12:00';
+  document.getElementById('gz-branch-time').value = draft.time || '12:00';
+  document.getElementById('gz-exact-time').classList.toggle('hidden', draft.timeMode !== 'exact');
+  document.getElementById('gz-branch-time').classList.toggle('hidden', draft.timeMode !== 'branch');
+
+  if(isGanzhi){
+    if(!draft.matches.length && gzPillarsComplete(draft.pillars)) refreshGzMatches();
+    renderGzPillars();
+    renderGzPicker();
+    renderGzResults();
+  }
+  updateGzConfirm();
+}
+
+function renderGzLunarMonths(){
+  if(!gzSheet) return;
+  const year = Number(document.getElementById('gz-lunar-year').value) || gzSheet.lunarYear || 1990;
+  const select = document.getElementById('gz-lunar-month');
+  let months = [];
+  try{ months = Bazi.getLunarMonths(year); }catch(e){ months = Bazi.getLunarMonths(1990); }
+  select.innerHTML = '';
+  months.forEach(month => {
+    const option = document.createElement('option');
+    option.value = String(month.value);
+    option.textContent = month.label + '（' + month.days + '天）';
+    select.appendChild(option);
+  });
+  const wanted = String(gzSheet.lunarMonth || 1);
+  if(months.some(month => String(month.value) === wanted)) select.value = wanted;
+  else if(select.options.length) select.selectedIndex = 0;
+  gzSheet.lunarMonth = Number(select.value) || 1;
+  renderGzLunarDays();
+}
+
+function renderGzLunarDays(){
+  if(!gzSheet) return;
+  const year = Number(document.getElementById('gz-lunar-year').value) || gzSheet.lunarYear || 1990;
+  const month = Number(document.getElementById('gz-lunar-month').value) || 1;
+  const select = document.getElementById('gz-lunar-day');
+  let count = 30;
+  try{ count = Bazi.getLunarDays(year, month); }catch(e){ count = 30; }
+  select.innerHTML = '';
+  for(let day = 1; day <= count; day++){
+    const option = document.createElement('option');
+    option.value = String(day);
+    option.textContent = day + '日';
+    select.appendChild(option);
+  }
+  const wanted = String(gzSheet.lunarDay || 1);
+  select.value = select.querySelector('option[value="' + wanted + '"]') ? wanted : '1';
+  gzSheet.lunarDay = Number(select.value) || 1;
+}
+
+function renderGzPillars(){
+  const wrap = document.getElementById('gz-pillars');
+  wrap.innerHTML = '';
+  GZ_PILLAR_KEYS.forEach(key => {
+    const column = document.createElement('div');
+    column.className = 'gz-pillar';
+    const label = document.createElement('div');
+    label.className = 'gz-pillar-label';
+    label.textContent = GZ_PILLAR_LABELS[key];
+    column.appendChild(label);
+    ['gan','zhi'].forEach(kind => {
+      const value = gzSheet.pillars[key][kind];
+      const slot = document.createElement('button');
+      slot.type = 'button';
+      slot.className = 'gz-slot';
+      slot.dataset.pillar = key;
+      slot.dataset.kind = kind;
+      slot.dataset.slot = key + '-' + kind;
+      if(value){
+        const elementClass = gzElementClass(value);
+        slot.classList.add('filled');
+        if(elementClass) slot.classList.add('gz-el-' + elementClass, 'gz-tint-' + elementClass);
+        slot.textContent = value;
+      }
+      if(gzSheet.justFilled && gzSheet.justFilled.pillar === key && gzSheet.justFilled.kind === kind){
+        slot.classList.add('active');
+      }
+      column.appendChild(slot);
+    });
+    wrap.appendChild(column);
+  });
+}
+
+function gzPanelCell(value, kind, selected){
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'gz-cell';
+  button.dataset.value = value;
+  button.dataset.kind = kind;
+  const elementClass = gzElementClass(value);
+  if(elementClass) button.classList.add('gz-el-' + elementClass);
+  if(selected) button.classList.add('selected');
+  button.textContent = value;
+  return button;
+}
+
+function renderGzPicker(){
+  const wrap = document.getElementById('gz-picker');
+  wrap.innerHTML = '';
+  const active = gzSheet.activeSlot;
+  if(!active){
+    const hint = document.createElement('div');
+    hint.className = 'gz-picker-hint';
+    hint.textContent = '点击上方槽位选择天干与地支';
+    wrap.appendChild(hint);
+    return;
+  }
+  const pillar = gzSheet.pillars[active.pillar];
+  const isGan = active.kind === 'gan';
+  const title = document.createElement('div');
+  title.className = 'gz-picker-title';
+  title.textContent = GZ_PILLAR_LABELS[active.pillar] + (isGan ? ' · 选择天干' : ' · 选择地支');
+  wrap.appendChild(title);
+  const grid = document.createElement('div');
+  grid.className = 'gz-grid ' + (isGan ? 'gz-grid-gan' : 'gz-grid-zhi');
+  if(isGan){
+    Bazi.GAN.forEach(gan => grid.appendChild(gzPanelCell(gan, 'gan', pillar.gan === gan)));
+  }else{
+    // 阳干（甲丙戊庚壬）配阳支，阴干（乙丁己辛癸）配阴支，从交互上杜绝非六十甲子组合
+    const branches = Bazi.GAN.indexOf(pillar.gan) % 2 === 0 ? GZ_YANG_ZHI : GZ_YIN_ZHI;
+    branches.forEach(zhi => grid.appendChild(gzPanelCell(zhi, 'zhi', pillar.zhi === zhi)));
+  }
+  wrap.appendChild(grid);
+}
+
+function refreshGzMatches(){
+  if(!gzSheet) return;
+  gzSheet.matches = [];
+  gzSheet.selectedIndex = -1;
+  if(!gzPillarsComplete(gzSheet.pillars)) return;
+  const pillars = gzPillarsObject(gzSheet.pillars);
+  try{
+    gzSheet.matches = Bazi.findDirectMatches(pillars, { startYear:1801, endYear:2099 });
+  }catch(e){
+    gzSheet.matches = [];
+  }
+}
+
+function gzMatchNote(){
+  const pillars = gzPillarsObject(gzSheet.pillars);
+  try{
+    Bazi.validateDirectPillars(pillars);
+    return '';
+  }catch(err){
+    return err.message;
+  }
+}
+
+function renderGzResults(){
+  const wrap = document.getElementById('gz-results');
+  wrap.innerHTML = '';
+  if(!gzPillarsComplete(gzSheet.pillars)) return;
+  if(!gzSheet.matches.length){
+    const empty = document.createElement('div');
+    empty.className = 'gz-result-note';
+    empty.textContent = '查找范围内无匹配结果';
+    wrap.appendChild(empty);
+    const note = gzMatchNote();
+    if(note){
+      const reason = document.createElement('div');
+      reason.className = 'gz-result-note';
+      reason.textContent = note;
+      wrap.appendChild(reason);
+    }
+    return;
+  }
+  gzSheet.matches.forEach((match, index) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'gz-result' + (gzSheet.selectedIndex === index ? ' active' : '');
+    card.dataset.index = String(index);
+    const main = document.createElement('div');
+    main.className = 'gz-result-main';
+    main.textContent = '阳历：' + match.solarText;
+    const sub = document.createElement('div');
+    sub.className = 'gz-result-sub';
+    sub.textContent = '阴历：' + match.lunarText + ' ' + match.hourBranch + '时';
+    card.appendChild(main);
+    card.appendChild(sub);
+    wrap.appendChild(card);
+  });
+}
+
+function gzDraftConfirmable(){
+  if(!gzSheet) return false;
+  if(gzSheet.tab === 'ganzhi') return gzSheet.selectedIndex >= 0 && !!gzSheet.matches[gzSheet.selectedIndex];
+  if(gzSheet.tab === 'solar') return !!gzSheet.solarDate;
+  return !!(gzSheet.lunarYear && gzSheet.lunarMonth && gzSheet.lunarDay);
+}
+
+function updateGzConfirm(){
+  document.getElementById('gz-sheet-confirm').disabled = !gzDraftConfirmable();
+}
+
+function selectGzSlot(pillarKey, kind){
+  if(!gzSheet) return;
+  const pillar = gzSheet.pillars[pillarKey];
+  // 天干未定时地支无处可筛，先回到天干面板。
+  gzSheet.activeSlot = (kind === 'zhi' && !pillar.gan)
+    ? { pillar:pillarKey, kind:'gan' }
+    : { pillar:pillarKey, kind };
+  gzSheet.justFilled = null;
+  renderGzPillars();
+  renderGzPicker();
+}
+
+function pickGzGan(gan){
+  if(!gzSheet || !gzSheet.activeSlot) return;
+  const pillarKey = gzSheet.activeSlot.pillar;
+  const pillar = gzSheet.pillars[pillarKey];
+  pillar.gan = gan;
+  pillar.zhi = '';
+  gzSheet.activeSlot = { pillar:pillarKey, kind:'zhi' };
+  gzSheet.justFilled = { pillar:pillarKey, kind:'gan' };
+  refreshGzMatches();
+  renderGzPillars();
+  renderGzPicker();
+  renderGzResults();
+  updateGzConfirm();
+}
+
+function pickGzZhi(zhi){
+  if(!gzSheet || !gzSheet.activeSlot) return;
+  const pillarKey = gzSheet.activeSlot.pillar;
+  const pillar = gzSheet.pillars[pillarKey];
+  pillar.zhi = zhi;
+  gzSheet.activeSlot = null;
+  gzSheet.justFilled = { pillar:pillarKey, kind:'zhi' };
+  refreshGzMatches();
+  renderGzPillars();
+  renderGzPicker();
+  renderGzResults();
+  updateGzConfirm();
+}
+
+function clearGzPillars(){
+  if(!gzSheet) return;
+  GZ_PILLAR_KEYS.forEach(key => { gzSheet.pillars[key] = { gan:'', zhi:'' }; });
+  gzSheet.activeSlot = null;
+  gzSheet.justFilled = null;
+  gzSheet.matches = [];
+  gzSheet.selectedIndex = -1;
+  renderGzPillars();
+  renderGzPicker();
+  renderGzResults();
+  updateGzConfirm();
+}
+
+function selectGzResult(index){
+  if(!gzSheet || !gzSheet.matches[index]) return;
+  gzSheet.selectedIndex = index;
+  renderGzResults();
+  updateGzConfirm();
+}
+
+function confirmGzSheet(){
+  if(!gzSheet || !gzDraftConfirmable()) return;
+  const draft = gzSheet;
+  if(draft.tab === 'ganzhi'){
+    const match = draft.matches[draft.selectedIndex];
+    baziFormState.calendarType = 'ganzhi';
+    baziFormState.fourPillars = gzPillarsObject(draft.pillars);
+    baziFormState.timeMode = 'exact';
+    baziFormState.solarDate = match.solarDate;
+    baziFormState.time = match.time;
+  }else if(draft.tab === 'lunar'){
+    baziFormState.calendarType = 'lunar';
+    baziFormState.lunarYear = draft.lunarYear;
+    baziFormState.lunarMonth = draft.lunarMonth;
+    baziFormState.lunarDay = draft.lunarDay;
+    baziFormState.timeMode = draft.timeMode;
+    baziFormState.time = draft.time;
+  }else{
+    baziFormState.calendarType = 'solar';
+    baziFormState.solarDate = draft.solarDate;
+    baziFormState.timeMode = draft.timeMode;
+    baziFormState.time = draft.time;
+  }
+  closeGzSheet();
+  renderBaziTimeTrigger();
 }
 
 function createBaziGroup(name){
@@ -2089,9 +2521,7 @@ function collectBaziForm(){
   }
   if(!groupSelect.value) throw new Error('请选择所属分组');
 
-  const time = baziFormState.timeMode === 'branch'
-    ? document.getElementById('bz-branch-time').value
-    : document.getElementById('bz-exact-time').value;
+  const time = baziFormState.time;
   if(!time && baziFormState.calendarType !== 'ganzhi') throw new Error('请选择出生时间');
 
   const citySelect = document.getElementById('bz-city');
@@ -2108,21 +2538,16 @@ function collectBaziForm(){
     remark:document.getElementById('bz-remark').value.trim()
   };
   if(input.calendarType === 'solar'){
-    input.solarDate = document.getElementById('bz-solar-date').value;
+    input.solarDate = baziFormState.solarDate;
     if(!input.solarDate) throw new Error('请选择公历出生日期');
   }else if(input.calendarType === 'lunar'){
-    input.lunarYear = Number(document.getElementById('bz-lunar-year').value);
-    input.lunarMonth = Number(document.getElementById('bz-lunar-month').value);
-    input.lunarDay = Number(document.getElementById('bz-lunar-day').value);
+    input.lunarYear = Number(baziFormState.lunarYear);
+    input.lunarMonth = Number(baziFormState.lunarMonth);
+    input.lunarDay = Number(baziFormState.lunarDay);
     if(!input.lunarYear || !input.lunarMonth || !input.lunarDay) throw new Error('请选择完整的农历出生日期');
   }else{
-    input.solarDate = document.getElementById('bz-reference-date').value;
-    input.fourPillars = {
-      year:document.getElementById('bz-gz-year').value,
-      month:document.getElementById('bz-gz-month').value,
-      day:document.getElementById('bz-gz-day').value,
-      hour:document.getElementById('bz-gz-hour').value
-    };
+    input.solarDate = baziFormState.solarDate;
+    input.fourPillars = Object.assign({}, baziFormState.fourPillars);
   }
   return { input, groupId:groupSelect.value };
 }
@@ -4041,23 +4466,77 @@ document.querySelectorAll('#bz-gender-tabs button').forEach(button => {
     syncBaziSegment('bz-gender-tabs', baziFormState.gender);
   });
 });
-document.querySelectorAll('#bz-calendar-tabs button').forEach(button => {
+document.getElementById('bz-time-trigger').addEventListener('click', openGzSheet);
+document.querySelectorAll('#gz-sheet-tabs button').forEach(button => {
   button.addEventListener('click', () => {
-    baziFormState.calendarType = button.dataset.value;
-    syncBaziSegment('bz-calendar-tabs', baziFormState.calendarType);
-    renderBaziCalendarFields();
+    if(!gzSheet) return;
+    gzSheet.tab = button.dataset.tab;
+    renderGzSheet();
   });
 });
-document.querySelectorAll('#bz-time-mode-tabs button').forEach(button => {
+document.getElementById('gz-sheet-confirm').addEventListener('click', confirmGzSheet);
+document.getElementById('gz-sheet').addEventListener('click', event => {
+  if(event.target === document.getElementById('gz-sheet')) closeGzSheet();
+});
+document.getElementById('gz-clear').addEventListener('click', clearGzPillars);
+document.getElementById('gz-pillars').addEventListener('click', event => {
+  const slot = event.target.closest('.gz-slot');
+  if(!slot || !gzSheet) return;
+  selectGzSlot(slot.dataset.pillar, slot.dataset.kind);
+});
+document.getElementById('gz-picker').addEventListener('click', event => {
+  const cell = event.target.closest('.gz-cell');
+  if(!cell || !gzSheet) return;
+  if(cell.dataset.kind === 'gan') pickGzGan(cell.dataset.value);
+  else pickGzZhi(cell.dataset.value);
+});
+document.getElementById('gz-results').addEventListener('click', event => {
+  const card = event.target.closest('.gz-result');
+  if(!card || !gzSheet) return;
+  selectGzResult(Number(card.dataset.index));
+});
+document.querySelectorAll('#gz-time-mode-tabs button').forEach(button => {
   button.addEventListener('click', () => {
-    baziFormState.timeMode = button.dataset.value;
-    syncBaziSegment('bz-time-mode-tabs', baziFormState.timeMode);
-    document.getElementById('bz-exact-time').classList.toggle('hidden', baziFormState.timeMode !== 'exact');
-    document.getElementById('bz-branch-time').classList.toggle('hidden', baziFormState.timeMode !== 'branch');
+    if(!gzSheet) return;
+    gzSheet.timeMode = button.dataset.value;
+    syncBaziSegment('gz-time-mode-tabs', gzSheet.timeMode);
+    document.getElementById('gz-exact-time').classList.toggle('hidden', gzSheet.timeMode !== 'exact');
+    document.getElementById('gz-branch-time').classList.toggle('hidden', gzSheet.timeMode !== 'branch');
+    updateGzConfirm();
   });
 });
-document.getElementById('bz-lunar-year').addEventListener('change', () => renderBaziLunarMonths());
-document.getElementById('bz-lunar-month').addEventListener('change', () => renderBaziLunarDays());
+document.getElementById('gz-solar-date').addEventListener('change', event => {
+  if(!gzSheet) return;
+  gzSheet.solarDate = event.target.value;
+  updateGzConfirm();
+});
+document.getElementById('gz-lunar-year').addEventListener('change', event => {
+  if(!gzSheet) return;
+  gzSheet.lunarYear = Number(event.target.value) || gzSheet.lunarYear;
+  renderGzLunarMonths();
+  updateGzConfirm();
+});
+document.getElementById('gz-lunar-month').addEventListener('change', event => {
+  if(!gzSheet) return;
+  gzSheet.lunarMonth = Number(event.target.value) || 1;
+  renderGzLunarDays();
+  updateGzConfirm();
+});
+document.getElementById('gz-lunar-day').addEventListener('change', event => {
+  if(!gzSheet) return;
+  gzSheet.lunarDay = Number(event.target.value) || 1;
+  updateGzConfirm();
+});
+document.getElementById('gz-exact-time').addEventListener('change', event => {
+  if(!gzSheet) return;
+  gzSheet.time = event.target.value;
+  updateGzConfirm();
+});
+document.getElementById('gz-branch-time').addEventListener('change', event => {
+  if(!gzSheet) return;
+  gzSheet.time = event.target.value;
+  updateGzConfirm();
+});
 document.getElementById('bz-group-select').addEventListener('change', event => {
   if(event.target.value !== '__new__') return;
   const group = createBaziGroup(prompt('输入新分组名称：'));
