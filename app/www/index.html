@@ -359,20 +359,6 @@
   .rebu-yaoci.moving{background:#fff8ef;border-radius:6px;padding:6px 8px;}
   .rebu-yaoci-title{font-size:12px;font-weight:700;color:#5a4310;line-height:1.7;}
   .rebu-yaoci-dong{display:inline-block;color:#fff;background:#d9534f;font-size:9px;font-weight:700;border-radius:8px;padding:1px 6px;margin:0 4px;}
-  .rebu-yaoci-sub{font-size:11px;line-height:1.7;color:#666;margin-top:2px;}
-
-  .rebu-jieshi-gray{background:#f5f5f5;padding:10px 12px;margin:12px 0 0;line-height:1.7;font-size:11px;color:#333;border-radius:8px;}
-  .rebu-alert-list{margin:6px 0 0;padding-left:18px;}
-  .rebu-alert-list li{line-height:1.7;}
-  
-  .rebu-tradition-box{border:2px solid #f39c12;border-radius:4px;padding:12px;margin:12px 0;position:relative;}
-  .rebu-tradition-box::before,.rebu-tradition-box::after{content:'🔖';position:absolute;top:-12px;font-size:18px;background:#fff;padding:0 4px;}
-  .rebu-tradition-box::before{left:20px;}
-  .rebu-tradition-box::after{right:20px;}
-  .rebu-tradition-title{text-align:center;color:#d9534f;font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:2px;}
-  .rebu-tradition-content{line-height:1.7;color:#333;font-size:11px;}
-  .rebu-tradition-content h4{font-weight:700;margin:8px 0 4px;color:#c8741f;font-size:11px;}
-  .rebu-tradition-content p{margin:6px 0;}
   
   /* 卡片容器优化 */
   #ly-result .card{padding:0;margin:12px 0;overflow:hidden;}
@@ -455,7 +441,6 @@
   .ly-delete-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#d9534f;color:#fff;border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;}
   .ly-delete-btn:hover{background:#c9302c;}
   .ly-gua-line.moving{background:#fff8f0;border-radius:8px;}
-  .ly-gua-guaci{font-size:12px;color:var(--ink-soft);line-height:1.6;margin-top:8px;}
   .ly-interp-title{font-size:13px;font-weight:800;color:var(--primary);margin:12px 0 6px;}
 
   /* ---------- 八字排盘 ---------- */
@@ -4315,30 +4300,6 @@ function yaoGlyph(yang){
   return yang ? '<span class="ly-yao-glyph">▬▬▬</span>' : '<span class="ly-yao-glyph yin">▬　▬</span>';
 }
 
-function renderHexColumn(meta, naJia, movingSet){
-  let h='<div class="ly-gua-col">';
-  h+='<div class="ly-gua-name">'+escapeHtml(meta.image)+'</div>';
-  for(let i=5;i>=0;i--){
-    const l=naJia[i];
-    const isMove=movingSet.has(i);
-    h+='<div class="ly-gua-line'+(isMove?' moving':'')+'">';
-    h+='<div class="ly-gua-line-top">';
-    h+=yaoGlyph(meta.bits[i]==='1');
-    h+='<div class="ly-gua-line-mid"><div class="ly-qin">'+escapeHtml(l.liuQin)+'</div><div class="ly-sub">'+escapeHtml(l.stem+l.branch)+' '+escapeHtml(l.element)+' · '+escapeHtml(l.sixGod)+'</div></div>';
-    h+='<div class="ly-gua-line-right">';
-    if(l.shiYing) h+='<span class="ly-badge '+(l.shiYing==='世'?'shi':'')+'">'+l.shiYing+'</span>';
-    if(isMove) h+='<span class="ly-moving">动</span>';
-    h+='</div>';
-    h+='</div>';
-    if(l.fuShen) h+='<div class="ly-fu">伏 '+escapeHtml(l.fuShen.liuQin)+' '+escapeHtml(l.fuShen.stem+l.fuShen.branch)+'</div>';
-    h+='</div>';
-  }
-  h+='<div class="ly-gua-guaci"><b>卦辞：</b>'+escapeHtml(meta.guaci||'')+'</div>';
-  if(meta.guaciTranslation) h+='<div class="ly-gua-guaci">'+escapeHtml(meta.guaciTranslation)+'</div>';
-  h+='</div>';
-  return h;
-}
-
 function renderLiuyaoResult(r){
   const box=document.getElementById('ly-result');
   const a=r.astrology, ben=r.ben, zhi=r.zhi;
@@ -4360,20 +4321,6 @@ function renderLiuyaoResult(r){
   html+='</table>';
   html+='<div class="rebu-gua-area">'+renderGuaTable(ben, zhi, movingSet)+'</div>';
   html+=renderJieshiSection(ben, zhi, movingSet);
-  if(r.analysis.yongShen || (r.analysis.alerts && r.analysis.alerts.length)){
-    html+='<div class="rebu-jieshi-gray">';
-    html+='<div class="rebu-block-title">用神与提示</div>';
-    if(r.analysis.yongShen){
-      html+='<div><b>用神：</b>'+r.analysis.yongDetail.map(d=>{
-        const tags=[d.status.month].concat(d.status.day).concat(d.status.transform).filter(Boolean);
-        return escapeHtml(d.liuQin)+escapeHtml(d.branch)+(tags.length?'，'+escapeHtml(tags.join('、')):'');
-      }).join('。')+'。</div>';
-    }
-    if(r.analysis.alerts && r.analysis.alerts.length){
-      html+='<ul class="rebu-alert-list">'+r.analysis.alerts.map(t=>'<li>'+escapeHtml(t)+'</li>').join('')+'</ul>';
-    }
-    html+='</div>';
-  }
   html+='</div>';
   box.innerHTML=html;
   box.scrollIntoView({behavior:'smooth'});
@@ -4439,45 +4386,34 @@ function renderJieshiSection(ben, zhi, movingSet){
   return h;
 }
 
-// 单卦解读：卦辞 / 卦象 / 卦义 / 爻辞 / 传统解卦
+// 单卦古文：大象传（仅有核验原文时）/ 卦辞 / 爻辞
 function renderJieshiContent(hexData, movingSet, isBen){
   const meta=hexData.meta;
-  const yaoName=['初','二','三','四','五','上'];
+  const classical=meta.classical || (window.LiuYao && window.LiuYao.getClassical ? window.LiuYao.getClassical(meta.bits) : null);
+  if(!classical) return '';
   let h='';
-  h+='<div class="rebu-block">';
-  h+='<div class="rebu-block-title">卦辞</div>';
-  h+='<p class="rebu-text">'+(meta.guaci?escapeHtml(meta.guaci):'暂无')+'</p>';
-  h+='</div>';
-  h+='<div class="rebu-block">';
-  h+='<div class="rebu-block-title">卦象</div>';
-  h+='<p class="rebu-text">'+(meta.summary?escapeHtml(meta.summary):'暂无')+'</p>';
-  h+='</div>';
-  h+='<div class="rebu-block">';
-  h+='<div class="rebu-block-title">卦义</div>';
-  h+='<p class="rebu-text">'+(meta.guaciTranslation?escapeHtml(meta.guaciTranslation):'暂无')+'</p>';
-  h+='</div>';
-  h+='<div class="rebu-block">';
-  h+='<div class="rebu-block-title">爻辞</div>';
-  if(meta.lines && meta.lines.length){
-    meta.lines.forEach((ln, i)=>{
+  if(classical.daxiang){
+    h+='<div class="rebu-block">';
+    h+='<div class="rebu-block-title">大象传</div>';
+    h+='<p class="rebu-text">'+escapeHtml(classical.daxiang)+'</p>';
+    h+='</div>';
+  }
+  if(classical.guaci){
+    h+='<div class="rebu-block">';
+    h+='<div class="rebu-block-title">卦辞</div>';
+    h+='<p class="rebu-text">'+escapeHtml(classical.guaci)+'</p>';
+    h+='</div>';
+  }
+  if(classical.lines && classical.lines.length){
+    h+='<div class="rebu-block">';
+    h+='<div class="rebu-block-title">爻辞</div>';
+    classical.lines.forEach((ln, i)=>{
       const moving = isBen && movingSet.has(i);
       h+='<div class="rebu-yaoci'+(moving?' moving':'')+'">';
-      h+='<div class="rebu-yaoci-title">'+yaoName[i]+'爻'+(moving?'<span class="rebu-yaoci-dong">动</span>':'')+'：'+escapeHtml(ln.text||'')+'</div>';
-      if(ln.translation) h+='<div class="rebu-yaoci-sub">'+escapeHtml(ln.translation)+'</div>';
-      if(ln.shaoyong) h+='<div class="rebu-yaoci-sub">【断易】'+escapeHtml(ln.shaoyong)+'</div>';
+      h+='<div class="rebu-yaoci-title">'+escapeHtml(ln.title?ln.title+'：':'')+escapeHtml(ln.text||'')+(moving?'<span class="rebu-yaoci-dong">动</span>':'')+'</div>';
       h+='</div>';
     });
-  } else {
-    h+='<p class="rebu-text">暂无</p>';
-  }
-  h+='</div>';
-  if(meta.shaoyong){
-    h+='<div class="rebu-tradition-box">';
-    h+='<div class="rebu-tradition-title">传统解卦</div>';
-    h+='<div class="rebu-tradition-content">';
-    h+='<h4>'+escapeHtml(meta.image)+'</h4>';
-    h+='<p>'+escapeHtml(meta.shaoyong)+'</p>';
-    h+='</div></div>';
+    h+='</div>';
   }
   return h;
 }

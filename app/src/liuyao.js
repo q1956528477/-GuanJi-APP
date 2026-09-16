@@ -1,4 +1,8 @@
 import { YIJING_HEXAGRAMS } from './yijing-data.js';
+import {
+  YIJING_CLASSICAL,
+  YIJING_CLASSICAL_SOURCE,
+} from './yijing-classical-data.js';
 
 // ========== 基础常量 ==========
 const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
@@ -49,6 +53,15 @@ const HEX_LIST = YIJING_HEXAGRAMS.map(h => {
   HEX_BY_BITS[h.bits] = h;
   return {id:h.id, name:h.name, image:h.image};
 });
+const CLASSICAL_BY_BITS = {};
+YIJING_CLASSICAL.forEach(h => {
+  CLASSICAL_BY_BITS[h.bits] = h;
+});
+
+function attachClassical(meta) {
+  const classical = CLASSICAL_BY_BITS[meta.bits];
+  return classical ? Object.assign({}, meta, {classical}) : meta;
+}
 
 // ========== 历法换算（自实现）==========
 function daysFromAnchor(y, m, d) {
@@ -352,8 +365,8 @@ export function cast(opts) {
 
   const benBits = lines.map(bit).join('');
   const zhiBits = zhiLines.map(bit).join('');
-  const benMeta = HEX_BY_BITS[benBits] || YIJING_HEXAGRAMS[0];
-  const zhiMeta = HEX_BY_BITS[zhiBits] || YIJING_HEXAGRAMS[0];
+  const benMeta = attachClassical(HEX_BY_BITS[benBits] || YIJING_HEXAGRAMS[0]);
+  const zhiMeta = attachClassical(HEX_BY_BITS[zhiBits] || YIJING_HEXAGRAMS[0]);
 
   const benNaJia = naJiaLines(benBits, benMeta.element, astrology.dayStem);
   attachShiYing(benNaJia, benMeta.shi);
@@ -429,6 +442,11 @@ export function tossCoin() {
 }
 
 export const HEXAGRAMS = HEX_LIST;
+export const CLASSICAL_HEXAGRAMS = YIJING_CLASSICAL;
+export const CLASSICAL_SOURCE = YIJING_CLASSICAL_SOURCE;
+export function getClassical(bits) {
+  return CLASSICAL_BY_BITS[bits] || null;
+}
 export const METHODS = [
   {id:'coin', name:'在线摇卦'},
   {id:'time', name:'时间起卦'},
