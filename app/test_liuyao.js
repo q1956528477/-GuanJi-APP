@@ -21,6 +21,17 @@ function check(name, cond) {
 const LiuYao = ctx.LiuYao;
 check('六爻引擎已加载', !!(LiuYao && LiuYao.cast));
 check('六十四卦数据完整', Array.isArray(LiuYao.HEXAGRAMS) && LiuYao.HEXAGRAMS.length === 64);
+check('六十四卦 bits 完整且唯一', LiuYao.HEXAGRAMS.every(h => /^[01]{6}$/.test(h.bits)) &&
+  new Set(LiuYao.HEXAGRAMS.map(h => h.bits)).size === 64);
+
+let nameRoundTrips = 0;
+for (const hex of LiuYao.HEXAGRAMS) {
+  const cast = LiuYao.cast({method:'name', bits:hex.bits, date:'2000-01-07T12:00:00'});
+  if (cast.ben.meta.bits === hex.bits && cast.ben.meta.image === hex.image && !cast.hasMoving && cast.zhi === null) {
+    nameRoundTrips++;
+  }
+}
+check('卦名起卦 64 卦映射且保持静卦', nameRoundTrips === 64);
 
 const qian = LiuYao.cast({
   method: 'manual',
@@ -49,8 +60,49 @@ check('变卦六亲仍按本卦宫计算', moving.zhi.naJia[0].liuQin === '父�
 
 const num = LiuYao.cast({method:'number', numbers:[1,2,3], date:'2026-09-10T10:00:00'});
 check('数字起卦生成六爻', num.ben.naJia.length === 6);
+check('数字起卦 0 映射为 8/6', LiuYao.cast({method:'number', numbers:[0,0,0], date:'2026-09-10T10:00:00'}).ben.meta.image === '坤为地');
+const oneMoving = LiuYao.cast({method:'number', numbers:[1,1,3], date:'2026-09-10T10:00:00'});
+check('第三个数字只控制一个动爻', oneMoving.ben.moving.length === 1 && oneMoving.ben.moving[0] === 2);
+
+let invalidNumberRejected = 0;
+for (const numbers of [[-1,2,3],[1.5,2,3],[Infinity,2,3],['',2,3],['x',2,3],[Number.MAX_SAFE_INTEGER + 1,2,3]]) {
+  try {
+    LiuYao.cast({method:'number', numbers, date:'2026-09-10T10:00:00'});
+  } catch (e) {
+    invalidNumberRejected++;
+  }
+}
+check('非法数字输入全部被拒绝', invalidNumberRejected === 6);
+
 const time = LiuYao.cast({method:'time', date:'2026-09-10T10:00:00'});
 check('时间起卦生成六爻', time.ben.naJia.length === 6);
+const lateZi = LiuYao.cast({method:'time', date:new Date(2026, 8, 10, 23, 0, 0)});
+const earlyChou = LiuYao.cast({method:'time', date:new Date(2026, 8, 10, 1, 0, 0)});
+check('时间起卦 23:00 和 01:00 时辰边界正确', lateZi.astrology.hourBranch === '子' && earlyChou.astrology.hourBranch === '丑');
+check('时间起卦空日期使用当前时间', LiuYao.cast({method:'time'}).ben.naJia.length === 6);
+try {
+  LiuYao.cast({method:'time', date:'not-a-date'});
+  check('时间起卦非法日期被拒绝', false);
+} catch (e) {
+  check('时间起卦非法日期被拒绝', e.message === '日期时间无效');
+}
+
+try {
+  LiuYao.cast({method:'name', bits:'invalid', date:'2000-01-07T12:00:00'});
+  check('非法卦名被拒绝', false);
+} catch (e) {
+  check('非法卦名被拒绝', e.message === '卦名数据无效');
+}
+
+let invalidManualRejected = 0;
+for (const lines of [[], ['young_yang'], ['foo','young_yang','young_yang','young_yang','young_yang','young_yang']]) {
+  try {
+    LiuYao.cast({method:'manual', lines, date:'2000-01-07T12:00:00'});
+  } catch (e) {
+    invalidManualRejected++;
+  }
+}
+check('manual 非法爻数组全部被拒绝', invalidManualRejected === 3);
 
 // 单次铜钱摇卦
 check('单次摇卦接口存在', typeof LiuYao.tossCoin === 'function');
@@ -62,6 +114,17 @@ check('单次摇卦点数正确', one.values[0] + one.values[1] + one.values[2] 
 // coin 起卦应使用传入的逐爻结果
 const coinCast = LiuYao.cast({method:'coin', lines:['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'], date:'2000-01-07T12:00:00'});
 check('coin 起卦使用传入六爻', coinCast.ben.meta.image === '乾为天' && coinCast.hasMoving === false);
+
+const originalRandom = Math.random;
+const sequence = [0.1,0.1,0.1, 0.1,0.1,0.9, 0.1,0.9,0.9, 0.9,0.9,0.9, 0.1,0.1,0.9, 0.1,0.9,0.9];
+Math.random = () => sequence.shift();
+const coinRandom = LiuYao.cast({method:'coin', date:'2000-01-07T12:00:00'});
+const sequenceCopy = [0.1,0.1,0.1, 0.1,0.1,0.9, 0.1,0.9,0.9, 0.9,0.9,0.9, 0.1,0.1,0.9, 0.1,0.9,0.9];
+Math.random = () => sequenceCopy.shift();
+const randomRandom = LiuYao.cast({method:'random', date:'2000-01-07T12:00:00'});
+Math.random = originalRandom;
+check('coin 六爻顺序与 6/7/8/9 映射正确', coinRandom.ben.meta.image === '泽水困' && coinRandom.zhi.meta.image === '水泽节');
+check('random 与 coin 使用同一铜钱算法', randomRandom.ben.meta.bits === coinRandom.ben.meta.bits && randomRandom.zhi.meta.bits === coinRandom.zhi.meta.bits);
 
 // 解读字段已随数据补齐
 check('卦辞白话译文存在', typeof qian.ben.meta.guaciTranslation === 'string' && qian.ben.meta.guaciTranslation.length > 0);

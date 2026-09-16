@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.7 (build 41)**　最后更新：2026-09-14
+> 当前版本：**v1.14.8 (build 42)**　最后更新：2026-09-16
 
 ---
 
@@ -257,6 +257,7 @@ npm run test:modules# 只跑主界面模块注册表
 ```
 
 - `test_liuyao.js` / `test_bazi.js` 直接读取对应 bundle 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑**。
+- `test_liuyao_page.js` 用 jsdom 验证六种起卦入口、64 卦 bits 映射、数字/时间边界、manual 初爻顺序、coin 单次保存和方式切换状态隔离。
 - `test_bazi_page.js` 用 jsdom 验证八字入口、保存命例、基本盘、大运流年和流月展开。
 - `test_navigation.js` 用 jsdom 验证顶级页面互斥、需求页返回目标，以及**返回栈逐级消费**：
   出生时间弹层、`#day-modal`、`#bz-action-modal`、`#bz-move-modal`、`#bz-group-modal` 各只关自身；

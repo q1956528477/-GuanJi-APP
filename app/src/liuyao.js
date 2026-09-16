@@ -47,7 +47,7 @@ const TOMBS = {金:'丑',木:'未',水:'辰',土:'辰',火:'戌'};
 const HEX_BY_BITS = {};
 const HEX_LIST = YIJING_HEXAGRAMS.map(h => {
   HEX_BY_BITS[h.bits] = h;
-  return {id:h.id, name:h.name, image:h.image};
+  return {id:h.id, name:h.name, image:h.image, bits:h.bits};
 });
 
 // ========== 历法换算（自实现）==========
@@ -143,6 +143,12 @@ function buildAstrology(date) {
 function mod8(n) { const r = n % 8; return r === 0 ? 8 : r; }
 function mod6(n) { const r = n % 6; return r === 0 ? 6 : r; }
 function bitOf(yang) { return yang ? '1' : '0'; }
+const VALID_LINE_TYPES = new Set(['old_yin','young_yang','young_yin','old_yang']);
+function normalizeManualLines(lines) {
+  if (!Array.isArray(lines) || lines.length !== 6) throw new Error('手动指定必须包含六个爻');
+  if (lines.some(t => !VALID_LINE_TYPES.has(t))) throw new Error('手动指定包含非法爻类型');
+  return lines.slice();
+}
 function buildLinesFromTrigramNumbers(upperNum, lowerNum, movingNum) {
   const upper = TRIGRAMS[NUMBER_TO_TRIGRAM[upperNum - 1]].bits;
   const lower = TRIGRAMS[NUMBER_TO_TRIGRAM[lowerNum - 1]].bits;
@@ -165,8 +171,15 @@ function castByTime(date) {
   return buildLinesFromTrigramNumbers(upper, lower, moving);
 }
 function castByNumbers(numbers) {
-  const a = Number(numbers[0]) || 0, b = Number(numbers[1]) || 0, c = Number(numbers[2]) || 0;
-  const upper = mod8(a), lower = mod8(b), moving = mod6(c);
+  if (!Array.isArray(numbers) || numbers.length !== 3) throw new Error('数字起卦需要三个数字');
+  const values = numbers.map(n => {
+    if (typeof n === 'string' && n.trim() === '') return NaN;
+    return Number(n);
+  });
+  if (values.some(n => !Number.isSafeInteger(n) || n < 0)) {
+    throw new Error('数字起卦需要三个非负整数');
+  }
+  const upper = mod8(values[0]), lower = mod8(values[1]), moving = mod6(values[2]);
   return buildLinesFromTrigramNumbers(upper, lower, moving);
 }
 function castByName(bits) {
@@ -175,12 +188,7 @@ function castByName(bits) {
 function castByCoin() {
   const lines = [];
   for (let i = 0; i < 6; i++) {
-    const toss = () => (Math.random() < 0.5 ? 2 : 3);
-    const sum = toss() + toss() + toss();
-    if (sum === 6) lines.push('old_yin');
-    else if (sum === 9) lines.push('old_yang');
-    else if (sum === 7) lines.push('young_yang');
-    else lines.push('young_yin');
+    lines.push(tossCoin().type);
   }
   return lines;
 }
@@ -337,12 +345,18 @@ function checkGlobal(benLines, zhiLines, movingIdx, monthBranch, dayBranch) {
 export function cast(opts) {
   opts = opts || {};
   const date = opts.date ? new Date(opts.date) : new Date();
+  if (Number.isNaN(date.getTime())) throw new Error('日期时间无效');
   let lines;
   let methodNote = '';
   if (opts.method === 'time') { lines = castByTime(date); methodNote = '时间起卦（年支+公历月日+时支）'; }
   else if (opts.method === 'number') { lines = castByNumbers(opts.numbers || []); methodNote = '数字起卦'; }
-  else if (opts.method === 'name') { const meta = HEX_BY_BITS[opts.bits] || YIJING_HEXAGRAMS[0]; lines = castByName(meta.bits); methodNote = '卦名起卦（静卦）'; }
-  else if (opts.method === 'manual') { lines = (opts.lines || []).slice(0, 6); while (lines.length < 6) lines.push('young_yang'); methodNote = '手动指定'; }
+  else if (opts.method === 'name') {
+    const meta = HEX_BY_BITS[opts.bits];
+    if (!meta) throw new Error('卦名数据无效');
+    lines = castByName(meta.bits);
+    methodNote = '卦名起卦（静卦）';
+  }
+  else if (opts.method === 'manual') { lines = normalizeManualLines(opts.lines || []); methodNote = '手动指定'; }
   else { lines = (opts.method==='coin' && opts.lines && opts.lines.length===6) ? opts.lines.slice(0,6) : castByCoin(); methodNote = opts.method==='random' ? '自动起卦' : '铜钱摇卦'; }
 
   const astrology = buildAstrology(date);

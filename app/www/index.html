@@ -1476,6 +1476,7 @@ const modules = [
 
 /* ---------------- 路由 ---------------- */
 function showView(id){
+  if(id !== 'liuyao') cancelCoinSession();
   document.getElementById('home-view').classList.toggle('hidden', id!=='home');
   document.getElementById('energy-view').classList.toggle('hidden', id!=='energy');
   document.getElementById('liuyao-view').classList.toggle('hidden', id!=='liuyao');
@@ -3888,11 +3889,26 @@ const YAO_TYPES = [
   {id:'young_yin', name:'少阴'}
 ];
 let manualLines = ['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'];
-let coinLines = [];
-let coinCurrent = 0;
-let coinBusy = false;
+let coinStep = 0;
+let coinResults = [];
+let coinSpinning = false;
+let coinFinishTimer = null;
+let coinSession = 0;
+
+function cancelCoinSession(){
+  if(coinFinishTimer){
+    clearTimeout(coinFinishTimer);
+    coinFinishTimer = null;
+  }
+  coinSession++;
+  coinSpinning = false;
+  document.querySelectorAll('.ly-coin.flipping').forEach(el => el.classList.remove('flipping'));
+}
 
 function renderLiuyaoForm(){
+  cancelCoinSession();
+  coinStep = 0;
+  coinResults = [];
   document.getElementById('liuyao-back').onclick = ()=>showView('home');
   document.getElementById('liuyao-stage-chip').textContent = '六爻卜卦';
   document.getElementById('liuyao-cast-view').classList.remove('hidden');
@@ -3934,6 +3950,7 @@ function renderLiuyaoMethodFields(){
   document.getElementById('ly-name-fields').classList.toggle('hidden', liuyaoMethod!=='name');
   document.getElementById('ly-manual-fields').classList.toggle('hidden', liuyaoMethod!=='manual');
   const isCoin = liuyaoMethod==='coin';
+  if(!isCoin) cancelCoinSession();
   document.getElementById('ly-coin-action').classList.toggle('hidden', !isCoin);
   document.getElementById('ly-other-action').classList.toggle('hidden', isCoin);
   if(!isCoin) document.getElementById('ly-coin-board').classList.add('hidden');
@@ -3957,6 +3974,7 @@ function renderManualLines(){
 }
 
 function startCoin(){
+  cancelCoinSession();
   coinStep=0;
   coinResults=[];
   coinSpinning = false;
@@ -3988,12 +4006,13 @@ function toggleCoinSpin(){
   } else {
     // 停止旋转，生成结果
     coinSpinning = false;
-    const r={values:[],count:0};
-    for(let i=0;i<3;i++){
-      const val=Math.random()<0.5?2:3;
-      r.values.push(val);
-      r.count+=val;
+    const tossed = window.LiuYao && LiuYao.tossCoin ? LiuYao.tossCoin() : null;
+    if(!tossed){
+      cancelCoinSession();
+      showToast('六爻引擎未加载');
+      return;
     }
+    const r={values:tossed.values,count:tossed.sum};
     
     for(let i=0;i<3;i++){
       const id='ly-coin'+(i+1);
@@ -4013,7 +4032,7 @@ function toggleCoinSpin(){
     
     const box=document.getElementById('ly-tossed-lines');
     let yaoText='';
-    if(r.count===6) yaoText='老阴(六个背)　━　━　→　━━━━';
+    if(r.count===6) yaoText='老阴(三个背)　━　━　→　━━━━';
     else if(r.count===7) yaoText='少阳(两背一字)　━━━━';
     else if(r.count===8) yaoText='少阴(两字一背)　━　━';
     else if(r.count===9) yaoText='老阳(三个字)　━━━━　→　━　━';
@@ -4026,14 +4045,20 @@ function toggleCoinSpin(){
       document.getElementById('ly-toss-hint').textContent='已完成 '+coinStep+' 爻，点击铜钱继续（第 '+(coinStep+1)+' 爻）';
     } else {
       document.getElementById('ly-toss-hint').textContent='六爻已成！';
-      setTimeout(()=>finishCoin(),800);
+      const session = coinSession;
+      coinFinishTimer = setTimeout(()=>{
+        coinFinishTimer = null;
+        finishCoin(session);
+      },800);
     }
   }
 }
 
-function finishCoin(){
+function finishCoin(session){
+  const castVisible = !document.getElementById('liuyao-view').classList.contains('hidden')
+    && !document.getElementById('liuyao-cast-view').classList.contains('hidden');
+  if(session !== coinSession || coinStep !== 6 || coinResults.length !== 6 || !castVisible) return;
   const question=document.getElementById('ly-question').value.trim();
-  const timeVal=document.getElementById('ly-time').value;
   const lines = coinResults.map(r => {
     const c = r.count;
     if(c === 6) return 'old_yin';
@@ -4041,18 +4066,23 @@ function finishCoin(){
     if(c === 7) return 'young_yang';
     return 'young_yin';
   });
-  const result=doCast({method:'coin', lines: lines, question: question, date: timeVal ? new Date(timeVal) : new Date()});
+  const result=doCast({method:'coin', lines: lines, question: question, date: new Date()});
   showLiuyaoResult(result);
 }
 
 function castLiuyao(){
   const question=document.getElementById('ly-question').value.trim();
-  const timeVal=document.getElementById('ly-time').value;
+  const timeVal=liuyaoMethod==='time' ? document.getElementById('ly-time').value : '';
   const opts={method:liuyaoMethod, question:question, date: timeVal ? new Date(timeVal) : new Date()};
   if(liuyaoMethod==='number'){
     const a=document.getElementById('ly-num1').value, b=document.getElementById('ly-num2').value, c=document.getElementById('ly-num3').value;
     if(a===''||b===''||c===''){ showToast('请填写三个数字'); return; }
-    opts.numbers=[a,b,c];
+    const numbers=[a,b,c].map(value => Number(value));
+    if(numbers.some(value => !Number.isSafeInteger(value) || value < 0)){
+      showToast('请输入三个非负整数');
+      return;
+    }
+    opts.numbers=numbers;
   }
   if(liuyaoMethod==='name'){
     const sel=document.getElementById('ly-hex-select');
@@ -4066,7 +4096,12 @@ function castLiuyao(){
 
 function doCast(opts){
   if(!(window.LiuYao && LiuYao.cast)){ showToast('六爻引擎未加载'); return null; }
-  return LiuYao.cast(opts);
+  try {
+    return LiuYao.cast(opts);
+  } catch(e) {
+    showToast(e && e.message ? e.message : '起卦失败');
+    return null;
+  }
 }
 
 function showLiuyaoResult(result){
@@ -4496,7 +4531,6 @@ function switchGuaJieshi(which){
 
 
 let isHistoryEditMode = false;
-let coinSpinning = false;
 
 let selectedHistoryIds = new Set();
 let currentResultId = null;
