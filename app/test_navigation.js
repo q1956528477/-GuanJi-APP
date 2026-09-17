@@ -46,7 +46,7 @@ document.getElementById('ly-history-btn').click();
 window.showView('bazi-records');
 check('切到八字页面时起卦记录已隐藏', visible('bazi-records-view') && !visible('liuyao-history-view'));
 
-const primaryViews = ['home', 'energy', 'liuyao', 'bazi-form', 'bazi-records', 'bazi-info', 'req'];
+const primaryViews = ['home', 'energy', 'energy-history', 'liuyao', 'bazi-form', 'bazi-records', 'bazi-info', 'req'];
 primaryViews.forEach(id => {
   window.showView(id);
   check('切到 '+id+' 时其他顶级页面全部隐藏', primaryViews.every(other => {
@@ -59,6 +59,11 @@ window.showView('bazi-info');
 document.getElementById('req-float-btn').click();
 window.handleBack();
 check('需求页返回键回到打开它的八字页面', visible('bazi-info-view') && !visible('req-view'));
+
+window.showView('energy');
+document.getElementById('energy-history-btn').click();
+window.handleBack();
+check('精力历史页返回键回到精力状态页而不是主界面', visible('energy-view') && !visible('energy-history-view') && !visible('home-view'));
 
 window.showView('liuyao');
 document.getElementById('liuyao-cast-view').classList.add('hidden');

@@ -215,6 +215,30 @@
   .cal-day.future:active{transform:none;}
   .cal-legend{text-align:center;font-size:12px;color:var(--ink-soft);margin-top:10px;}
 
+  /* 精力历史记录 */
+  .energy-records-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.75rem;}
+  .energy-records-head h3{margin:0;}
+  .energy-history-nav{display:grid;grid-template-columns:minmax(4.5rem,auto) minmax(0,1fr) minmax(4.5rem,auto);align-items:center;gap:.5rem;margin-bottom:1rem;}
+  .energy-history-nav .btn{width:100%;padding:.6rem .25rem;white-space:nowrap;}
+  .energy-history-month{text-align:center;font-size:1.05rem;font-weight:800;white-space:nowrap;}
+  .energy-history-weekdays,.energy-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.25rem;}
+  .energy-history-weekdays{margin-bottom:.25rem;}
+  .energy-history-weekday{text-align:center;font-size:.68rem;color:var(--ink-soft);font-weight:700;padding:.35rem 0;}
+  .energy-month-blank{min-height:4.75rem;}
+  .energy-month-day{
+    min-width:0;min-height:4.75rem;background:#faf8f4;border:1px solid transparent;border-radius:.7rem;
+    padding:.3rem .08rem;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;
+  }
+  .energy-month-day.today{border-color:var(--primary);background:#f1eefb;}
+  .energy-month-day.future{opacity:.35;cursor:default;}
+  .energy-month-day .dn{font-size:.78rem;font-weight:700;line-height:1.1;margin-bottom:auto;}
+  .energy-month-day .energy-history-score{display:flex;flex-direction:column;align-items:center;line-height:1.05;margin-top:.25rem;}
+  .energy-month-day .energy-history-score .emoji{font-size:1rem;}
+  .energy-month-day .energy-history-score .score{font-size:.56rem;font-weight:700;color:var(--ink-soft);}
+  .energy-history-placeholder{font-size:.85rem;color:var(--ink-faint);margin-top:auto;padding-bottom:.7rem;}
+  .energy-history-empty{text-align:center;color:var(--ink-soft);font-size:.82rem;line-height:1.7;padding:2rem .5rem;}
+  .energy-history-empty .icon{display:block;font-size:2rem;margin-bottom:.45rem;}
+
   /* 详情弹窗内容 */
   .detail-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);}
   .detail-row:last-child{border-bottom:none;}
@@ -913,7 +937,10 @@
 
     <!-- 每日记录 -->
     <div class="card">
-      <h3>🗓 每日记录</h3>
+      <div class="energy-records-head">
+        <h3>🗓 每日记录</h3>
+        <button class="btn small ghost" id="energy-history-btn">历史记录</button>
+      </div>
       <div class="calendar" id="calendar"></div>
       <div class="cal-legend">点击任意一天查看详情</div>
     </div>
@@ -934,6 +961,35 @@
           <button class="btn small" id="remind-btn">保存提醒</button>
         </div>
         <div class="muted">数据仅保存在本机，不会上传；用「备份/恢复」可跨设备或重装后找回记录。</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="energy-history-view" class="hidden">
+    <div class="topbar" style="padding-top:calc(18px + env(safe-area-inset-top));">
+      <div class="back" id="energy-history-back"><span class="arr">←</span> 返回</div>
+      <div class="today-chip">精力历史</div>
+    </div>
+
+    <div class="card">
+      <div class="energy-history-nav">
+        <button class="btn small ghost" id="energy-history-prev">‹ 上一月</button>
+        <div class="energy-history-month" id="energy-history-month"></div>
+        <button class="btn small ghost" id="energy-history-next">下一月 ›</button>
+      </div>
+      <div class="energy-history-weekdays">
+        <div class="energy-history-weekday">一</div>
+        <div class="energy-history-weekday">二</div>
+        <div class="energy-history-weekday">三</div>
+        <div class="energy-history-weekday">四</div>
+        <div class="energy-history-weekday">五</div>
+        <div class="energy-history-weekday">六</div>
+        <div class="energy-history-weekday">日</div>
+      </div>
+      <div class="energy-month-grid" id="energy-history-grid"></div>
+      <div class="energy-history-empty hidden" id="energy-history-empty">
+        <span class="icon">🌱</span>
+        还没有历史记录，先从今天的精力状态开始记录吧。
       </div>
     </div>
   </div>
@@ -1472,6 +1528,7 @@ function showView(id){
   if(id !== 'liuyao') cancelCoinSession();
   document.getElementById('home-view').classList.toggle('hidden', id!=='home');
   document.getElementById('energy-view').classList.toggle('hidden', id!=='energy');
+  document.getElementById('energy-history-view').classList.toggle('hidden', id!=='energy-history');
   document.getElementById('liuyao-view').classList.toggle('hidden', id!=='liuyao');
   document.getElementById('liuyao-history-view').classList.toggle('hidden', id!=='liuyao-history');
   document.getElementById('req-view').classList.toggle('hidden', id!=='req');
@@ -1481,6 +1538,7 @@ function showView(id){
   if(id !== 'bazi-records') document.getElementById('req-float-btn').classList.remove('hidden');
   window.scrollTo(0,0);
   if(id==='energy') renderEnergy();
+  if(id==='energy-history') renderEnergyHistory();
   if(id==='liuyao') renderLiuyaoForm();
   if(id==='liuyao-history') renderLiuyaoHistoryList();
   if(id==='req') renderReqList();
@@ -1490,6 +1548,12 @@ function showView(id){
   if(id==='home') renderHome();
 }
 function openEnergy(){ showView('energy'); }
+function openEnergyHistory(){
+  const now = new Date();
+  energyHistoryYear = now.getFullYear();
+  energyHistoryMonth = now.getMonth() + 1;
+  showView('energy-history');
+}
 function openLiuyao(){ showView('liuyao'); }
 function openBaziRecords(){ showView('bazi-records'); }
 function currentPrimaryViewId(){
@@ -1500,6 +1564,7 @@ function currentPrimaryViewId(){
     ['bazi-records-view','bazi-records'],
     ['bazi-form-view','bazi-form'],
     ['liuyao-view','liuyao'],
+    ['energy-history-view','energy-history'],
     ['energy-view','energy'],
     ['home-view','home']
   ];
@@ -1533,6 +1598,8 @@ function renderHome(){
 
 /* ---------------- 精力模块 ---------------- */
 let chartRange = 'week';
+let energyHistoryYear = null;
+let energyHistoryMonth = null;
 
 function energyRecords(range){
   const list = [];
@@ -1575,6 +1642,106 @@ function renderEnergy(){
   renderCalendar();
   renderRemind();
 }
+
+function backFromEnergyHistory(){ showView('energy'); }
+
+function energyHistoryEarliestMonth(){
+  const dates = Object.keys(state.records)
+    .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d))
+    .sort();
+  if(!dates.length) return null;
+  const [year, month] = dates[0].split('-').map(Number);
+  return {year, month};
+}
+
+function changeEnergyHistoryMonth(delta){
+  if(energyHistoryYear == null || energyHistoryMonth == null) return;
+  const current = new Date();
+  const currentIndex = current.getFullYear() * 12 + current.getMonth();
+  const earliest = energyHistoryEarliestMonth();
+  const nextIndex = energyHistoryYear * 12 + (energyHistoryMonth - 1) + delta;
+  if(delta > 0 && nextIndex > currentIndex){
+    showToast('不能查看未来月份');
+    return;
+  }
+  if(delta < 0 && earliest){
+    const earliestIndex = earliest.year * 12 + (earliest.month - 1);
+    if(nextIndex < earliestIndex){
+      showToast('已到最早记录月份');
+      return;
+    }
+  }
+  const nextDate = new Date(Math.floor(nextIndex / 12), ((nextIndex % 12) + 12) % 12, 1);
+  energyHistoryYear = nextDate.getFullYear();
+  energyHistoryMonth = nextDate.getMonth() + 1;
+  renderEnergyHistory();
+}
+
+function renderEnergyHistory(){
+  if(energyHistoryYear == null || energyHistoryMonth == null){
+    const now = new Date();
+    energyHistoryYear = now.getFullYear();
+    energyHistoryMonth = now.getMonth() + 1;
+  }
+  const grid = document.getElementById('energy-history-grid');
+  const empty = document.getElementById('energy-history-empty');
+  const prev = document.getElementById('energy-history-prev');
+  const next = document.getElementById('energy-history-next');
+  const current = new Date();
+  const currentIndex = current.getFullYear() * 12 + current.getMonth();
+  const monthIndex = energyHistoryYear * 12 + (energyHistoryMonth - 1);
+  const earliest = energyHistoryEarliestMonth();
+  document.getElementById('energy-history-month').textContent =
+    energyHistoryYear + '年' + energyHistoryMonth + '月';
+  next.disabled = monthIndex >= currentIndex;
+  prev.disabled = !earliest || (monthIndex <= earliest.year * 12 + (earliest.month - 1));
+
+  if(!earliest){
+    grid.innerHTML = '';
+    grid.classList.add('hidden');
+    empty.classList.remove('hidden');
+    return;
+  }
+  grid.classList.remove('hidden');
+  empty.classList.add('hidden');
+
+  const lead = (new Date(energyHistoryYear, energyHistoryMonth - 1, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(energyHistoryYear, energyHistoryMonth, 0).getDate();
+  const totalSlots = Math.ceil((lead + daysInMonth) / 7) * 7;
+  const pad = n => String(n).padStart(2, '0');
+  const today = todayStr();
+  grid.innerHTML = '';
+  for(let slot=0; slot<totalSlots; slot++){
+    const day = slot - lead + 1;
+    if(day < 1 || day > daysInMonth){
+      const blank = document.createElement('div');
+      blank.className = 'energy-month-blank';
+      grid.appendChild(blank);
+      continue;
+    }
+    const dateStr = energyHistoryYear + '-' + pad(energyHistoryMonth) + '-' + pad(day);
+    const rec = state.records[dateStr];
+    const future = dateStr > today;
+    const cell = document.createElement('div');
+    cell.className = 'energy-month-day' + (dateStr===today?' today':'') + (future?' future':'') + (rec?'':' empty');
+    cell.dataset.date = dateStr;
+    const tier = rec ? scoreTier(rec.score) : null;
+    cell.innerHTML = '<div class="dn">' + day + '</div>' +
+      (rec
+        ? '<div class="energy-history-score"><span class="emoji">'+tier.emoji+'</span><span class="score">'+rec.score+'</span></div>'
+        : '<div class="energy-history-placeholder">—</div>');
+    cell.onclick = () => {
+      if(future) return;
+      openDayDetail(dateStr);
+    };
+    grid.appendChild(cell);
+  }
+}
+
+document.getElementById('energy-history-btn').addEventListener('click', openEnergyHistory);
+document.getElementById('energy-history-back').addEventListener('click', backFromEnergyHistory);
+document.getElementById('energy-history-prev').addEventListener('click', ()=>changeEnergyHistoryMonth(-1));
+document.getElementById('energy-history-next').addEventListener('click', ()=>changeEnergyHistoryMonth(1));
 
 function onScoreInput(){
   const v = document.getElementById('score-input').value;
@@ -2038,6 +2205,7 @@ function handleBack(){
   const liuyaoHistoryVisible = !document.getElementById('liuyao-history-view').classList.contains('hidden');
   const liuyaoVisible = !document.getElementById('liuyao-view').classList.contains('hidden');
   const liuyaoResultVisible = liuyaoVisible && !document.getElementById('liuyao-result-view').classList.contains('hidden');
+  const energyHistoryVisible = !document.getElementById('energy-history-view').classList.contains('hidden');
   const energyVisible = !document.getElementById('energy-view').classList.contains('hidden');
   const baziFormVisible = !document.getElementById('bazi-form-view').classList.contains('hidden');
   const baziRecordsVisible = !document.getElementById('bazi-records-view').classList.contains('hidden');
@@ -2052,6 +2220,8 @@ function handleBack(){
     showView('bazi-records');
   } else if(baziFormVisible){
     backFromBaziForm();  // 排盘页回它自己的来源页（主界面 / 命例记录 / 命盘信息页）
+  } else if(energyHistoryVisible){
+    backFromEnergyHistory();
   } else if(energyVisible || liuyaoVisible || baziRecordsVisible){
     showView('home');  // 子页面 → 返回主界面
   } else {

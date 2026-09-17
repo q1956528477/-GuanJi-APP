@@ -95,6 +95,59 @@ window.enableDayEdit(window.todayStr());
 check('修改后分数回填为 75', document.getElementById('day-score').value === '75');
 check('修改后备注回填正确', document.getElementById('day-note').value === '今天状态不错');
 
+// 9. 精力历史记录：独立月历视图、翻月、详情与返回栈
+const recordsHead = document.querySelector('.energy-records-head');
+const historyButton = document.getElementById('energy-history-btn');
+check('「每日记录」标题行存在「历史记录」按钮', !!recordsHead && !!historyButton &&
+  recordsHead.contains(historyButton) && historyButton.textContent.trim() === '历史记录');
+
+const previousMonth = new Date();
+previousMonth.setDate(1);
+previousMonth.setMonth(previousMonth.getMonth() - 1);
+const previousKey = window.toDateStr(previousMonth);
+const realDaysAgo = window.daysAgo;
+window.daysAgo = () => previousKey;
+document.getElementById('score-input').value = '42';
+document.getElementById('note-input').value = '上月记录';
+document.getElementById('date-input').value = previousKey;
+document.getElementById('save-btn').click();
+window.daysAgo = realDaysAgo;
+
+historyButton.click();
+check('点击历史记录进入独立视图', visible('energy-history-view') && !visible('energy-view'));
+const currentMonthTitle = new Date().getFullYear() + '年' + (new Date().getMonth() + 1) + '月';
+check('历史记录默认展示当前月', document.getElementById('energy-history-month').textContent === currentMonthTitle);
+
+const historyTodayCell = document.querySelector('.energy-month-day[data-date="' + window.todayStr() + '"]');
+check('历史月历今天带高亮', !!historyTodayCell && historyTodayCell.classList.contains('today'));
+check('有记录的日期格显示分数 75', !!historyTodayCell && historyTodayCell.textContent.includes('75'));
+historyTodayCell.click();
+check('历史月历点击日期沿用现有详情弹窗', document.getElementById('day-modal').classList.contains('show'));
+window.handleBack();
+check('关闭详情后仍停留在历史记录页', !document.getElementById('day-modal').classList.contains('show') && visible('energy-history-view'));
+
+document.getElementById('energy-history-prev').click();
+const previousMonthTitle = previousMonth.getFullYear() + '年' + (previousMonth.getMonth() + 1) + '月';
+check('可以切到上一月', document.getElementById('energy-history-month').textContent === previousMonthTitle);
+const previousRecordCell = document.querySelector('.energy-month-day[data-date="' + previousKey + '"]');
+check('上一月记录格显示对应分数 42', !!previousRecordCell && previousRecordCell.textContent.includes('42'));
+const noRecordCell = document.querySelector('.energy-month-day.empty:not(.future)');
+check('无记录日期显示占位且不显示分数', !!noRecordCell &&
+  noRecordCell.textContent.includes('—') && !noRecordCell.querySelector('.energy-history-score'));
+
+document.getElementById('energy-history-next').click();
+check('可以切回下一月', document.getElementById('energy-history-month').textContent === currentMonthTitle);
+document.getElementById('energy-history-next').click();
+check('位于当前月时不能切到未来月份', document.getElementById('energy-history-month').textContent === currentMonthTitle);
+
+window.handleBack();
+check('历史记录页返回键回到精力状态页而不是主界面', visible('energy-view') && !visible('energy-history-view') && !visible('home-view'));
+historyButton.click();
+const historyBackButton = document.getElementById('energy-history-back');
+check('历史记录页存在左上角返回按钮', !!historyBackButton && historyBackButton.textContent.includes('返回'));
+historyBackButton.click();
+check('历史记录页返回按钮与返回键行为一致', visible('energy-view') && !visible('energy-history-view'));
+
 console.log('\n===== 精力状态模块测试结果 =====');
 results.forEach(result => console.log(result));
 console.log('===== 结束 =====');
