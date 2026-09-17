@@ -359,6 +359,14 @@
   .rebu-yaoci.moving{background:#fff8ef;border-radius:6px;padding:6px 8px;}
   .rebu-yaoci-title{font-size:12px;font-weight:700;color:#5a4310;line-height:1.7;}
   .rebu-yaoci-dong{display:inline-block;color:#fff;background:#d9534f;font-size:9px;font-weight:700;border-radius:8px;padding:1px 6px;margin:0 4px;}
+
+  /* 解卦提示词（纯文本，可滚动、可选中、一键复制） */
+  .rebu-prompt-card{margin:14px 0 0;background:#fff;border:1px solid #e6dcc6;border-left:3px solid #d4a843;border-radius:8px;padding:10px 12px;box-shadow:0 1px 4px rgba(139,105,20,.06);}
+  .rebu-prompt-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+  .rebu-prompt-title{font-size:12px;font-weight:800;color:#7a5d12;letter-spacing:1px;min-width:0;word-break:break-word;}
+  .rebu-prompt-copy{flex:0 0 auto;padding:6px 16px;font-size:12px;font-weight:700;border:1px solid #b8933a;background:linear-gradient(135deg,#d4a843,#b8933a);color:#fff;border-radius:8px;cursor:pointer;}
+  .rebu-prompt-copy:active{transform:scale(.98);}
+  .rebu-prompt-text{margin:0;max-height:320px;overflow-y:auto;overflow-x:hidden;padding:8px 10px;background:#faf7f0;border-radius:6px;font-family:inherit;font-size:12px;line-height:1.8;color:#333;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;user-select:text;-webkit-user-select:text;}
   
   /* 卡片容器优化 */
   #ly-result .card{padding:0;margin:12px 0;overflow:hidden;}
@@ -4356,6 +4364,7 @@ function renderLiuyaoResult(r){
   html+='</table>';
   html+='<div class="rebu-gua-area">'+renderGuaTable(ben, zhi, movingSet)+'</div>';
   html+=renderJieshiSection(ben, zhi, movingSet);
+  html+=renderGuaTextCard(r);
   html+='</div>';
   box.innerHTML=html;
   box.scrollIntoView({behavior:'smooth'});
@@ -4368,6 +4377,9 @@ function renderLiuyaoResult(r){
   if(btnBen) btnBen.addEventListener('click', function(){ switchGuaJieshi('ben'); });
   const btnZhi = document.getElementById('rebu-gua-btn-zhi');
   if(btnZhi) btnZhi.addEventListener('click', function(){ switchGuaJieshi('zhi'); });
+  // 绑定解卦提示词复制按钮
+  const promptBtn = document.getElementById('ly-prompt-copy');
+  if(promptBtn) promptBtn.addEventListener('click', copyGuaPrompt);
 }
 
 // 卦象表格：表头显示卦名，本卦与变卦的每一爻放在同一行，确保逐爻左右对齐
@@ -4451,6 +4463,60 @@ function renderJieshiContent(hexData, movingSet, isBen){
     h+='</div>';
   }
   return h;
+}
+
+// 解卦提示词卡片：纯文本卦象描述，展示与复制同源（同一个 buildGuaTextPrompt 结果）
+function renderGuaTextCard(r){
+  let text='';
+  try{
+    text=(window.LiuYao && window.LiuYao.buildGuaTextPrompt)?window.LiuYao.buildGuaTextPrompt(r):'';
+  }catch(e){
+    text='';
+  }
+  if(!text) return '';
+  let h='<div class="rebu-prompt-card" id="ly-prompt-card">';
+  h+='<div class="rebu-prompt-head">';
+  h+='<div class="rebu-prompt-title">📋 解卦提示词</div>';
+  h+='<button type="button" class="rebu-prompt-copy" id="ly-prompt-copy">复制</button>';
+  h+='</div>';
+  h+='<pre class="rebu-prompt-text" id="ly-prompt-text">'+escapeHtml(text)+'</pre>';
+  h+='</div>';
+  return h;
+}
+
+// 复制降级方案：navigator.clipboard 不可用时回退 execCommand('copy')
+function fallbackCopyText(text){
+  if(typeof document.execCommand !== 'function') return false;
+  let ok=false;
+  let ta=null;
+  try{
+    ta=document.createElement('textarea');
+    ta.value=text;
+    ta.setAttribute('readonly','readonly');
+    ta.style.position='fixed';
+    ta.style.top='0';
+    ta.style.left='-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    if(ta.setSelectionRange) ta.setSelectionRange(0, ta.value.length);
+    ok=!!document.execCommand('copy');
+  }catch(e){
+    ok=false;
+  }
+  if(ta && ta.parentNode) ta.parentNode.removeChild(ta);
+  return ok;
+}
+
+async function copyGuaPrompt(){
+  const el=document.getElementById('ly-prompt-text');
+  const text=el?el.textContent:'';
+  if(!text){ showToast('暂无可复制的解卦提示词'); return; }
+  let ok=false;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    try{ await navigator.clipboard.writeText(text); ok=true; }catch(e){ ok=false; }
+  }
+  if(!ok) ok=fallbackCopyText(text);
+  showToast(ok?'已复制解卦提示词':'复制失败，请长按上方文字手动复制');
 }
 
 function switchGuaJieshi(which){

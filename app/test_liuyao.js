@@ -176,6 +176,73 @@ check('古文数据可按 bits 查询', LiuYao.getClassical('111111').guaci === 
 check('卦辞白话译文存在', typeof qian.ben.meta.guaciTranslation === 'string' && qian.ben.meta.guaciTranslation.length > 0);
 check('爻辞白话译文存在', typeof qian.ben.meta.lines[0].translation === 'string' && qian.ben.meta.lines[0].translation.length > 0);
 
+// ===== 解卦提示词纯文本（buildGuaTextPrompt）=====
+check('解卦提示词函数存在', typeof LiuYao.buildGuaTextPrompt === 'function');
+
+const promptMoving = LiuYao.cast({
+  method:'manual',
+  lines:['old_yang','young_yang','young_yang','young_yang','young_yang','young_yang'],
+  date:'2026-09-16T10:00:00',
+  question:'这次合作能不能成',
+});
+const movingText = LiuYao.buildGuaTextPrompt(promptMoving);
+check('提示词包含本卦卦名', movingText.includes('本卦：乾为天'));
+check('提示词包含变卦卦名', movingText.includes('变卦：天风姤'));
+check('提示词包含动爻位置', movingText.includes('动爻：初爻'));
+check('提示词包含所问事项', movingText.includes('所问事项：这次合作能不能成'));
+check('提示词包含起卦方式', movingText.includes('起卦方式：' + promptMoving.method));
+check('提示词包含起卦时间', movingText.includes('起卦时间：2026年9月16日 10:00'));
+check('提示词本卦六爻自上而下完整',
+  movingText.includes('本卦六爻（自上而下）：') &&
+  movingText.indexOf('上爻：') < movingText.indexOf('初爻：') &&
+  ['上爻','五爻','四爻','三爻','二爻','初爻'].every(p => movingText.includes('\n' + p + '：')));
+check('提示词逐爻含阴阳、纳甲干支、六亲、世应、动爻',
+  /上爻：阳爻 \S+ \S+/.test(movingText) &&
+  movingText.includes('动') &&
+  movingText.includes('世') && movingText.includes('应'));
+check('提示词变卦六爻不含伏神', (() => {
+  const part = movingText.split('变卦六爻（自上而下）：')[1];
+  return !!part && !part.split('\n\n')[0].includes('伏神');
+})());
+check('提示词包含用神与提示节', movingText.includes('用神与提示：'));
+check('提示词结尾为可直接触发的请求',
+  movingText.trim().endsWith('请结合以上卦象与卦辞、爻辞，为我解读这一卦。'));
+check('提示词为纯文本（无标签、无 markdown 装饰、无 emoji）',
+  !/<[a-zA-Z\/][^>]*>/.test(movingText) &&
+  !movingText.includes('**') && !movingText.includes('|') &&
+  !/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u.test(movingText));
+
+const promptStatic = LiuYao.cast({method:'name', bits:'111111', date:'2026-09-16T10:00:00'});
+const staticText = LiuYao.buildGuaTextPrompt(promptStatic);
+check('静卦提示词写明无变卦（静卦）', staticText.includes('变卦：无变卦（静卦）'));
+check('静卦提示词写明无动爻', staticText.includes('动爻：无动爻'));
+check('静卦提示词不含变卦六爻节', !staticText.includes('变卦六爻'));
+check('静卦提示词对空事项写明未填写', staticText.includes('所问事项：未填写'));
+
+// 字段缺失时宁可不写，也不能臆造
+const sparseResult = {
+  method: '手动指定',
+  astrology: {solarDate:'2026年9月16日 10:00'},
+  question: '',
+  ben: {
+    meta: {image:'测试卦', bits:'101010'},
+    naJia: [{stem:'甲', branch:'子'}, {}, {stem:'丙', branch:'寅', liuQin:'妻财'}, {}, {}, {}],
+    moving: [],
+  },
+  zhi: null,
+  hasMoving: false,
+  analysis: {},
+};
+const sparseText = LiuYao.buildGuaTextPrompt(sparseResult);
+check('缺失字段不臆造（不写世应 / 伏神 / 用神节）',
+  !sparseText.includes('世') && !sparseText.includes('伏神') && !sparseText.includes('用神与提示：'));
+check('静卦与空数据同样给出结尾请求', sparseText.includes('请结合以上卦象与卦辞、爻辞，为我解读这一卦。'));
+
+let invalidPromptRejected = 0;
+try { LiuYao.buildGuaTextPrompt(null); } catch (e) { invalidPromptRejected++; }
+try { LiuYao.buildGuaTextPrompt({}); } catch (e) { invalidPromptRejected++; }
+check('非法卦象数据被拒绝', invalidPromptRejected === 2);
+
 console.log('\n===== 六爻引擎测试结果 =====');
 results.forEach(r => console.log(r));
 console.log('===== 结束 =====');

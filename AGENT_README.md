@@ -2,11 +2,14 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.8 (build 42)**　最后更新：2026-09-17
+> 当前版本：**v1.14.9 (build 43)**　最后更新：2026-09-17
 >
 > **版本已统一（2026-09-17）**：`codex/liuyao-audit-fixes`（09-16 16:00）与 `codex/liuyao-classical-text`（09-16 16:56）
 > 两条并行分支已按上传时间先后合并进本分支，对外只保留 **v1.14.8 (build 42)** 这一个号。
 > 两个阶段分支继续保留作回溯；**注意从它们各自打出的 APK 也叫 build 42，不要再分发**，要发就发本分支的包。
+>
+> **v1.14.9 (build 43)**：六爻结果页最下方新增「📋 解卦提示词」卡片（纯文本卦象描述 + 一键复制）。
+> 阶段分支 `codex/liuyao-gua-text`。**从本版起，每次交付都必须真的打 release APK**（见 6.3）。
 
 ---
 
@@ -178,6 +181,11 @@ app/
 
 **记录置顶（v1.14.5）**：长按记录 → 操作菜单「置顶 / 取消置顶」，置顶记录排到列表最前并带暖色底 + 置顶徽标；取消后按原时间顺序归位。
 
+**解卦提示词（v1.14.9）**：结果页最下方（古文区之后）的「📋 解卦提示词」卡片，把本次起卦的全部信息拼成一段**纯文本**，
+一键复制后可直接贴给 AI 或他人当解卦提示词。文本由引擎侧纯函数 `LiuYao.buildGuaTextPrompt(result)` 生成
+（`app/src/liuyao.js`），**页面展示与复制走同一个结果**，不会出现「看到的」和「复制出来的」不一致。
+所有字段都从 `cast()` 返回对象取（`astrology / ben / zhi / analysis`），取不到就整条/整节省略，禁止硬编码或臆造。
+
 ### 4.4 迭代需求记录（Requirements）
 
 - 独立全屏页；增 / 改 / 删、一键复制全部、一键清空
@@ -234,6 +242,17 @@ $env:GRADLE_USER_HOME = "C:\Users\v_huixqi\.workbuddy\binaries\android\gradle-ho
 
 - 产物：`app\android\app\build\outputs\apk\release\app-release.apk`
 - 交付：复制到工程根目录，命名 `观己_vX.Y_描述_release.apk`
+- **硬性要求（v1.14.9 起）**：每次交付都必须真的跑一次 `assembleRelease` 并交出 APK，不能只改代码。
+  交付时同时给出：APK 完整路径、文件大小，以及包内 `assets/public/index.html` 与本机文件的 SHA-256 是否一致：
+
+```powershell
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path 观己_vX.Y_描述_release.apk))
+$e = $zip.Entries | Where-Object { $_.FullName -eq 'assets/public/index.html' }
+$ms = New-Object System.IO.MemoryStream; $e.Open().CopyTo($ms)
+([System.Security.Cryptography.SHA256]::Create().ComputeHash($ms.ToArray()) | ForEach-Object { $_.ToString('x2') }) -join ''
+# 再与本机 app\www\index.html 的 Get-FileHash -Algorithm SHA256 对比
+```
 
 > 另一台终端（用户名 `19565`）工具链路径结构相同，只是盘符/用户目录不同；换机前必须核对 `app/android/local.properties` 的 `sdk.dir` 与 `app/android/gradle.properties` 的 `projectcachedir`。
 
@@ -262,7 +281,12 @@ npm run test:modules# 只跑主界面模块注册表
 ```
 
 - `test_liuyao.js` / `test_bazi.js` 直接读取对应 bundle 做纯逻辑校验；**改了 `app/src/*.js` 要先 `npm run build` 再跑**。
-- `test_liuyao_page.js` 用 jsdom 验证六种起卦入口、64 卦 bits 映射、数字/时间边界、manual 初爻顺序、coin 单次保存和方式切换状态隔离。
+  `test_liuyao.js` 另含 `buildGuaTextPrompt` 的纯文本断言：变卦 / 静卦两态、六爻自上而下、无标签无 emoji、缺字段不臆造。
+- `test_liuyao_page.js` 用 jsdom 验证六种起卦入口、64 卦 bits 映射、数字/时间边界、manual 初爻顺序、coin 单次保存和方式切换状态隔离；
+  并验证「解卦提示词」卡片：DOM 位置在古文区之后、展示文本与复制文本**逐字符一致**、
+  `navigator.clipboard` 失败时回退 `execCommand('copy')`、全失败时提示长按、静卦与历史记录路径同样可用。
+- `test_liuyao_classical_page.js` 的「不泄漏现代解读」断言只作用于**古文区**（`.rebu-jieshi-section`）。
+  ⚠️ 不要改回整页扫描：结果页最下方的解卦提示词结尾句按需求固定含「卦象」二字，整页扫描必然误报。
 - `test_bazi_page.js` 用 jsdom 验证八字入口、保存命例、基本盘、大运流年和流月展开。
 - `test_navigation.js` 用 jsdom 验证顶级页面互斥、需求页返回目标，以及**返回栈逐级消费**：
   出生时间弹层、`#day-modal`、`#bz-action-modal`、`#bz-move-modal`、`#bz-group-modal` 各只关自身；
@@ -300,6 +324,14 @@ npm run test:modules# 只跑主界面模块注册表
    - `yijing-data.js` 中旧的白话、断易、邵雍等字段必须保留，但结果页不得读取或渲染。页面统一从 `yijing-classical-data.js` 读取古文数据；历史记录按当前卦的 `bits` 回填，避免旧记录继续显示现代解释。
    - 乾卦保留「用九」，坤卦保留「用六」；本卦动爻高亮逻辑不变。
    - Markdown 解析、64 卦映射及爻题校验脚本：`tools/generate-yijing-classical-data.js`。
+4. **解卦提示词卡片** `.rebu-prompt-card`（v1.14.9，结果页**最下方，必须在古文区之后**）
+   - 结构：`📋 解卦提示词` 标题 + `复制` 按钮 + `<pre class="rebu-prompt-text">` 纯文本块；由 `renderGuaTextCard(r)` 生成，插在 `renderJieshiSection(...)` 之后。
+   - 文本由 `LiuYao.buildGuaTextPrompt(result)` 生成（`app/src/liuyao.js`），`renderGuaTextCard` 与 `copyGuaPrompt` 都调它，天然同源。
+   - 覆盖：起卦时间 / 干支 / 所问事项 / 起卦方式 / 本卦名 / 变卦名（静卦写「无变卦（静卦）」）/ 动爻位置（无则「无动爻」）/
+     本卦六爻自上而下逐爻（爻位·阴阳·纳甲干支·六亲·世应·是否动爻）/ 变卦六爻同上 / 卦辞与爻辞 / 用神与提示（全空则整节省略）/ 结尾请求句。
+   - 复制：优先 `navigator.clipboard.writeText`，失败回退 `fallbackCopyText()`（`document.execCommand('copy')` 临时 textarea，用完即删）；
+     成功提示「已复制解卦提示词」，全失败提示「复制失败，请长按上方文字手动复制」。
+   - **不要顺手改动**：① 卦象区爻线对齐；② 古文区只显示卦辞/爻辞；③ 结果页返回 → 起卦记录页；④ 原生 `prompt()` 不可用，输入一律用 `openTextPrompt()`；⑤ 不新增第三方依赖。
 
 ---
 
@@ -468,6 +500,10 @@ npm run test:modules# 只跑主界面模块注册表
 - [x] 八字排盘模块（v1.14.4 起含四柱直排底部弹层）
 - [x] **六爻起卦审计修复**（v1.14.8，来自分支 `codex/liuyao-audit-fixes`）：卦名映射、数字/手动起卦输入校验、摇卦状态隔离
 - [x] **六爻结果页古文解读**（v1.14.8，来自分支 `codex/liuyao-classical-text`）：只显示卦辞与爻辞，数据源 `yijing-classical-data.js`
+- [x] **六爻结果页解卦提示词**（v1.14.9，来自分支 `codex/liuyao-gua-text`）：纯文本 + 一键复制，见 4.3 与 7.4
+- [ ] ⚠️ **待产品确认（v1.14.9 遗留）**：需求清单第 1–10 条**没有**要求把卦辞/爻辞写进提示词，
+      但结尾句却写着「请结合以上卦象与卦辞、爻辞，为我解读这一卦。」，所以本版把卦辞/爻辞也拼了进去（数据来自 `meta.classical`）。
+      若产品只想保留 1–10 条，删掉 `buildGuaTextPrompt` 里 `formatClassicalPrompt` 那两段即可，其余不用动。
 - [ ] ⚠️ **「传统解卦」已按需求移除**（v1.14.8，随古文解读一起）：结果页不再显示邵雍断易 / 用神提示。
       这是两条分支合并时「以 09-16 16:56 那条为准」的结果，**不是回归**，不要再按旧需求把它加回来；要恢复请先与产品确认
 - [x] 命例 / 起卦记录置顶（v1.14.5）
@@ -492,4 +528,5 @@ npm run test:modules# 只跑主界面模块注册表
 4. 改过代码 → 在英文临时目录（见「环境坑」）跑过 `npm test` 全量；加了新模块 → 确认 `test_modules.js` 自动覆盖到、无需改断言。
 5. 改了 `app/www/` → 已同步到 `android/app/src/main/assets/public`。
 6. 版本号三处一致、已递增。
-7. 已 `git commit` 并 `git push`。
+7. **已跑 `gradlew assembleRelease` 并交出 APK**（v1.14.9 起为固定项），包内 `assets/public/index.html` 哈希与本机一致。
+8. 已 `git commit` 并 `git push`（主线之外再推一条阶段分支，便于回溯）。

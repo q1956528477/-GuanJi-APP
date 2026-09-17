@@ -44,11 +44,14 @@ for (const [name, opts] of Object.entries(methods)) {
   const result = window.LiuYao.cast({ ...opts, date:fixedDate, question:'测试' });
   window.renderLiuyaoResult(result);
   const text = document.getElementById('ly-result').textContent;
+  // 「不泄漏现代解读」的约束只针对古文区：结果页最下方另有按需求新增的「解卦提示词」卡片，
+  // 其结尾句按需求固定为「请结合以上卦象与卦辞、爻辞，为我解读这一卦。」，会自然出现「卦象」二字。
+  const jieshiText = document.querySelector('#ly-result .rebu-jieshi-section').textContent;
   const modernLeak = ['卦象','卦义','白话','断易','邵雍','传统解卦','现代解读']
-    .filter(word => text.includes(word));
+    .filter(word => jieshiText.includes(word));
   check(name + ' 结果页展示古文卦辞与爻辞',
     text.includes('卦辞') && text.includes('爻辞') && text.includes(result.ben.meta.classical.guaci));
-  check(name + ' 结果页不泄漏现代解读', modernLeak.length === 0);
+  check(name + ' 古文区不泄漏现代解读', modernLeak.length === 0);
 }
 
 const qian = window.LiuYao.cast({

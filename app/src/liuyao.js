@@ -455,6 +455,145 @@ export function tossCoin() {
   return { values, sum, type, name, heads, tails: 3 - heads };
 }
 
+// ========== 解卦提示词（纯文本，供一键复制） ==========
+// 纯 data → text 变换：页面展示与剪贴板内容都走这个函数，保证「看到的」与「复制的」完全一致。
+// 所有字段都取自 cast() 的返回对象，取不到就整条/整节省略，不做任何补写或臆造。
+const YAO_POSITION_NAMES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻'];
+
+function yaoPositionName(i) {
+  return YAO_POSITION_NAMES[i] || ('第' + (i + 1) + '爻');
+}
+
+// 动爻位置：无动爻写「无动爻」
+function formatMovingPositions(moving) {
+  if (!Array.isArray(moving) || !moving.length) return '无动爻';
+  return moving.slice().sort((x, y) => x - y).map(yaoPositionName).join('、');
+}
+
+// 单爻纯文本：爻位、阴阳、纳甲干支、六亲、世应、是否动爻；伏神/世应数据没有就不写
+function formatYaoPromptLine(hexData, i, isMoving) {
+  const line = hexData.naJia[i];
+  if (!line) return '';
+  const meta = hexData.meta || {};
+  const parts = [yaoPositionName(i) + '：' + (meta.bits && meta.bits[i] === '1' ? '阳爻' : '阴爻')];
+  const ganZhi = (line.stem || '') + (line.branch || '');
+  if (ganZhi) parts.push(ganZhi);
+  if (line.liuQin) parts.push(line.liuQin);
+  if (line.shiYing) parts.push(line.shiYing);
+  if (isMoving) parts.push('动');
+  if (line.fuShen) {
+    const fuGanZhi = (line.fuShen.stem || '') + (line.fuShen.branch || '');
+    parts.push('伏神：' + [line.fuShen.liuQin || '', fuGanZhi].filter(Boolean).join(' '));
+  }
+  return parts.join(' ');
+}
+
+// 一卦六爻，自上而下（上爻 → 初爻），与结果页卦象表一致
+function formatHexLinesPrompt(hexData, movingSet) {
+  const rows = [];
+  for (let i = 5; i >= 0; i--) {
+    const row = formatYaoPromptLine(hexData, i, !!(movingSet && movingSet.has(i)));
+    if (row) rows.push(row);
+  }
+  return rows;
+}
+
+// 用神与提示：沿用 analysis 里已有的数据，取不到就整节省略
+function formatYongShenPrompt(analysis) {
+  if (!analysis) return null;
+  const lines = [];
+  if (analysis.yongShen) {
+    const detail = Array.isArray(analysis.yongDetail) ? analysis.yongDetail : [];
+    const text = detail.map(d => {
+      const status = d.status || {};
+      const tags = [status.month].concat(status.day || []).concat(status.transform || []).filter(Boolean);
+      return d.liuQin + d.branch + (tags.length ? '，' + tags.join('、') : '');
+    }).join('。');
+    lines.push('用神：' + (text ? text + '。' : analysis.yongShen));
+  }
+  const alerts = Array.isArray(analysis.alerts) ? analysis.alerts.filter(Boolean) : [];
+  if (alerts.length) lines.push('提示：' + alerts.join(' '));
+  return lines.length ? lines : null;
+}
+
+// 古文（卦辞 / 爻辞）：仅使用已核验的古典原文数据
+function formatClassicalPrompt(hexData, movingSet, label) {
+  const meta = hexData.meta || {};
+  const classical = meta.classical || CLASSICAL_BY_BITS[meta.bits];
+  if (!classical) return [];
+  const lines = [];
+  if (classical.guaci) lines.push(label + '卦辞：' + classical.guaci);
+  const yaoci = Array.isArray(classical.lines) ? classical.lines : [];
+  if (yaoci.length) {
+    lines.push(label + '爻辞：');
+    yaoci.forEach((ln, i) => {
+      const title = ln && ln.title ? ln.title + '：' : '';
+      const text = ln && ln.text ? ln.text : '';
+      if (!title && !text) return;
+      const moving = label === '本卦' && movingSet && movingSet.has(i);
+      lines.push('  ' + title + text + (moving ? '（动爻）' : ''));
+    });
+  }
+  return lines;
+}
+
+export function buildGuaTextPrompt(result) {
+  if (!result || !result.ben || !result.ben.meta) throw new Error('卦象数据无效');
+  const ben = result.ben;
+  const zhi = result.zhi;
+  const a = result.astrology || {};
+  const movingSet = new Set(Array.isArray(ben.moving) ? ben.moving : []);
+  const blocks = [];
+
+  // 1 / 起卦时间（含干支，六爻断卦需要月建日辰）
+  if (a.solarDate) blocks.push('起卦时间：' + a.solarDate);
+  const ganZhi = [
+    a.yearGZ ? a.yearGZ + '年' : '',
+    a.monthGZ ? a.monthGZ + '月' : '',
+    a.dayGZ ? a.dayGZ + '日' : '',
+    a.hourGZ ? a.hourGZ + '时' : '',
+  ].filter(Boolean);
+  if (ganZhi.length) blocks.push('干支：' + ganZhi.join(' '));
+
+  // 2 / 所问事项
+  blocks.push('所问事项：' + (result.question ? result.question : '未填写'));
+
+  // 3 / 起卦方式（沿用引擎给定的名称，不另做映射）
+  if (result.method) blocks.push('起卦方式：' + result.method);
+
+  // 4-6 / 本卦、变卦、动爻
+  blocks.push('本卦：' + ben.meta.image);
+  blocks.push('变卦：' + (zhi && zhi.meta ? zhi.meta.image : '无变卦（静卦）'));
+  blocks.push('动爻：' + formatMovingPositions(ben.moving));
+
+  // 7 / 本卦六爻
+  const benLines = formatHexLinesPrompt(ben, movingSet);
+  if (benLines.length) blocks.push('本卦六爻（自上而下）：\n' + benLines.join('\n'));
+
+  // 8 / 变卦六爻：数据里没有世应 / 伏神就不写
+  if (zhi && zhi.meta) {
+    const zhiLines = formatHexLinesPrompt(zhi, null);
+    if (zhiLines.length) blocks.push('变卦六爻（自上而下）：\n' + zhiLines.join('\n'));
+  }
+
+  // 古文原文：结尾一句提到卦辞、爻辞，这里同步给出，保证复制出去即可直接提问
+  const benClassical = formatClassicalPrompt(ben, movingSet, '本卦');
+  if (benClassical.length) blocks.push(benClassical.join('\n'));
+  if (zhi && zhi.meta) {
+    const zhiClassical = formatClassicalPrompt(zhi, null, '变卦');
+    if (zhiClassical.length) blocks.push(zhiClassical.join('\n'));
+  }
+
+  // 9 / 用神与提示
+  const yongShenBlock = formatYongShenPrompt(result.analysis);
+  if (yongShenBlock) blocks.push('用神与提示：\n' + yongShenBlock.join('\n'));
+
+  // 10 / 可直接触发的请求
+  blocks.push('请结合以上卦象与卦辞、爻辞，为我解读这一卦。');
+
+  return blocks.join('\n\n');
+}
+
 export const HEXAGRAMS = HEX_LIST;
 export const CLASSICAL_HEXAGRAMS = YIJING_CLASSICAL;
 export const CLASSICAL_SOURCE = YIJING_CLASSICAL_SOURCE;
