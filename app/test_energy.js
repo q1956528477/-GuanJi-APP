@@ -121,6 +121,10 @@ check('历史记录默认展示当前月', document.getElementById('energy-histo
 const historyTodayCell = document.querySelector('.energy-month-day[data-date="' + window.todayStr() + '"]');
 check('历史月历今天带高亮', !!historyTodayCell && historyTodayCell.classList.contains('today'));
 check('有记录的日期格显示分数 75', !!historyTodayCell && historyTodayCell.textContent.includes('75'));
+check('记录格采用日期、表情、底部分数三段式结构', !!historyTodayCell &&
+  historyTodayCell.firstElementChild.classList.contains('dn') &&
+  !!historyTodayCell.querySelector(':scope > .energy-history-emoji') &&
+  historyTodayCell.lastElementChild.classList.contains('energy-history-score'));
 historyTodayCell.click();
 check('历史月历点击日期沿用现有详情弹窗', document.getElementById('day-modal').classList.contains('show'));
 window.handleBack();
@@ -134,6 +138,8 @@ check('上一月记录格显示对应分数 42', !!previousRecordCell && previou
 const noRecordCell = document.querySelector('.energy-month-day.empty:not(.future)');
 check('无记录日期显示占位且不显示分数', !!noRecordCell &&
   noRecordCell.textContent.includes('—') && !noRecordCell.querySelector('.energy-history-score'));
+check('无记录格占位仍固定在底部', !!noRecordCell &&
+  noRecordCell.lastElementChild.classList.contains('energy-history-placeholder'));
 
 document.getElementById('energy-history-next').click();
 check('可以切回下一月', document.getElementById('energy-history-month').textContent === currentMonthTitle);

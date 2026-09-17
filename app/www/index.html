@@ -226,16 +226,16 @@
   .energy-history-weekday{text-align:center;font-size:.68rem;color:var(--ink-soft);font-weight:700;padding:.35rem 0;}
   .energy-month-blank{min-height:4.75rem;}
   .energy-month-day{
-    min-width:0;min-height:4.75rem;background:#faf8f4;border:1px solid transparent;border-radius:.7rem;
-    padding:.3rem .08rem;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;
+    min-width:0;height:4.75rem;background:#faf8f4;border:1px solid transparent;border-radius:.7rem;
+    padding:.3rem .08rem;display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+    align-items:center;justify-items:center;cursor:pointer;
   }
   .energy-month-day.today{border-color:var(--primary);background:#f1eefb;}
   .energy-month-day.future{opacity:.35;cursor:default;}
-  .energy-month-day .dn{font-size:.78rem;font-weight:700;line-height:1.1;margin-bottom:auto;}
-  .energy-month-day .energy-history-score{display:flex;flex-direction:column;align-items:center;line-height:1.05;margin-top:.25rem;}
-  .energy-month-day .energy-history-score .emoji{font-size:1rem;}
-  .energy-month-day .energy-history-score .score{font-size:.56rem;font-weight:700;color:var(--ink-soft);}
-  .energy-history-placeholder{font-size:.85rem;color:var(--ink-faint);margin-top:auto;padding-bottom:.7rem;}
+  .energy-month-day .dn{grid-row:1;align-self:start;justify-self:center;font-size:.78rem;font-weight:700;line-height:1.1;margin:0;}
+  .energy-history-emoji{grid-row:2;align-self:center;justify-self:center;font-size:1rem;line-height:1;white-space:nowrap;}
+  .energy-history-score{grid-row:3;align-self:end;justify-self:center;font-size:.56rem;font-weight:700;line-height:1.05;color:var(--ink-soft);margin:0;white-space:nowrap;}
+  .energy-history-placeholder{grid-row:3;align-self:end;justify-self:center;font-size:.85rem;line-height:1;color:var(--ink-faint);margin:0;padding:0;white-space:nowrap;}
   .energy-history-empty{text-align:center;color:var(--ink-soft);font-size:.82rem;line-height:1.7;padding:2rem .5rem;}
   .energy-history-empty .icon{display:block;font-size:2rem;margin-bottom:.45rem;}
 
@@ -1728,7 +1728,7 @@ function renderEnergyHistory(){
     const tier = rec ? scoreTier(rec.score) : null;
     cell.innerHTML = '<div class="dn">' + day + '</div>' +
       (rec
-        ? '<div class="energy-history-score"><span class="emoji">'+tier.emoji+'</span><span class="score">'+rec.score+'</span></div>'
+        ? '<div class="energy-history-emoji">'+tier.emoji+'</div><div class="energy-history-score">'+rec.score+'</div>'
         : '<div class="energy-history-placeholder">—</div>');
     cell.onclick = () => {
       if(future) return;
