@@ -2,7 +2,11 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.8 (build 42)**　最后更新：2026-09-16
+> 当前版本：**v1.14.8 (build 42)**　最后更新：2026-09-17
+>
+> **版本已统一（2026-09-17）**：`codex/liuyao-audit-fixes`（09-16 16:00）与 `codex/liuyao-classical-text`（09-16 16:56）
+> 两条并行分支已按上传时间先后合并进本分支，对外只保留 **v1.14.8 (build 42)** 这一个号。
+> 两个阶段分支继续保留作回溯；**注意从它们各自打出的 APK 也叫 build 42，不要再分发**，要发就发本分支的包。
 
 ---
 
@@ -94,7 +98,8 @@ app/
 ├── src/                        # 桥接与引擎源码
 │   ├── liuyao.js               # 六爻核心引擎（装卦、纳甲、六亲、世应、伏神、动变）
 │   ├── bazi.js                 # 八字历法、四柱、十神、大运流年与神煞引擎
-│   ├── yijing-data.js          # 64 卦数据（卦辞、白话、断易、邵雍、爻辞）
+│   ├── yijing-data.js          # 64 卦数据（保留旧版卦辞、白话、断易、邵雍、爻辞字段）
+│   ├── yijing-classical-data.js # 结果页使用的卦辞、爻辞古文数据（由 Markdown 生成）
 │   ├── native.js               # 返回键 / 退出 / 备份读写
 │   └── notify.js               # 每日提醒调度
 ├── scripts/build.js / build.ps1 # 用 esbuild 生成四个 bundle.js（Node / PowerShell）
@@ -289,13 +294,12 @@ npm run test:modules# 只跑主界面模块注册表
      阳爻 = `.rebu-yao-bar.yang > i.seg`（1 段 46px 黑线）；阴爻 = `.rebu-yao-bar.yin > i.seg` ×2（各 18px，间距 10px）。
    - 左/右预留区等宽（各 44px），所以爻线正好落在各卦区域**正中**，且六爻左右边缘对齐。
    - 变卦的世应、伏神一律**不增不改**（有就显示，没有就不加）。
-3. **解卦区** `renderJieshiSection(ben, zhi, movingSet)`
+3. **古文区** `renderJieshiSection(ben, zhi, movingSet)`
    - 顶部两个切换按钮 `本卦：xxx` / `变卦：xxx`（无变卦时只有一个），点击调 `switchGuaJieshi('ben'|'zhi')` 切换下方面板。
-   - 每个面板由 `renderJieshiContent(hexData, movingSet, isBen)` 生成，分五段独立展示：
-     **卦辞**（`guaci`）→ **卦象**（`summary`）→ **卦义**（`guaciTranslation`）→ **爻辞**（`lines[]` 六爻，含原文 + 白话 + 【断易】，本卦动爻高亮标“动”）→ **传统解卦**（`shaoyong`，保留原有 🔖 框）。
-4. **用神与提示** `.rebu-jieshi-gray`：`analysis.yongShen` / `yongDetail` / `alerts`（六冲六合、反吟伏吟等）。
-
-> 卦数据字段只有 `guaci / guaciTranslation / summary / shaoyong / lines`，没有单独的“卦义”字段；当前映射如上。若用户要求调整，改 `renderJieshiContent` 里取的字段即可。
+   - 每个面板由 `renderJieshiContent(hexData, movingSet, isBen)` 生成，只展示指定 Markdown 来源的 **卦辞** 与 **爻辞**；若后续核验了正式出版的《大象传》原文，则在最前追加 **大象传**。
+   - `yijing-data.js` 中旧的白话、断易、邵雍等字段必须保留，但结果页不得读取或渲染。页面统一从 `yijing-classical-data.js` 读取古文数据；历史记录按当前卦的 `bits` 回填，避免旧记录继续显示现代解释。
+   - 乾卦保留「用九」，坤卦保留「用六」；本卦动爻高亮逻辑不变。
+   - Markdown 解析、64 卦映射及爻题校验脚本：`tools/generate-yijing-classical-data.js`。
 
 ---
 
@@ -461,7 +465,11 @@ npm run test:modules# 只跑主界面模块注册表
 
 ## 12. 待开发 / 已知限制
 
-- [x] 八字排盘模块（当前版本 v1.14.6，含四柱直排底部弹层）
+- [x] 八字排盘模块（v1.14.4 起含四柱直排底部弹层）
+- [x] **六爻起卦审计修复**（v1.14.8，来自分支 `codex/liuyao-audit-fixes`）：卦名映射、数字/手动起卦输入校验、摇卦状态隔离
+- [x] **六爻结果页古文解读**（v1.14.8，来自分支 `codex/liuyao-classical-text`）：只显示卦辞与爻辞，数据源 `yijing-classical-data.js`
+- [ ] ⚠️ **「传统解卦」已按需求移除**（v1.14.8，随古文解读一起）：结果页不再显示邵雍断易 / 用神提示。
+      这是两条分支合并时「以 09-16 16:56 那条为准」的结果，**不是回归**，不要再按旧需求把它加回来；要恢复请先与产品确认
 - [x] 命例 / 起卦记录置顶（v1.14.5）
 - [x] **返回栈**：4 个既有弹窗已入栈、排盘页已改为回来源页（v1.14.6），清单见 9.3
 - [ ] **返回栈保留项（产品决定，非缺陷）**：① 保存后信息页返回 → 回命例记录页；② 起卦结果页返回 → 回起卦记录页。详见 9.4

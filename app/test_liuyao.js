@@ -33,6 +33,47 @@ for (const hex of LiuYao.HEXAGRAMS) {
 }
 check('卦名起卦 64 卦映射且保持静卦', nameRoundTrips === 64);
 
+const classical = LiuYao.CLASSICAL_HEXAGRAMS;
+check('六十四卦古文数据完整', Array.isArray(classical) && classical.length === 64);
+check('古文数据按通行卦序排列', classical.every((h, i) => h.id === i + 1));
+check('古文数据均有卦辞', classical.every(h => typeof h.guaci === 'string' && h.guaci.length > 0));
+check('普通卦均有六爻、乾坤含用九用六', classical.every(h => {
+  const expected = h.id === 1 || h.id === 2 ? 7 : 6;
+  return Array.isArray(h.lines) && h.lines.length === expected;
+}));
+check('乾卦保留用九', classical[0].lines[6].title === '用九' && classical[0].lines[6].text === '见群龙无首，吉。');
+check('坤卦保留用六', classical[1].lines[6].title === '用六' && classical[1].lines[6].text === '利永贞。');
+check('古文爻辞均含爻题与正文', classical.every(h => h.lines.every(line =>
+  typeof line.title === 'string' && line.title && typeof line.text === 'string' && line.text
+)));
+check('古文数据不包含现代解读字段', classical.every(h =>
+  !Object.prototype.hasOwnProperty.call(h, 'translation') &&
+  !Object.prototype.hasOwnProperty.call(h, 'guaciTranslation') &&
+  !Object.prototype.hasOwnProperty.call(h, 'shaoyong') &&
+  !Object.prototype.hasOwnProperty.call(h, 'summary') &&
+  h.lines.every(line =>
+    !Object.prototype.hasOwnProperty.call(line, 'translation') &&
+    !Object.prototype.hasOwnProperty.call(line, 'shaoyong')
+  )
+));
+check('未核验大象传不伪造数据', classical.every(h => h.daxiang === null && h.daxiangSource === null));
+check('古文来源信息完整', LiuYao.CLASSICAL_SOURCE.guaciAndLines.file === '周易六十四卦_卦辞爻辞.md' &&
+  /^[a-f0-9]{64}$/.test(LiuYao.CLASSICAL_SOURCE.guaciAndLines.sha256));
+
+const classicalMappingErrors = classical.filter(h => {
+  const lines = h.bits.split('').map(bit => bit === '1' ? 'young_yang' : 'young_yin');
+  const result = LiuYao.cast({
+    method: 'manual',
+    lines,
+    date: '2000-01-07T12:00:00',
+  });
+  return result.ben.meta.bits !== h.bits ||
+    result.ben.meta.image !== h.name ||
+    !result.ben.meta.classical ||
+    result.ben.meta.classical.guaci !== h.guaci;
+});
+check('64 卦 bits、卦名与古文数据映射一致', classicalMappingErrors.length === 0);
+
 const qian = LiuYao.cast({
   method: 'manual',
   lines: ['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'],
@@ -48,6 +89,8 @@ const qianQin = qian.ben.naJia.map(l => l.liuQin);
 check('乾卦六亲正确', JSON.stringify(qianQin) === JSON.stringify(['子孙','妻财','父母','官鬼','兄弟','父母']));
 check('乾卦世爻标记正确', qian.ben.naJia[5].shiYing === '世');
 check('乾卦应爻标记正确', qian.ben.naJia[2].shiYing === '应');
+check('乾卦使用指定古文来源', qian.ben.meta.classical.guaci === '元亨，利贞。');
+check('乾卦古文爻辞顺序正确', qian.ben.meta.classical.lines.map(line => line.title).join(',') === '初九,九二,九三,九四,九五,上九,用九');
 
 const moving = LiuYao.cast({
   method: 'manual',
@@ -125,6 +168,9 @@ const randomRandom = LiuYao.cast({method:'random', date:'2000-01-07T12:00:00'});
 Math.random = originalRandom;
 check('coin 六爻顺序与 6/7/8/9 映射正确', coinRandom.ben.meta.image === '泽水困' && coinRandom.zhi.meta.image === '水泽节');
 check('random 与 coin 使用同一铜钱算法', randomRandom.ben.meta.bits === coinRandom.ben.meta.bits && randomRandom.zhi.meta.bits === coinRandom.zhi.meta.bits);
+
+// 古文数据可按 bits 查询
+check('古文数据可按 bits 查询', LiuYao.getClassical('111111').guaci === '元亨，利贞。');
 
 // 解读字段已随数据补齐
 check('卦辞白话译文存在', typeof qian.ben.meta.guaciTranslation === 'string' && qian.ben.meta.guaciTranslation.length > 0);
