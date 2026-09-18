@@ -200,12 +200,16 @@ function castByName(bits) {
 }
 
 // ========== 卦名起卦 · 预设变卦（本卦 + 目标变卦 → 动爻） ==========
-// 阴阳爻只有两种，所以「本卦 → 变卦」的动爻完全由两者逐爻差异决定：
-// 同则静爻，异则动爻（本卦该爻为阳写老阳，为阴写老阴，与铜钱起卦口径一致）。
+// 术数口径（勿改）：每爻独立四态（老阴 6 / 少阳 7 / 少阴 8 / 老阳 9），
+// 动爻只有老阴与老阳；老阳变阴、老阴变阳，少阳少阴不变。
+// 因此每一爻「变 / 不变」完全自由 —— 下卦 2³、上卦 2³，合计 64 种，与爻的阴阳无关；
+// **任意本卦都可以变为任意变卦**，区别只在概率（乾为天 → 坤为地 即六爻全动，概率约 1/262144，合法）。
+// 卦宫（乾兑离震为阳宫、巽坎艮坤为阴宫）只决定六亲 / 世应 / 伏神这些装卦元素，
+// **不约束变卦**；变卦的装卦仍按本卦宫推算。任何"变卦只能落在某个子集""跨阴阳宫不合法"的校验都是错的。
 const BITS_RE = /^[01]{6}$/;
 function isBits6(bits) { return typeof bits === 'string' && BITS_RE.test(bits); }
 
-// 由本卦与目标变卦推导动爻下标（自下而上，初爻为 0）。静卦返回空数组。
+// 由本卦与目标变卦推导动爻下标（自下而上，初爻为 0）：同则静爻、异则动爻；两卦相同即静卦，返回空数组。
 export function movingLinesFor(bits, zhiBits) {
   if (!isBits6(bits) || !isBits6(zhiBits)) throw new Error('卦象数据必须是六位阴阳爻');
   const moving = [];
@@ -213,23 +217,25 @@ export function movingLinesFor(bits, zhiBits) {
   return moving;
 }
 
-// 本卦在「预设变卦」下可选的变卦列表：排除本卦自身（自身即静卦，用「不变」表示）。
+// 本卦在「预设变卦」下可选的变卦列表：**全部 64 卦**（含本卦自身 —— 自身即静卦，不是错误输入）。
 export function variantBitsOf(bits) {
   if (!isBits6(bits)) throw new Error('卦象数据必须是六位阴阳爻');
-  return HEX_LIST.filter(h => h.bits !== bits).map(h => h.bits);
+  return HEX_LIST.map(h => h.bits);
 }
 
-// 校验「本卦 + 变卦」是否可生成有效卦象。非法组合必须拒绝而不是静默生成错卦。
+// 校验「本卦 + 目标变卦」是否为可生成卦象的输入。
+// 只做结构性校验（六位阴阳爻、且是 64 卦之一）；**不做任何阴阳宫 / 子集 / 动爻数量限制**。
+// 本卦与变卦相同是合法的静卦，不在这里拒绝。
 export function validateVariant(bits, zhiBits) {
   if (!isBits6(bits)) throw new Error('卦名数据无效');
   if (!isBits6(zhiBits)) throw new Error('变卦数据无效');
   if (!HEX_BY_BITS[bits]) throw new Error('卦名数据无效');
   if (!HEX_BY_BITS[zhiBits]) throw new Error('变卦数据无效');
-  if (bits === zhiBits) throw new Error('变卦不能与本卦相同，静卦请选择「不变」');
   return true;
 }
 
 // 由本卦与目标变卦生成六爻（同则静爻、异则动爻）。
+// 两卦相同时六爻全为少阴少阳 —— 就是没有动爻的静卦，与「不变（静卦）」等价。
 export function presetVariantLines(bits, zhiBits) {
   validateVariant(bits, zhiBits);
   return bits.split('').map((b, i) => {
@@ -245,6 +251,13 @@ function castByCoin() {
     lines.push(tossCoin().type);
   }
   return lines;
+}
+// 调用方直接传入六爻时（铜钱逐爻摇出的结果）同样必须校验：
+// 只有恰好 6 爻、且每爻都是老阴/少阳/少阴/老阳之一才接受，否则报错而不是静默算出一个错卦。
+function validateCoinLines(lines) {
+  if (!Array.isArray(lines) || lines.length !== 6) throw new Error('铜钱起卦需要六个爻');
+  if (lines.some(t => !VALID_LINE_TYPES.has(t))) throw new Error('铜钱起卦包含非法爻类型');
+  return lines.slice();
 }
 function isMoving(t) { return t === 'old_yang' || t === 'old_yin'; }
 function bit(t) { return (t === 'young_yang' || t === 'old_yang') ? '1' : '0'; }
@@ -407,8 +420,10 @@ export function cast(opts) {
   else if (opts.method === 'name') {
     const meta = HEX_BY_BITS[opts.bits];
     if (!meta) throw new Error('卦名数据无效');
-    // 预设变卦：与「不变（静卦）」共用同一条链路，只有传了 zhiBits 才做差异推导。
-    if (typeof opts.zhiBits === 'string' && opts.zhiBits !== '') {
+    // 预设变卦：与「不变（静卦）」共用同一条链路。
+    // 传了 zhiBits 且与本卦不同才做差异推导；zhiBits 与本卦相同 = 无动爻的静卦，
+    // 直接走原静卦分支，使结果对象与「不选变卦」逐字段一致。
+    if (typeof opts.zhiBits === 'string' && opts.zhiBits !== '' && opts.zhiBits !== meta.bits) {
       lines = presetVariantLines(meta.bits, opts.zhiBits);
       methodNote = '卦名起卦（预设变卦）';
     } else {
@@ -417,7 +432,12 @@ export function cast(opts) {
     }
   }
   else if (opts.method === 'manual') { lines = normalizeManualLines(opts.lines || []); methodNote = '手动指定'; }
-  else { lines = (opts.method==='coin' && opts.lines && opts.lines.length===6) ? opts.lines.slice(0,6) : castByCoin(); methodNote = opts.method==='random' ? '自动起卦' : '铜钱摇卦'; }
+  else {
+    // 显式传了 lines 就必须校验（长度不对也报错，不静默回退成随机摇卦）；没传才真摇卦。
+    const given = opts.method === 'coin' && Array.isArray(opts.lines) && opts.lines.length;
+    lines = given ? validateCoinLines(opts.lines) : castByCoin();
+    methodNote = opts.method === 'random' ? '自动起卦' : '铜钱摇卦';
+  }
 
   const astrology = buildAstrology(date);
   const movingIdx = [];

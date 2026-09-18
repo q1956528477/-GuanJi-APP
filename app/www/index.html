@@ -4116,8 +4116,9 @@ function renderLiuyaoForm(){
     sel.appendChild(o);
   });
   sel.onchange=()=>{
-    // 换本卦后，原先选中的变卦可能已不适用：统一重置，让下方提示行重新渲染。
-    renderLiuyaoVariantSelect('');
+    // 按术数口径，任意本卦都可变为任意变卦（64×64 全部合法），所以换本卦时**保留**已选变卦，
+    // 只重算候选并刷新动爻提示。只有在别处主动要求重置时才会清空。
+    renderLiuyaoVariantSelect(liuyaoVariantBits);
   };
 
   renderManualLines();
@@ -4125,8 +4126,9 @@ function renderLiuyaoForm(){
   renderLiuyaoMethodFields();
 }
 
-/* 卦名起卦的「目标变卦」下拉：首项固定为「不变（静卦）」，其余列出除本卦外的全部卦名。
-   纯函数 LiuYao.variantBitsOf(bits) 负责产出候选，这里只做 DOM 组装。 */
+/* 卦名起卦的「目标变卦」下拉：首项「不变（静卦）」，其余为**全部 64 卦**（含本卦自身）。
+   不做任何阴阳宫 / 子集过滤——任意本卦都可变为任意变卦，选到本卦自身即静卦。
+   纯函数 LiuYao.variantBitsOf(bits) 产出候选，这里只做 DOM 组装。 */
 function buildLiuyaoVariantOptions(bits){
   const list=(window.LiuYao && LiuYao.HEXAGRAMS)||[];
   const byBits={};
@@ -4183,13 +4185,24 @@ function updateLiuyaoVariantHint(){
     return;
   }
   try {
-    const moving=LiuYao.movingLinesFor(bits, liuyaoVariantBits);
-    const positions=moving.map(i=>MANUAL_LABELS[i]).join('、');
+    // 变卦与本卦相同 = 无动爻的静卦，与「不变（静卦）」同义，明确呈现而不是报错。
+    if(bits===liuyaoVariantBits){
+      box.innerHTML='已选 <b>'+escapeHtml(nameOf(bits))+'</b> 变 <b>'+escapeHtml(nameOf(liuyaoVariantBits))+
+        '</b>：与本卦相同，即无动爻的静卦。';
+      return;
+    }
+    const moving=window.LiuYao.movingLinesFor(bits, liuyaoVariantBits);
+    // 爻位名称用局部常量：页内脚本整体包在 IIFE 里，同作用域的 MANUAL_LABELS 不是全局，
+    // 从别处按名字取会抛错（导致提示行落到 catch 分支而显示「该变卦不可用」）。
+    const YAO_POS=['初爻','二爻','三爻','四爻','五爻','上爻'];
+    const positions=moving.map(i=>YAO_POS[i]).join('、');
     const note=moving.length>3 ? '（动爻超过三爻，卦象变化较大）' : '';
     box.innerHTML='已选 <b>'+escapeHtml(nameOf(bits))+'</b> 变 <b>'+escapeHtml(nameOf(liuyaoVariantBits))+'</b>：'+
       '动爻 '+moving.length+' 个 · '+escapeHtml(positions)+note;
   } catch(e){
+    // 不再吞掉异常：把原因写进 title，便于排查（此前静默显示「该变卦不可用」掩盖了真实错误）。
     box.textContent='该变卦不可用，请重新选择';
+    box.setAttribute('title','预设变卦提示计算失败：'+((e&&(e.message||e))||'未知错误'));
     box.classList.add('unknown');
   }
 }
@@ -4341,15 +4354,9 @@ function castLiuyao(){
     const opt=sel.options[sel.selectedIndex];
     opts.bits=opt ? opt.value : undefined;
     // 预设变卦：选了具体变卦才带上 zhiBits；留空即「不变（静卦）」，走原静卦链路。
+    // 所选变卦与本卦相同时同样合法（就是无动爻的静卦），引擎会算出全静爻、zhi 为 null。
     const variant=liuyaoVariantBits;
-    if(variant){
-      if(sel.value===variant){
-        showToast('变卦不能与本卦相同，静卦请选择「不变」');
-        renderLiuyaoVariantSelect('');
-        return;
-      }
-      opts.zhiBits=variant;
-    }
+    if(variant) opts.zhiBits=variant;
   }
   if(liuyaoMethod==='manual') opts.lines=manualLines.slice();
   const result=doCast(opts);

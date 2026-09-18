@@ -81,10 +81,11 @@ function wait(ms) {
   benSelect.value = '111111';
   benSelect.dispatchEvent(new window.Event('change'));
   const variantOptions = [...variantSelect.options];
-  check('变卦下拉列出除本卦外的 63 个候选', variantOptions.length === 64 &&
+  check('变卦下拉列出全部 64 卦且含本卦自身（无任何子集过滤）',
+    variantOptions.length === 65 &&
     variantOptions.slice(1).every(o => /^[01]{6}$/.test(o.value)) &&
-    new Set(variantOptions.slice(1).map(o => o.value)).size === 63 &&
-    !variantOptions.slice(1).some(o => o.value === benSelect.value));
+    new Set(variantOptions.slice(1).map(o => o.value)).size === 64 &&
+    variantOptions.slice(1).some(o => o.value === benSelect.value));
   check('默认静卦提示写明无动爻', variantHint.textContent.includes('不变（静卦）') &&
     variantHint.textContent.includes('无动爻'));
 
@@ -110,37 +111,131 @@ function wait(ms) {
   const benSelect2 = document.getElementById('ly-hex-select');
   const variantSelect2 = document.getElementById('ly-variant-select');
   benSelect2.value = '111111';
+  benSelect2.dispatchEvent(new window.Event('change'));
   variantSelect2.value = '011111';
   variantSelect2.dispatchEvent(new window.Event('change'));
   check('初爻动的组合提示为初爻', variantHint.textContent.includes('动爻 1 个') &&
     variantHint.textContent.includes('初爻'));
+  // 旧实现会在换本卦时把变卦重置为「不变」；按术数口径 64×64 全部合法，现在必须**保留**选择。
   benSelect2.value = '000000';
   benSelect2.dispatchEvent(new window.Event('change'));
-  check('切换本卦后变卦自动重置为「不变」',
-    variantSelect2.value === '' && variantHint.textContent.includes('无动爻'));
-  check('切换本卦后候选列表随之更新', [...variantSelect2.options].length === 64 &&
-    ![...variantSelect2.options].slice(1).some(o => o.value === '000000'));
-  check('新候选列表仍含六位唯一的 63 个变卦',
+  check('切换本卦后候选列表随之更新（含新本卦自身）',
+    [...variantSelect2.options].length === 65 &&
+    [...variantSelect2.options].slice(1).some(o => o.value === '000000'));
+  check('新候选列表仍为六位唯一的 64 个变卦',
     [...variantSelect2.options].slice(1).every(o => /^[01]{6}$/.test(o.value)) &&
-    new Set([...variantSelect2.options].slice(1).map(o => o.value)).size === 63);
-
-  document.getElementById('ly-cast-btn').click();
-  check('切本卦后未选变卦则起静卦', resultTitles().join(',') === '坤为地');
-  document.getElementById('ly-question').value = '';
+    new Set([...variantSelect2.options].slice(1).map(o => o.value)).size === 64);
 
   document.getElementById('ly-recast').click();
   selectMethod('卦名起卦');
   const benSelect3 = document.getElementById('ly-hex-select');
   const variantSelect3 = document.getElementById('ly-variant-select');
-  const beforeInvalidName = history().length;
+
+  // (A) 变卦 = 本卦：语义为静卦，UI 明确呈现、不报错
   benSelect3.value = '111111';
   benSelect3.dispatchEvent(new window.Event('change'));
   const selfOption = [...variantSelect3.options].find(o => o.value === '111111');
-  check('候选列表本身不含本卦自身（自身即静卦）', selfOption === undefined);
-  if (selfOption) variantSelect3.value = '111111';
+  check('候选列表包含本卦自身（自身即静卦，合法）', !!selfOption);
+  variantSelect3.value = '111111';
+  variantSelect3.dispatchEvent(new window.Event('change'));
+  check('选本卦自身时提示明确为「与本卦相同，即无动爻的静卦」',
+    variantHint.textContent.includes('与本卦相同') && variantHint.textContent.includes('静卦'));
+  const beforeSame = history().length;
   document.getElementById('ly-cast-btn').click();
-  check('本卦不会出现在自己的变卦候选里，起卦仍落静卦', history().length === beforeInvalidName + 1 &&
-    history()[0].fullResult.zhi === null);
+  check('变卦=本卦 起卦无报错提示、落地为静卦（无变卦列）',
+    document.getElementById('toast').textContent !== '变卦不能与本卦相同，静卦请选择「不变」' &&
+    history().length === beforeSame + 1 && history()[0].fullResult.zhi === null &&
+    resultTitles().join(',') === '乾为天');
+  document.getElementById('ly-question').value = '';
+
+  // (B) 切换本卦必须保留变卦选择，只刷新动爻提示
+  document.getElementById('ly-recast').click();
+  selectMethod('卦名起卦');
+  const benSelect4 = document.getElementById('ly-hex-select');
+  const variantSelect4 = document.getElementById('ly-variant-select');
+  benSelect4.value = '111111';
+  benSelect4.dispatchEvent(new window.Event('change'));
+  variantSelect4.value = '011111';
+  variantSelect4.dispatchEvent(new window.Event('change'));
+  check('乾为天→天风姤 提示初爻动', variantHint.textContent.includes('动爻 1 个') &&
+    variantHint.textContent.includes('初爻'));
+  benSelect4.value = '000000';
+  benSelect4.dispatchEvent(new window.Event('change'));
+  check('切换本卦后变卦选择被保留（64×64 全部合法）',
+    variantSelect4.value === '011111' && variantHint.textContent.includes('天风姤'));
+  check('切换本卦后动爻提示按新组合刷新（坤为地→天风姤 五爻动）',
+    variantHint.textContent.includes('坤为地') && variantHint.textContent.includes('动爻 5 个') &&
+    variantHint.textContent.includes('二爻') && variantHint.textContent.includes('上爻') &&
+    !variantHint.textContent.includes('初爻'));
+  document.getElementById('ly-cast-btn').click();
+  check('保留的变卦参与起卦：坤为地→天风姤（五爻动）',
+    resultTitles().join(',') === '坤为地,天风姤' &&
+    document.querySelectorAll('#ly-result .gua-td-ben .move').length === 5);
+  document.getElementById('ly-question').value = '';
+
+  // (B2) 跨阴阳宫且单动爻：坤为地 → 地雷复（初爻动）
+  document.getElementById('ly-recast').click();
+  selectMethod('卦名起卦');
+  const benSelectB2 = document.getElementById('ly-hex-select');
+  const variantSelectB2 = document.getElementById('ly-variant-select');
+  benSelectB2.value = '000000';
+  benSelectB2.dispatchEvent(new window.Event('change'));
+  variantSelectB2.value = '100000';
+  variantSelectB2.dispatchEvent(new window.Event('change'));
+  check('坤为地→地雷复 提示仅初爻动（跨阴阳宫组合可用）',
+    variantHint.textContent.includes('坤为地') && variantHint.textContent.includes('地雷复') &&
+    variantHint.textContent.includes('动爻 1 个') && variantHint.textContent.includes('初爻'));
+  document.getElementById('ly-cast-btn').click();
+  check('坤为地→地雷复 结果页左右正确',
+    resultTitles().join(',') === '坤为地,地雷复');
+  document.getElementById('ly-question').value = '';
+
+  // (C) 乾为天 → 坤为地：六爻全动
+  document.getElementById('ly-recast').click();
+  selectMethod('卦名起卦');
+  const benSelect5 = document.getElementById('ly-hex-select');
+  const variantSelect5 = document.getElementById('ly-variant-select');
+  benSelect5.value = '111111';
+  benSelect5.dispatchEvent(new window.Event('change'));
+  variantSelect5.value = '000000';
+  variantSelect5.dispatchEvent(new window.Event('change'));
+  check('六爻全动的提示列出全部六个爻位',
+    variantHint.textContent.includes('动爻 6 个') &&
+    ['初爻','二爻','三爻','四爻','五爻','上爻'].every(p => variantHint.textContent.includes(p)));
+  document.getElementById('ly-cast-btn').click();
+  check('乾为天→坤为地 结果页左右为乾为天、坤为地', resultTitles().join(',') === '乾为天,坤为地');
+  check('乾为天→坤为地 本卦侧六个爻位全部标「动」',
+    document.querySelectorAll('#ly-result .gua-td-ben .move').length === 6);
+  check('乾为天→坤为地 变卦侧不标动爻',
+    document.querySelectorAll('#ly-result .gua-td-zhi .move').length === 0);
+  check('乾为天→坤为地 本卦变卦各自六爻逐行对齐',
+    document.querySelectorAll('#ly-result .rebu-gua-table tbody tr').length === 6 &&
+    document.querySelectorAll('#ly-result .gua-td-ben').length === 6 &&
+    document.querySelectorAll('#ly-result .gua-td-zhi').length === 6);
+  const allMovingPrompt = document.querySelector('#ly-result .rebu-prompt-text');
+  check('乾为天→坤为地 解卦提示词列出六个动爻与两个卦名',
+    !!allMovingPrompt && allMovingPrompt.textContent.includes('动爻：初爻、二爻、三爻、四爻、五爻、上爻') &&
+    allMovingPrompt.textContent.includes('本卦：乾为天') && allMovingPrompt.textContent.includes('变卦：坤为地'));
+  document.getElementById('ly-question').value = '';
+
+  // (D) 静卦零回归：不选变卦时结果页只有单列
+  document.getElementById('ly-recast').click();
+  selectMethod('卦名起卦');
+  const benSelect6 = document.getElementById('ly-hex-select');
+  const variantSelect6 = document.getElementById('ly-variant-select');
+  benSelect6.value = '100010';
+  benSelect6.dispatchEvent(new window.Event('change'));
+  // 候选含本卦自身，换本卦后上一轮的变卦会被保留 —— 这里显式复位成「不变（静卦）」
+  variantSelect6.value = '';
+  variantSelect6.dispatchEvent(new window.Event('change'));
+  check('复位为「不变（静卦）」后提示写明无动爻',
+    variantHint.textContent.includes('不变（静卦）') && variantHint.textContent.includes('无动爻'));
+  document.getElementById('ly-cast-btn').click();
+  check('默认静卦：结果页只有本卦一列（无变卦列）',
+    resultTitles().join(',') === '水雷屯' &&
+    document.querySelectorAll('#ly-result .rebu-gua-table th').length === 1 &&
+    document.querySelectorAll('#ly-result .gua-td-zhi').length === 0);
+  document.getElementById('ly-question').value = '';
 
   document.getElementById('ly-recast').click();
   selectMethod('数字起卦');
