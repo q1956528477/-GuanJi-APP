@@ -67,6 +67,81 @@ function wait(ms) {
   document.getElementById('ly-cast-btn').click();
   check('卦名起卦上下卦未颠倒', resultTitles().join(',') === '水雷屯');
 
+  // ===== 卦名起卦 · 预设变卦（UI） =====
+  document.getElementById('ly-recast').click();
+  selectMethod('卦名起卦');
+  const benSelect = document.getElementById('ly-hex-select');
+  const variantSelect = document.getElementById('ly-variant-select');
+  const variantHint = document.getElementById('ly-variant-hint');
+  check('变卦下拉存在且默认选中「不变（静卦）」',
+    !!variantSelect && variantSelect.options[0].value === '' &&
+    variantSelect.options[0].textContent === '不变（静卦）' && variantSelect.value === '');
+  // 说明：候选只在用户真的改动本卦（触发 change）时重算；程序化赋值不触发事件。
+  // 上一条用例把本卦置成水雷屯且未派发 change，所以这里先切回乾为天并派发 change。
+  benSelect.value = '111111';
+  benSelect.dispatchEvent(new window.Event('change'));
+  const variantOptions = [...variantSelect.options];
+  check('变卦下拉列出除本卦外的 63 个候选', variantOptions.length === 64 &&
+    variantOptions.slice(1).every(o => /^[01]{6}$/.test(o.value)) &&
+    new Set(variantOptions.slice(1).map(o => o.value)).size === 63 &&
+    !variantOptions.slice(1).some(o => o.value === benSelect.value));
+  check('默认静卦提示写明无动爻', variantHint.textContent.includes('不变（静卦）') &&
+    variantHint.textContent.includes('无动爻'));
+
+  variantSelect.value = '110111';
+  variantSelect.dispatchEvent(new window.Event('change'));
+  check('选中变卦后提示出准确的动爻数量与位置',
+    variantHint.textContent.includes('乾为天') && variantHint.textContent.includes('天泽履') &&
+    variantHint.textContent.includes('动爻 1 个') && variantHint.textContent.includes('三爻'));
+
+  document.getElementById('ly-cast-btn').click();
+  check('预设变卦起卦后结果页左侧本卦、右侧变卦',
+    resultTitles().join(',') === '乾为天,天泽履');
+  const presetPrompt = document.querySelector('#ly-result .rebu-prompt-text');
+  check('预设变卦解卦提示词含本卦名、变卦名与动爻位置',
+    !!presetPrompt && presetPrompt.textContent.includes('本卦：乾为天') &&
+    presetPrompt.textContent.includes('变卦：天泽履') &&
+    presetPrompt.textContent.includes('动爻：三爻'));
+  check('预设变卦结果已按预设变卦写入起卦记录', history()[0].fullResult.zhi.meta.image === '天泽履');
+  document.getElementById('ly-question').value = '';
+
+  document.getElementById('ly-recast').click();
+  selectMethod('卦名起卦');
+  const benSelect2 = document.getElementById('ly-hex-select');
+  const variantSelect2 = document.getElementById('ly-variant-select');
+  benSelect2.value = '111111';
+  variantSelect2.value = '011111';
+  variantSelect2.dispatchEvent(new window.Event('change'));
+  check('初爻动的组合提示为初爻', variantHint.textContent.includes('动爻 1 个') &&
+    variantHint.textContent.includes('初爻'));
+  benSelect2.value = '000000';
+  benSelect2.dispatchEvent(new window.Event('change'));
+  check('切换本卦后变卦自动重置为「不变」',
+    variantSelect2.value === '' && variantHint.textContent.includes('无动爻'));
+  check('切换本卦后候选列表随之更新', [...variantSelect2.options].length === 64 &&
+    ![...variantSelect2.options].slice(1).some(o => o.value === '000000'));
+  check('新候选列表仍含六位唯一的 63 个变卦',
+    [...variantSelect2.options].slice(1).every(o => /^[01]{6}$/.test(o.value)) &&
+    new Set([...variantSelect2.options].slice(1).map(o => o.value)).size === 63);
+
+  document.getElementById('ly-cast-btn').click();
+  check('切本卦后未选变卦则起静卦', resultTitles().join(',') === '坤为地');
+  document.getElementById('ly-question').value = '';
+
+  document.getElementById('ly-recast').click();
+  selectMethod('卦名起卦');
+  const benSelect3 = document.getElementById('ly-hex-select');
+  const variantSelect3 = document.getElementById('ly-variant-select');
+  const beforeInvalidName = history().length;
+  benSelect3.value = '111111';
+  benSelect3.dispatchEvent(new window.Event('change'));
+  const selfOption = [...variantSelect3.options].find(o => o.value === '111111');
+  check('候选列表本身不含本卦自身（自身即静卦）', selfOption === undefined);
+  if (selfOption) variantSelect3.value = '111111';
+  document.getElementById('ly-cast-btn').click();
+  check('本卦不会出现在自己的变卦候选里，起卦仍落静卦', history().length === beforeInvalidName + 1 &&
+    history()[0].fullResult.zhi === null);
+
   document.getElementById('ly-recast').click();
   selectMethod('数字起卦');
   const beforeInvalid = history().length;

@@ -198,6 +198,47 @@ function castByNumbers(numbers) {
 function castByName(bits) {
   return bits.split('').map(b => b === '1' ? 'young_yang' : 'young_yin');
 }
+
+// ========== 卦名起卦 · 预设变卦（本卦 + 目标变卦 → 动爻） ==========
+// 阴阳爻只有两种，所以「本卦 → 变卦」的动爻完全由两者逐爻差异决定：
+// 同则静爻，异则动爻（本卦该爻为阳写老阳，为阴写老阴，与铜钱起卦口径一致）。
+const BITS_RE = /^[01]{6}$/;
+function isBits6(bits) { return typeof bits === 'string' && BITS_RE.test(bits); }
+
+// 由本卦与目标变卦推导动爻下标（自下而上，初爻为 0）。静卦返回空数组。
+export function movingLinesFor(bits, zhiBits) {
+  if (!isBits6(bits) || !isBits6(zhiBits)) throw new Error('卦象数据必须是六位阴阳爻');
+  const moving = [];
+  for (let i = 0; i < 6; i++) if (bits[i] !== zhiBits[i]) moving.push(i);
+  return moving;
+}
+
+// 本卦在「预设变卦」下可选的变卦列表：排除本卦自身（自身即静卦，用「不变」表示）。
+export function variantBitsOf(bits) {
+  if (!isBits6(bits)) throw new Error('卦象数据必须是六位阴阳爻');
+  return HEX_LIST.filter(h => h.bits !== bits).map(h => h.bits);
+}
+
+// 校验「本卦 + 变卦」是否可生成有效卦象。非法组合必须拒绝而不是静默生成错卦。
+export function validateVariant(bits, zhiBits) {
+  if (!isBits6(bits)) throw new Error('卦名数据无效');
+  if (!isBits6(zhiBits)) throw new Error('变卦数据无效');
+  if (!HEX_BY_BITS[bits]) throw new Error('卦名数据无效');
+  if (!HEX_BY_BITS[zhiBits]) throw new Error('变卦数据无效');
+  if (bits === zhiBits) throw new Error('变卦不能与本卦相同，静卦请选择「不变」');
+  return true;
+}
+
+// 由本卦与目标变卦生成六爻（同则静爻、异则动爻）。
+export function presetVariantLines(bits, zhiBits) {
+  validateVariant(bits, zhiBits);
+  return bits.split('').map((b, i) => {
+    const yang = b === '1';
+    if (bits[i] === zhiBits[i]) return yang ? 'young_yang' : 'young_yin';
+    return yang ? 'old_yang' : 'old_yin';
+  });
+}
+
 function castByCoin() {
   const lines = [];
   for (let i = 0; i < 6; i++) {
@@ -366,8 +407,14 @@ export function cast(opts) {
   else if (opts.method === 'name') {
     const meta = HEX_BY_BITS[opts.bits];
     if (!meta) throw new Error('卦名数据无效');
-    lines = castByName(meta.bits);
-    methodNote = '卦名起卦（静卦）';
+    // 预设变卦：与「不变（静卦）」共用同一条链路，只有传了 zhiBits 才做差异推导。
+    if (typeof opts.zhiBits === 'string' && opts.zhiBits !== '') {
+      lines = presetVariantLines(meta.bits, opts.zhiBits);
+      methodNote = '卦名起卦（预设变卦）';
+    } else {
+      lines = castByName(meta.bits);
+      methodNote = '卦名起卦（静卦）';
+    }
   }
   else if (opts.method === 'manual') { lines = normalizeManualLines(opts.lines || []); methodNote = '手动指定'; }
   else { lines = (opts.method==='coin' && opts.lines && opts.lines.length===6) ? opts.lines.slice(0,6) : castByCoin(); methodNote = opts.method==='random' ? '自动起卦' : '铜钱摇卦'; }

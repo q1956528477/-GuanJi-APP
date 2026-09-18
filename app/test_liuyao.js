@@ -243,6 +243,117 @@ try { LiuYao.buildGuaTextPrompt(null); } catch (e) { invalidPromptRejected++; }
 try { LiuYao.buildGuaTextPrompt({}); } catch (e) { invalidPromptRejected++; }
 check('非法卦象数据被拒绝', invalidPromptRejected === 2);
 
+// ===== 卦名起卦 · 预设变卦（本卦 + 目标变卦 → 动爻自动推导） =====
+const PRESET_DATE = '2000-01-07T12:00:00';
+
+check('预设变卦：movingLinesFor 导出', typeof LiuYao.movingLinesFor === 'function');
+check('预设变卦：validateVariant 导出', typeof LiuYao.validateVariant === 'function');
+check('预设变卦：variantBitsOf 导出', typeof LiuYao.variantBitsOf === 'function');
+check('预设变卦：presetVariantLines 导出', typeof LiuYao.presetVariantLines === 'function');
+
+// ① 静卦零回归：不传 zhiBits 时，与改前逐字段一致
+let staticRegression = 0;
+for (const hex of LiuYao.HEXAGRAMS) {
+  const r = LiuYao.cast({method:'name', bits:hex.bits, date:PRESET_DATE});
+  if (r.ben.meta.bits === hex.bits && r.ben.meta.image === hex.image &&
+      !r.hasMoving && r.zhi === null && r.ben.moving.length === 0 &&
+      r.method === '卦名起卦（静卦）') staticRegression++;
+}
+check('预设变卦：不选变卦时 64 卦全部保持静卦（零回归）', staticRegression === 64);
+
+// ② 动爻完全由差异推导
+check('预设变卦：movingLinesFor 由差异推导动爻', JSON.stringify(LiuYao.movingLinesFor('111111', '110111')) === '[2]');
+check('预设变卦：movingLinesFor 无差异返回空数组', LiuYao.movingLinesFor('111111', '111111').length === 0);
+check('预设变卦：movingLinesFor 全差异返回六个动爻',
+  JSON.stringify(LiuYao.movingLinesFor('111111', '000000')) === '[0,1,2,3,4,5]');
+
+// ③ 接受任一合法目标变卦：变卦六爻与所选目标一致、动爻位置正确
+let variantOk = 0, variantBad = [];
+for (const ben of LiuYao.HEXAGRAMS) {
+  for (const zhi of LiuYao.HEXAGRAMS) {
+    if (ben.bits === zhi.bits) continue;
+    const r = LiuYao.cast({method:'name', bits:ben.bits, zhiBits:zhi.bits, date:PRESET_DATE});
+    const expectMoving = LiuYao.movingLinesFor(ben.bits, zhi.bits);
+    const ok = r.ben.meta.bits === ben.bits &&
+      r.zhi && r.zhi.meta.bits === zhi.bits &&
+      r.hasMoving === true &&
+      JSON.stringify(r.ben.moving) === JSON.stringify(expectMoving) &&
+      r.method === '卦名起卦（预设变卦）' &&
+      // 本卦爻：不同处必为动爻（老阳 / 老阴），相同处必为静爻
+      r.ben.naJia.every((l, i) => {
+        const same = ben.bits[i] === zhi.bits[i];
+        const lineType = LiuYao.presetVariantLines(ben.bits, zhi.bits)[i];
+        const moving = lineType === 'old_yang' || lineType === 'old_yin';
+        return same ? !moving : moving;
+      });
+    if (ok) variantOk++; else variantBad.push(ben.image + '→' + zhi.image);
+  }
+}
+check('预设变卦：64×63 组合全部生成同构结果且动爻准确',
+  variantOk === 64 * 63 && variantBad.length === 0);
+if (variantBad.length) console.log('    失败组合：' + variantBad.slice(0, 8).join(' / '));
+
+// ④ 具体样例：乾为天 → 天泽履（三爻动）与 乾为天 → 天风姤（初爻动）
+const toLv = LiuYao.cast({method:'name', bits:'111111', zhiBits:'110111', date:PRESET_DATE});
+check('预设变卦：乾为天→天泽履 本卦变卦正确',
+  toLv.ben.meta.image === '乾为天' && toLv.zhi.meta.image === '天泽履');
+check('预设变卦：乾为天→天泽履 动爻为三爻',
+  JSON.stringify(toLv.ben.moving) === '[2]' &&
+  toLv.ben.naJia[3].sixGod !== undefined);
+const toGou = LiuYao.cast({method:'name', bits:'111111', zhiBits:'011111', date:PRESET_DATE});
+check('预设变卦：乾为天→天风姤 变卦为天风姤且动爻为初爻',
+  toGou.zhi.meta.image === '天风姤' && JSON.stringify(toGou.ben.moving) === '[0]');
+
+// ⑤ 结果对象与铜钱起卦同构（结果页 / 古文区 / 提示词卡片无需改动即可工作）
+const coinShape = LiuYao.cast({method:'coin', lines:['old_yang','young_yin','young_yin','young_yang','young_yin','young_yin'], date:PRESET_DATE});
+const sameShape = (a, b) => JSON.stringify(Object.keys(a).sort()) === JSON.stringify(Object.keys(b).sort());
+check('预设变卦：结果对象与铜钱起卦同构',
+  sameShape(toLv, coinShape) && sameShape(toLv.ben, coinShape.ben) && sameShape(toLv.analysis, coinShape.analysis));
+check('预设变卦：变卦六爻 bits 逐爻等于所选变卦',
+  toLv.zhi.meta.bits === '110111' && toLv.zhi.naJia.length === 6);
+
+// ⑥ 提示词：本卦名 / 变卦名 / 动爻位置均正确
+const presetText = LiuYao.buildGuaTextPrompt(toLv);
+check('预设变卦：提示词含本卦名', presetText.includes('本卦：乾为天'));
+check('预设变卦：提示词含变卦名', presetText.includes('变卦：天泽履'));
+check('预设变卦：提示词动爻位置正确', presetText.includes('动爻：三爻'));
+check('预设变卦：提示词含变卦六爻节', presetText.includes('变卦六爻（自上而下）：'));
+
+// ⑦ 非法组合必须拒绝，不得静默生成错卦
+const badVariants = [
+  ['111111', '111111', '变卦与本卦相同'],
+  ['111111', '11111', '变卦位数不足'],
+  ['111111', '1111111', '变卦位数过多'],
+  ['111111', 'abcdef', '变卦非阴阳爻'],
+  ['111111', '2', '变卦非法字符'],
+  ['invalid', '110111', '本卦非法'],
+  ['', '110111', '本卦为空'],
+];
+let rejected = 0, leaked = [];
+for (const [b, z, why] of badVariants) {
+  try {
+    LiuYao.cast({method:'name', bits:b, zhiBits:z, date:PRESET_DATE});
+    leaked.push(why);
+  } catch (e) { if (e && e.message) rejected++; else leaked.push(why + '(无消息)'); }
+}
+check('预设变卦：非法组合全部被拒绝且有明确错误', rejected === badVariants.length && leaked.length === 0);
+if (leaked.length) console.log('    未拒绝：' + leaked.join(' / '));
+
+let validateThrew = 0;
+for (const [b, z] of badVariants) {
+  try { LiuYao.validateVariant(b, z); } catch (e) { validateThrew++; }
+}
+check('预设变卦：validateVariant 对非法组合一律抛错', validateThrew === badVariants.length);
+
+// ⑧ 候选变卦列表：排除本卦自身（自身即静卦，由「不变」表示）
+const variantCandidates = LiuYao.variantBitsOf('111111');
+check('预设变卦：候选变卦共 63 个且不含本卦自身',
+  variantCandidates.length === 63 && !variantCandidates.includes('111111'));
+check('预设变卦：候选变卦均为六位阴阳爻且唯一',
+  variantCandidates.every(b => /^[01]{6}$/.test(b)) &&
+  new Set(variantCandidates).size === 63);
+check('预设变卦：候选含天风姤（初爻动）', variantCandidates.includes('011111'));
+
 console.log('\n===== 六爻引擎测试结果 =====');
 results.forEach(r => console.log(r));
 console.log('===== 结束 =====');

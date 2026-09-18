@@ -258,6 +258,14 @@
   .ly-method.active{background:var(--primary);color:#fff;border-color:var(--primary);}
   .ly-extra{margin-top:4px;}
   .ly-num-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  /* 卦名起卦 · 预设变卦：动爻提示行（不引入新视觉体系，沿用卡片内的浅底小字样式） */
+  .ly-name-variant{margin-top:2px;}
+  .ly-variant-hint{
+    margin-top:8px;padding:8px 10px;border-radius:10px;font-size:12px;line-height:1.5;
+    background:#faf8f4;border:1px solid #ece6dc;color:var(--ink-soft);word-break:break-word;
+  }
+  .ly-variant-hint b{color:#7a5d12;}
+  .ly-variant-hint.unknown{color:var(--ink-faint);}
   .ly-manual{display:flex;flex-direction:column;gap:8px;}
   .ly-manual-row{display:flex;align-items:center;gap:8px;}
   .ly-label{font-size:12px;color:var(--ink-soft);font-weight:700;width:34px;text-align:right;}
@@ -1117,6 +1125,11 @@
         <div id="ly-name-fields" class="ly-extra hidden">
           <label class="field">选择卦名</label>
           <select id="ly-hex-select"></select>
+          <div class="ly-name-variant">
+            <label class="field">目标变卦（可选）</label>
+            <select id="ly-variant-select"></select>
+            <div id="ly-variant-hint" class="ly-variant-hint"></div>
+          </div>
         </div>
         <div id="ly-manual-fields" class="ly-extra hidden">
           <label class="field">手动指定六爻（自下而上）</label>
@@ -4052,6 +4065,8 @@ const YAO_TYPES = [
   {id:'young_yin', name:'少阴'}
 ];
 let manualLines = ['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'];
+// 卦名起卦的「预设变卦」目标 bits；空串 = 不变（静卦），保证原静卦行为零回归。
+let liuyaoVariantBits = '';
 let coinStep = 0;
 let coinResults = [];
 let coinSpinning = false;
@@ -4100,9 +4115,83 @@ function renderLiuyaoForm(){
     o.textContent=(h.image||h.name);
     sel.appendChild(o);
   });
+  sel.onchange=()=>{
+    // 换本卦后，原先选中的变卦可能已不适用：统一重置，让下方提示行重新渲染。
+    renderLiuyaoVariantSelect('');
+  };
 
   renderManualLines();
+  renderLiuyaoVariantSelect(liuyaoVariantBits);
   renderLiuyaoMethodFields();
+}
+
+/* 卦名起卦的「目标变卦」下拉：首项固定为「不变（静卦）」，其余列出除本卦外的全部卦名。
+   纯函数 LiuYao.variantBitsOf(bits) 负责产出候选，这里只做 DOM 组装。 */
+function buildLiuyaoVariantOptions(bits){
+  const list=(window.LiuYao && LiuYao.HEXAGRAMS)||[];
+  const byBits={};
+  list.forEach(h=>{ byBits[h.bits||h.id]=h; });
+  const opts=[{value:'', label:'不变（静卦）'}];
+  const candidates=(window.LiuYao && LiuYao.variantBitsOf && bits) ? LiuYao.variantBitsOf(bits) : [];
+  const seen={};
+  candidates.forEach(b=>{
+    const h=byBits[b];
+    if(h && !seen[b]){ seen[b]=true; opts.push({value:b, label:h.image||h.name}); }
+  });
+  return opts;
+}
+
+function renderLiuyaoVariantSelect(preferBits){
+  const benSel=document.getElementById('ly-hex-select');
+  const sel=document.getElementById('ly-variant-select');
+  if(!sel) return;
+  const bits=benSel && benSel.options.length ? benSel.value : '';
+  const opts=buildLiuyaoVariantOptions(bits);
+  const wanted=opts.some(o=>o.value===preferBits) ? preferBits : '';
+  sel.innerHTML='';
+  opts.forEach(o=>{
+    const el=document.createElement('option');
+    el.value=o.value;
+    el.textContent=o.label;
+    sel.appendChild(el);
+  });
+  sel.value=wanted;
+  liuyaoVariantBits=wanted;
+  sel.onchange=()=>{ liuyaoVariantBits=sel.value; updateLiuyaoVariantHint(); };
+  updateLiuyaoVariantHint();
+}
+
+function updateLiuyaoVariantHint(){
+  const box=document.getElementById('ly-variant-hint');
+  if(!box) return;
+  box.classList.remove('unknown');
+  const benSel=document.getElementById('ly-hex-select');
+  const bits=benSel && benSel.options.length ? benSel.value : '';
+  const nameOf=b=>{
+    const list=(window.LiuYao && LiuYao.HEXAGRAMS)||[];
+    const hit=list.find(h=>(h.bits||h.id)===b);
+    return hit ? (hit.image||hit.name) : '';
+  };
+  if(!liuyaoVariantBits){
+    if(!bits){ box.textContent=''; return; }
+    box.innerHTML='已选 <b>'+escapeHtml(nameOf(bits))+'</b> 变 <b>不变（静卦）</b>：本次起卦无动爻。';
+    return;
+  }
+  if(!(window.LiuYao && LiuYao.movingLinesFor)){
+    box.textContent='';
+    box.classList.add('unknown');
+    return;
+  }
+  try {
+    const moving=LiuYao.movingLinesFor(bits, liuyaoVariantBits);
+    const positions=moving.map(i=>MANUAL_LABELS[i]).join('、');
+    const note=moving.length>3 ? '（动爻超过三爻，卦象变化较大）' : '';
+    box.innerHTML='已选 <b>'+escapeHtml(nameOf(bits))+'</b> 变 <b>'+escapeHtml(nameOf(liuyaoVariantBits))+'</b>：'+
+      '动爻 '+moving.length+' 个 · '+escapeHtml(positions)+note;
+  } catch(e){
+    box.textContent='该变卦不可用，请重新选择';
+    box.classList.add('unknown');
+  }
 }
 
 function renderLiuyaoMethodFields(){
@@ -4251,6 +4340,16 @@ function castLiuyao(){
     const sel=document.getElementById('ly-hex-select');
     const opt=sel.options[sel.selectedIndex];
     opts.bits=opt ? opt.value : undefined;
+    // 预设变卦：选了具体变卦才带上 zhiBits；留空即「不变（静卦）」，走原静卦链路。
+    const variant=liuyaoVariantBits;
+    if(variant){
+      if(sel.value===variant){
+        showToast('变卦不能与本卦相同，静卦请选择「不变」');
+        renderLiuyaoVariantSelect('');
+        return;
+      }
+      opts.zhiBits=variant;
+    }
   }
   if(liuyaoMethod==='manual') opts.lines=manualLines.slice();
   const result=doCast(opts);
