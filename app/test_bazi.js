@@ -164,6 +164,49 @@ check('流年包含真实节气日期', !!liuNian2026 && liuNian2026.liuYue[0].j
 check('流月春季节气日期正确', !!liuNian2026 && liuNian2026.liuYue[1].jieQiDate === '2026-03-05' && liuNian2026.liuYue[3].jieQiDate === '2026-05-05');
 check('年末流月跨年节气正确', !!liuNian2026 && liuNian2026.liuYue[11].jieQiDate === '2027-01-05');
 
+// ===== 主界面「今日干支」卡片所需的历法能力（节气段）=====
+check('节气段函数已导出', typeof Bazi.getJieQiSegment === 'function');
+check('Solar 构造器已导出（供页面按排盘时刻反推节气段）',
+  typeof Bazi.Solar === 'object' && typeof Bazi.Solar.fromYmdHms === 'function');
+
+const segOf = (y, mo, d, h, mi) => Bazi.getJieQiSegment(Bazi.Solar.fromYmdHms(y, mo, d, h, mi, 0));
+const segMid = segOf(2026, 9, 18, 9, 5);
+check('节气段：白露段格式为「名 M/D–M/D」',
+  !!segMid && segMid.name === '白露' && segMid.start === '9/7' && segMid.end === '10/8' && segMid.text === '白露 9/7–10/8');
+check('节气段：起止均为交节当日（不含时间与年份）',
+  !!segMid && /^\d{1,2}\/\d{1,2}$/.test(segMid.start) && /^\d{1,2}\/\d{1,2}$/.test(segMid.end));
+check('节气段：跨年段只写 M/D–M/D',
+  (() => { const s = segOf(2026, 12, 20, 12, 0); return !!s && s.text === '大雪 12/7–1/5'; })());
+check('节气段：交节时刻切换（2026 白露在 9/7 22:41:16，前一刻仍属立秋段）',
+  (() => {
+    const before = segOf(2026, 9, 7, 22, 0);   // 交节前 → 仍是立秋段
+    const after = segOf(2026, 9, 7, 23, 0);    // 交节后 → 白露段
+    return !!before && !!after &&
+      before.name === '立秋' && before.text === '立秋 8/7–9/7' &&
+      after.name === '白露' && after.start === '9/7' && after.end === '10/8';
+  })());
+check('节气段：非法入参返回 null 而不是抛错或臆造',
+  Bazi.getJieQiSegment(null) === null && Bazi.getJieQiSegment({}) === null && Bazi.getJieQiSegment(undefined) === null);
+check('节气段与月柱同源（节气段可正常取得且与排盘并存）',
+  (() => {
+    let ok = 0;
+    [[2026, 1, 5, 10, 0], [2026, 3, 21, 12, 0], [2026, 9, 18, 9, 5], [2026, 12, 20, 12, 0]].forEach(([y, mo, d, h, mi]) => {
+      const chart = Bazi.calculate({ calendarType: 'solar', solarDate: `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`, time: `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}` });
+      const seg = Bazi.getJieQiSegment(Bazi.Solar.fromYmdHms(y, mo, d, h, mi, 0));
+      if (seg && seg.name && chart.pillars.month) ok++;
+    });
+    return ok === 4;
+  })());
+
+// 新增只做加法：既有导出与常量零影响
+check('新增节气段不改变既有导出',
+  typeof Bazi.calculate === 'function' && typeof Bazi.validateDirectPillars === 'function' &&
+  typeof Bazi.findDirectMatches === 'function' && typeof Bazi.getLunarMonths === 'function' &&
+  typeof Bazi.getLunarDays === 'function' && typeof Bazi.getNaYin === 'function' &&
+  typeof Bazi.getHiddenGan === 'function' && typeof Bazi.tenGod === 'function' &&
+  typeof Bazi.changSheng === 'function' &&
+  Array.isArray(Bazi.CITIES) && Bazi.GAN.length === 10 && Bazi.ZHI.length === 12 && Bazi.JIAZI.length === 60);
+
 console.log('\n===== 八字引擎测试结果 =====');
 results.forEach(r => console.log(r));
 console.log('===== 结束 =====');

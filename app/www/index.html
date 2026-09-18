@@ -80,6 +80,22 @@
   .back .arr{font-size:18px;}
   .card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:14px;}
   .card h3{font-size:14px;font-weight:700;margin:0 0 12px;color:var(--ink);}
+  /* 今日干支（主界面首卡，只读装饰性卡片，层级弱于 .hero） */
+  .gz-today-card{padding:16px 18px;}
+  .gz-today-title{font-size:12px;font-weight:700;color:var(--ink-soft);letter-spacing:.5px;}
+  /* 标题单独成行；其余三行文案与右块共用同一纵向容器，右块在该容器内纵向居中（不写死高度、不用 margin 硬凑） */
+  .gz-today-body{display:flex;gap:10px;margin-top:10px;}
+  .gz-today-left{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto;}
+  .gz-today-pillars{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:.5px;white-space:nowrap;}
+  .gz-today-term{font-size:11px;color:var(--ink-soft);white-space:nowrap;}
+  .gz-today-date{font-size:10px;color:var(--ink-faint);white-space:nowrap;}
+  .gz-today-right{
+    align-self:center;                 /* 纵向居中于左侧三行内容的合并高度 */
+    flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:#faf8f4;border:1px solid var(--line);border-radius:10px;padding:6px 10px;
+  }
+  .gz-today-shichen{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;}
+  .gz-today-time{font-size:11px;color:var(--ink-soft);line-height:1.3;white-space:nowrap;}
   .row{display:flex;align-items:center;gap:10px;}
   .btn{
     border:none;border-radius:14px;padding:13px 18px;font-size:15px;font-weight:700;cursor:pointer;
@@ -864,6 +880,21 @@
       <div class="today-chip" id="today-chip"></div>
     </div>
 
+    <div class="card gz-today-card" id="ganzhi-today-card">
+      <div class="gz-today-title">今日干支</div>
+      <div class="gz-today-body">
+        <div class="gz-today-left">
+          <div class="gz-today-pillars" id="ganzhi-pillars"></div>
+          <div class="gz-today-term" id="ganzhi-term"></div>
+          <div class="gz-today-date" id="ganzhi-date"></div>
+        </div>
+        <div class="gz-today-right">
+          <div class="gz-today-shichen" id="ganzhi-shichen"></div>
+          <div class="gz-today-time" id="ganzhi-clock"></div>
+        </div>
+      </div>
+    </div>
+
     <div class="hero" id="hero" style="cursor:pointer">
       <div class="label">今日精力状态</div>
       <div class="big" id="hero-score">—<span class="unit">/100</span></div>
@@ -1539,6 +1570,8 @@ const modules = [
 /* ---------------- 路由 ---------------- */
 function showView(id){
   if(id !== 'liuyao') cancelCoinSession();
+  // 主界面「今日干支」卡片的分钟级定时器：只有主界面才需要，切走即清（不重复注册）
+  if(id !== 'home') clearGanZhiTimer();
   document.getElementById('home-view').classList.toggle('hidden', id!=='home');
   document.getElementById('energy-view').classList.toggle('hidden', id!=='energy');
   document.getElementById('energy-history-view').classList.toggle('hidden', id!=='energy-history');
@@ -1558,7 +1591,7 @@ function showView(id){
   if(id==='bazi-form') renderBaziForm();
   if(id==='bazi-records') renderBaziRecords();
   if(id==='bazi-info') renderBaziInfo();
-  if(id==='home') renderHome();
+  if(id==='home'){ renderHome(); openHomeGanZhiCard(); }
 }
 function openEnergy(){ showView('energy'); }
 function openEnergyHistory(){
@@ -1586,6 +1619,89 @@ function currentPrimaryViewId(){
 }
 
 /* ---------------- 主界面渲染 ---------------- */
+/* ---------------- 主界面「今日干支」卡片（只读） ----------------
+   数据全部来自 window.Bazi：四柱 = Bazi.calculate() 的 pillars（年/月以节气为界、
+   23:00–23:59 走既有晚子时规则），时辰名 = 时柱地支 + 「时」，节气段 = Bazi.getJieQiSegment(chartSolar)。
+   页面侧不写任何历法，取不到就整行/整块省略。 */
+let ganzhiMinuteTimer = null;
+
+// 把 Date 交给引擎算出当刻四柱与节气段；返回 null 表示取不到（卡片留空，不臆造）。
+function ganzhiCardModel(date){
+  const d = date || new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const solarDate = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const time = pad(d.getHours())+':'+pad(d.getMinutes());
+  const isEngineReady = !!(window.Bazi && Bazi.calculate);
+  const chart = isEngineReady ? Bazi.calculate({calendarType:'solar', solarDate:solarDate, time:time}) : null;
+  const p = chart && chart.pillars;
+  if(!p || !p.year || !p.month || !p.day || !p.hour) return null;
+  let segment = null;
+  if(chart.chartSolarDatetime && window.Bazi && Bazi.getJieQiSegment){
+    // 用 Bazi.calculate 回显的排盘时刻反推 Solar，保证节气段与四柱严格同源
+    const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/.exec(String(chart.chartSolarDatetime));
+    if(m && window.Bazi.Solar) segment = Bazi.getJieQiSegment(Bazi.Solar.fromYmdHms(+m[1], +m[2], +m[3], +m[4], +m[5], 0));
+  }
+  return {
+    pillars: p.year+'年 '+p.month+'月 '+p.day+'日 '+p.hour+'时',
+    shichen: p.hour[1]+'时',
+    // 右块时间用设备本地时间，不补零、只到分钟（与要求一致）
+    clock: d.getHours()+':'+pad(d.getMinutes()),
+    term: segment ? segment.text : '',
+    date: d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日'
+  };
+}
+
+function renderGanZhiTodayCard(date){
+  const pillarsEl = document.getElementById('ganzhi-pillars');
+  if(!pillarsEl) return;
+  const model = ganzhiCardModel(date);
+  const termEl = document.getElementById('ganzhi-term');
+  const dateEl = document.getElementById('ganzhi-date');
+  const shichenEl = document.getElementById('ganzhi-shichen');
+  const clockEl = document.getElementById('ganzhi-clock');
+  if(!model){
+    pillarsEl.textContent = '';
+    if(termEl) termEl.textContent = '';
+    if(dateEl) dateEl.textContent = '';
+    if(shichenEl) shichenEl.textContent = '';
+    if(clockEl) clockEl.textContent = '';
+    return;
+  }
+  pillarsEl.textContent = model.pillars;
+  // 节气算不出就整行省略（不编）
+  if(termEl) termEl.textContent = model.term ? '节气 '+model.term : '';
+  if(dateEl) dateEl.textContent = model.date;
+  if(shichenEl) shichenEl.textContent = model.shichen;
+  if(clockEl) clockEl.textContent = model.clock;
+}
+
+function clearGanZhiTimer(){
+  if(ganzhiMinuteTimer !== null){
+    window.clearTimeout(ganzhiMinuteTimer);
+    ganzhiMinuteTimer = null;
+  }
+}
+
+// 对齐分钟边界刷新：按「距下一分钟还差多少毫秒」排一次 setTimeout，
+// 每次醒来重排，因此不会像固定 60 秒那样逐渐漂移。
+function scheduleGanZhiTimer(){
+  if(ganzhiMinuteTimer !== null) return;   // 已有待触发的定时器 → 幂等，不重复注册
+  const tick = ()=>{
+    ganzhiMinuteTimer = null;
+    if(currentPrimaryViewId() !== 'home') return;      // 不在主界面就不再重排（定时器自然结束）
+    renderGanZhiTodayCard(new Date());
+    scheduleGanZhiTimer();
+  };
+  const now = new Date();
+  const delay = 60000 - (now.getSeconds()*1000 + now.getMilliseconds());
+  ganzhiMinuteTimer = window.setTimeout(tick, delay < 0 ? 0 : delay);
+}
+
+function openHomeGanZhiCard(){
+  renderGanZhiTodayCard(new Date());
+  scheduleGanZhiTimer();
+}
+
 function renderHome(){
   document.getElementById('today-chip').textContent = '今天 · ' + fmtDateCN(todayStr());
   const today = state.records[todayStr()];
@@ -5231,6 +5347,8 @@ document.getElementById('bz-group-add').addEventListener('click', addBaziGroupFr
 
 // 初始化
 renderHome();
+// 今日干支卡片首次渲染 + 启动分钟级刷新（scheduleGanZhiTimer 幂等，不会重复注册）
+openHomeGanZhiCard();
 </script>
 </body>
 </html>

@@ -323,6 +323,154 @@ const activeGroupTab = [...document.querySelectorAll('#bz-group-tabs .bz-group-t
 check('分组切换保留且过滤正确', document.querySelectorAll('.bz-record-row').length === 2 &&
   activeGroupTab.classList.contains('active'));
 
+// ===== 主界面「今日干支」只读卡片 =====
+// 首屏回归：应用初始化（脚本末尾的 renderHome()）之后卡片就必须有内容 ——
+// 只靠 showView('home') 渲染是不够的，首页冷启动不走 showView。
+const initSource = inlineBlocks[inlineBlocks.length - 1][1];
+check('初始化会渲染今日干支卡片（冷启动首屏不为空）',
+  /renderHome\(\);\s*(\/\/[^\n]*\n\s*)?openHomeGanZhiCard\(\);/.test(initSource));
+check('冷启动时卡片已有四柱内容（未经过 showView）',
+  document.getElementById('ganzhi-pillars').textContent.length > 0 &&
+  document.getElementById('ganzhi-shichen').textContent.length > 0 &&
+  document.getElementById('ganzhi-clock').textContent.length > 0);
+
+const gzCard = document.getElementById('ganzhi-today-card');
+const gzHero = document.getElementById('hero');
+check('今日干支卡片存在', !!gzCard);
+check('今日干支卡片位于 #hero 之前（主界面第一张卡片）',
+  !!gzCard && !!gzHero && !!(gzCard.compareDocumentPosition(gzHero) & window.Node.DOCUMENT_POSITION_FOLLOWING));
+check('今日干支卡片不是 .mod-card（不影响模块注册表遍历）',
+  !!gzCard && !gzCard.classList.contains('mod-card') && gzCard.className.indexOf('mod-card') < 0);
+check('今日干支卡片标题为「今日干支」',
+  !!gzCard && gzCard.querySelector('.gz-today-title').textContent === '今日干支');
+check('今日干支卡片复用现有卡片体系（.card + 圆角变量）',
+  !!gzCard && gzCard.classList.contains('card'));
+
+const gzBody = gzCard.querySelector('.gz-today-body');
+const gzLeft = gzCard.querySelector('.gz-today-left');
+const gzRight = gzCard.querySelector('.gz-today-right');
+check('右块与左侧三行文案共用同一纵向容器（标题单独成行、在容器之外）',
+  !!gzBody && !!gzLeft && !!gzRight &&
+  gzBody.contains(gzLeft) && gzBody.contains(gzRight) &&
+  !gzBody.contains(gzCard.querySelector('.gz-today-title')) &&
+  gzLeft.children.length === 3);
+const styleText = document.querySelector('style') ? document.querySelector('style').textContent : '';
+const cssRule = sel => { const i = styleText.indexOf(sel); return i < 0 ? '' : styleText.slice(i, styleText.indexOf('}', i) + 1); };
+const bodyRule = cssRule('.gz-today-body{');
+const rightRule = cssRule('.gz-today-right{');
+// 只禁「写死尺寸/用间距硬凑居中」：允许 gap / padding 这类常规间距
+const hasFixedSize = rule => /(^|[;{])\s*(height|min-height|max-height|width|min-width|max-width)\s*:/.test(rule);
+check('容器的居中约束来自 align-self（不是固定尺寸 / margin-top 硬凑）',
+  window.getComputedStyle(gzBody).display === 'flex' &&
+  window.getComputedStyle(gzRight).alignSelf === 'center' &&
+  bodyRule.indexOf('align-items') < 0 &&                 // 没有靠拉伸整行来"看起来居中"
+  bodyRule.indexOf('justify-content') < 0 &&
+  !hasFixedSize(bodyRule) &&                             // 容器高度由内容撑开
+  !hasFixedSize(cssRule('.gz-today-card{')) &&           // 卡片没写死高度
+  rightRule.indexOf('margin-top') < 0 &&                 // 右块不用 margin-top 硬凑
+  rightRule.indexOf('align-self') >= 0 &&                // 居中交给 flex 的 align-self
+  rightRule.indexOf('align-self:center') >= 0);
+check('节气行与日期行都在左块内、与四柱不同行（纵向排列）',
+  gzLeft.children[0].classList.contains('gz-today-pillars') &&
+  gzLeft.children[1].classList.contains('gz-today-term') &&
+  gzLeft.children[2].classList.contains('gz-today-date'));
+check('卡片只读：无 onclick、无内联 onclick 属性、无按压态类',
+  gzCard.onclick === null && !gzCard.hasAttribute('onclick') && !gzCard.classList.contains('mod-card'));
+
+const renderCard = date => { window.renderGanZhiTodayCard(date); };
+const enginePillars = d => {
+  const pad = n => String(n).padStart(2, '0');
+  const r = window.Bazi.calculate({
+    calendarType: 'solar',
+    solarDate: d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()),
+    time: pad(d.getHours()) + ':' + pad(d.getMinutes())
+  });
+  const p = r.pillars;
+  return { text: p.year + '年 ' + p.month + '月 ' + p.day + '日 ' + p.hour + '时', shichen: p.hour[1] + '时' };
+};
+
+const dayDate = new Date(2026, 8, 18, 9, 5, 0);   // 2026-09-18 09:05
+renderCard(dayDate);
+const expected = enginePillars(dayDate);
+check('四柱与引擎同源（Bazi.calculate 的 pillars 原值，未美化未补位）',
+  document.getElementById('ganzhi-pillars').textContent === expected.text &&
+  document.getElementById('ganzhi-pillars').textContent === '丙午年 丁酉月 乙未日 辛巳时');
+check('右块第一行是时辰名（引擎时柱地支 + 时）',
+  document.getElementById('ganzhi-shichen').textContent === expected.shichen &&
+  document.getElementById('ganzhi-shichen').textContent === '巳时');
+check('右块第二行为 HH:MM 且不补零（9:05）',
+  document.getElementById('ganzhi-clock').textContent === '9:05');
+check('右块只显示时辰名，不含时辰起止区间',
+  !/\d{1,2}:\d{2}\s*[–\-~至]/.test(document.getElementById('ganzhi-shichen').textContent) &&
+  document.getElementById('ganzhi-shichen').textContent.indexOf('时') ===
+  document.getElementById('ganzhi-shichen').textContent.length - 1);
+check('节气行为「节气名 M/D–M/D」',
+  document.getElementById('ganzhi-term').textContent === '节气 白露 9/7–10/8');
+check('日期行只有公元日期、没有时间',
+  document.getElementById('ganzhi-date').textContent === '2026年9月18日' &&
+  !/\d{1,2}:\d{2}/.test(document.getElementById('ganzhi-date').textContent));
+
+// 时间文案长度变化后仍与左侧同一容器（居中关系不依赖时间文本长度）
+renderCard(new Date(2026, 8, 18, 12, 5, 0));
+check('时间文案长度变化（9:05 → 12:05）后右块仍在同一居中容器内',
+  document.getElementById('ganzhi-clock').textContent === '12:05' &&
+  gzCard.querySelector('.gz-today-right').parentElement === gzBody &&
+  window.getComputedStyle(gzCard.querySelector('.gz-today-right')).alignSelf === 'center');
+check('时间变化后四柱同步更新（午时）',
+  document.getElementById('ganzhi-pillars').textContent === '丙午年 丁酉月 乙未日 壬午时' &&
+  document.getElementById('ganzhi-shichen').textContent === '午时');
+
+// 跨日：日期行随之更新
+renderCard(new Date(2026, 8, 19, 9, 5, 0));
+check('跨日后日期行随之更新', document.getElementById('ganzhi-date').textContent === '2026年9月19日');
+
+// 23:30 晚子时：日柱进位、时柱同源、时辰名为子时（与八字排盘同口径）
+const lateZi = new Date(2026, 8, 18, 23, 30, 0);
+renderCard(lateZi);
+const lateZiEngine = window.Bazi.calculate({ calendarType:'solar', solarDate:'2026-09-18', time:'23:30' });
+check('23:30 晚子时：卡片四柱与引擎一致（日柱进位丙申、时柱丙子）',
+  document.getElementById('ganzhi-pillars').textContent === lateZiEngine.pillars.year + '年 ' +
+    lateZiEngine.pillars.month + '月 ' + lateZiEngine.pillars.day + '日 ' + lateZiEngine.pillars.hour + '时' &&
+  document.getElementById('ganzhi-pillars').textContent === '丙午年 丁酉月 丙申日 丙子时');
+check('23:30 时辰名为子时', document.getElementById('ganzhi-shichen').textContent === '子时');
+check('23:30 时间不补零', document.getElementById('ganzhi-clock').textContent === '23:30');
+
+// 跨节气：把时间推到交节时刻之后
+renderCard(new Date(2026, 8, 7, 22, 0, 0));
+const termBefore = document.getElementById('ganzhi-term').textContent;
+renderCard(new Date(2026, 8, 7, 23, 0, 0));
+check('跨节气后节气行随之更新（9/7 22:41 交白露）',
+  termBefore === '节气 立秋 8/7–9/7' && document.getElementById('ganzhi-term').textContent === '节气 白露 9/7–10/8');
+
+// 定时器：切走清理、回到主界面重建、不重复注册、自续期
+const realSetTimeout = window.setTimeout;
+const realClearTimeout = window.clearTimeout;
+let created = 0, cleared = 0, lastDelay = null, lastFn = null;
+window.setTimeout = (fn, delay) => { created++; lastDelay = delay; lastFn = fn; return realSetTimeout(fn, delay); };
+window.clearTimeout = id => { if (id !== null && id !== undefined) cleared++; return realClearTimeout(id); };
+
+window.showView('energy');                        // 先清干净（前面 showView('home') 会留下一个）
+const c0 = created, cl0 = cleared;
+window.openHomeGanZhiCard();
+check('进入主界面注册一个对齐分钟边界的定时器',
+  created === c0 + 1 && typeof lastDelay === 'number' && lastDelay > 0 && lastDelay <= 60000);
+const beforeRepeat = created;
+window.openHomeGanZhiCard();
+window.openHomeGanZhiCard();
+check('重复进入主界面不会重复注册（仍只有一个定时器）', created === beforeRepeat);
+window.showView('energy');
+check('切到其它视图后清理定时器', cleared === cl0 + 1);
+window.showView('home');
+check('重新进入主界面重建定时器', created === beforeRepeat + 1);
+const beforeTick = created;
+window.clearTimeout = realClearTimeout;           // 这一拍会真实触发，避免再次拦截 clear
+if(lastFn) lastFn();
+window.clearTimeout = id => { if (id !== null && id !== undefined) cleared++; return realClearTimeout(id); };
+check('定时器到期后自动重排（分钟级持续刷新）', created === beforeTick + 1);
+window.showView('energy');                        // 离开主界面，保证没有遗留定时器
+window.setTimeout = realSetTimeout;
+window.clearTimeout = realClearTimeout;
+
 console.log('\n===== 八字页面测试结果 =====');
 results.forEach(result => console.log(result));
 console.log('===== 结束 =====');

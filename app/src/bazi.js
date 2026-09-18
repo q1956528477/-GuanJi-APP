@@ -360,6 +360,28 @@ function getRenYuanSiLing(solar, monthZhi) {
   const segment = selectRenyuanSiling(ZHI.indexOf(monthZhi), daysAfterJie);
   return { gan:GAN[segment.stem], daysAfterJie };
 }
+// 当前时刻所处的「节」段：起 = 该节气（节）交节当日，止 = 下一节交节当日，只给 M/D，不含时间与年份。
+// 与月柱同源 —— 月柱也以「节」为界，所以这一段正好覆盖当前月柱。
+// 跨年段照常（如 大雪 12/7–1/5）。取不到时返回 null，由调用方整行省略。
+function getJieQiSegment(solar) {
+  if (!solar || typeof solar.getLunar !== 'function') return null;
+  try {
+    const lunar = solar.getLunar();
+    const prev = lunar.getPrevJie();
+    const next = lunar.getNextJie();
+    if (!prev || !next) return null;
+    const name = prev.getName();
+    const start = prev.getSolar();
+    const end = next.getSolar();
+    if (!name || !start || !end) return null;
+    const md = s => s.getMonth() + '/' + s.getDay();
+    const startText = md(start);
+    const endText = md(end);
+    return { name, start:startText, end:endText, text:name + ' ' + startText + '–' + endText };
+  } catch (e) {
+    return null;
+  }
+}
 function pillarListFromDetails(details) {
   return ['year','month','day','hour'].map(key => details[key]);
 }
@@ -847,5 +869,6 @@ function getHiddenGan(zhi) {
 
 export {
   calculate, validateDirectPillars, findDirectMatches, getLunarMonths, getLunarDays, getNaYin, getHiddenGan,
+  getJieQiSegment, Solar,
   CITIES, JIAZI, GAN, ZHI, GAN_ELEMENT, ZHI_ELEMENT, tenGod, changSheng
 };

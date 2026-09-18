@@ -76,3 +76,8 @@ console.log('\n===== 模块注册表测试结果 =====');
 results.forEach(result => console.log(result));
 console.log('共 ' + cards.length + ' 个模块');
 console.log('===== 结束 =====');
+
+// 收尾：主界面「今日干支」卡片会保留一个对齐分钟边界的刷新定时器（浏览器里本就该这样做），
+// jsdom 没有 pagehide/unload 钩子，因此这里显式结束进程，否则测试跑完也不会退出。
+// 注意：只影响进程退出时机，不影响任何断言与遍历结论（exitCode 已由 check() 设置）。
+process.exit(process.exitCode || 0);
