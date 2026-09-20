@@ -128,7 +128,7 @@ check('未来日期灰显且不可操作',
 const recCell = document.querySelector('#gym-month-grid .energy-month-day[data-date="' + D(day1) + '"]');
 check('出勤日有明确标记（圆点 + 时长，且能看出有记录）',
   !!recCell && !!recCell.querySelector('.gym-day-dot') &&
-  recCell.textContent.includes('45分钟') && recCell.classList.contains('recorded'));
+  recCell.textContent.includes('45分') && recCell.classList.contains('recorded'));
 // 必须挑「非未来 且 无记录」的日期，否则点击会被未来日期拦截（连锁失败）
 const emptyCell = cells.find(c => !c.classList.contains('recorded') && !c.classList.contains('future'));
 check('无出勤日显示占位标记', !!emptyCell && emptyCell.textContent.includes('—'));
@@ -166,7 +166,7 @@ check('新增出勤记录后弹窗关闭且落盘',
   gymStore().sessions[target].minutes === 90);
 check('新增后总出勤天数与月历同步更新',
   txt('gym-days') === '5' &&
-  (document.querySelector('#gym-month-grid .energy-month-day[data-date="' + target + '"]') || {}).textContent.includes('1小时30分钟'));
+  (document.querySelector('#gym-month-grid .energy-month-day[data-date="' + target + '"]') || {}).textContent.includes('1h30'));
 
 // 同一天再记一次 → 覆盖，不产生第二条
 dayCell(D(day1)).click();

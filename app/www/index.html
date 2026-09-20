@@ -264,7 +264,11 @@
   .gym-stat .u{font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:2px;}
   .gym-today-btn{margin-top:12px;width:100%;}
   .gym-today-btn.done{background:#eaf7f2;color:#2b8a6b;}
-  .gym-day-minutes{grid-row:3;align-self:end;justify-self:center;font-size:.56rem;font-weight:700;line-height:1.05;color:#2b8a6b;margin:0;white-space:nowrap;}
+  .gym-day-minutes{
+    grid-row:3;align-self:end;justify-self:center;font-size:.56rem;font-weight:700;line-height:1.05;
+    color:#2b8a6b;margin:0;white-space:nowrap;
+    max-width:100%;overflow:hidden;text-overflow:ellipsis;   /* 极端时长兜底：不换行、不溢出 */
+  }
   .gym-day-dot{grid-row:2;align-self:center;justify-self:center;width:.5rem;height:.5rem;border-radius:50%;background:var(--green);}
   .gym-month-nav{margin-bottom:1rem;}
   .gym-concl-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
@@ -2014,6 +2018,14 @@ function formatMinutesCN(minutes){
   const h = Math.floor(m / 60), rest = m % 60;
   return rest === 0 ? h + '小时' : h + '小时' + rest + '分钟';
 }
+// 月历格专用的紧凑写法（中文完整写法在 320px 一格内放不下会溢出）：
+// 不满 1 小时仍写「xx分」，满 1 小时写「xhxx」/「xh」。详情弹窗与按钮反馈仍用 formatMinutesCN 的完整文案。
+function formatMinutesCompact(minutes){
+  const m = Math.max(0, Math.round(Number(minutes) || 0));
+  if(m < 60) return m + '分';
+  const h = Math.floor(m / 60), rest = m % 60;
+  return rest === 0 ? h + 'h' : h + 'h' + rest;
+}
 // 距年卡到期天数：按设备本地日历日差（到期当天 0，过期后为负）
 function gymDaysLeft(){
   const now = new Date();
@@ -2121,7 +2133,7 @@ function renderGymView(){
     cell.dataset.date = dateStr;
     cell.innerHTML = '<div class="dn">' + day + '</div>' +
       (minutes
-        ? '<div class="gym-day-dot"></div><div class="gym-day-minutes">' + formatMinutesCN(minutes) + '</div>'
+        ? '<div class="gym-day-dot"></div><div class="gym-day-minutes">' + escapeHtml(formatMinutesCompact(minutes)) + '</div>'
         : '<div class="energy-history-placeholder">—</div>');
     cell.onclick = () => {
       if(future) return;                       // 未来日期不可操作
