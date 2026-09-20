@@ -255,6 +255,28 @@
   .energy-history-empty{text-align:center;color:var(--ink-soft);font-size:.82rem;line-height:1.7;padding:2rem .5rem;}
   .energy-history-empty .icon{display:block;font-size:2rem;margin-bottom:.45rem;}
 
+  /* 健身房Roi（复用上面那套月历结构，不另造视觉体系） */
+  .gym-entry-btn{font-family:inherit;font-weight:700;color:#7a5d12;cursor:pointer;}
+  .gym-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .gym-stat{background:#faf8f4;border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0;}
+  .gym-stat .k{font-size:11px;color:var(--ink-soft);font-weight:600;white-space:nowrap;}
+  .gym-stat .v{font-size:17px;font-weight:800;color:var(--ink);margin-top:2px;white-space:nowrap;}
+  .gym-stat .u{font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:2px;}
+  .gym-today-btn{margin-top:12px;width:100%;}
+  .gym-today-btn.done{background:#eaf7f2;color:#2b8a6b;}
+  .gym-day-minutes{grid-row:3;align-self:end;justify-self:center;font-size:.56rem;font-weight:700;line-height:1.05;color:#2b8a6b;margin:0;white-space:nowrap;}
+  .gym-day-dot{grid-row:2;align-self:center;justify-self:center;width:.5rem;height:.5rem;border-radius:50%;background:var(--green);}
+  .gym-month-nav{margin-bottom:1rem;}
+  .gym-concl-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .gym-concl-row:last-child{border-bottom:none;}
+  .gym-concl-row .k{font-size:12px;color:var(--ink-soft);font-weight:600;white-space:nowrap;}
+  .gym-concl-num{font-size:26px;font-weight:800;color:var(--primary);white-space:nowrap;line-height:1.2;}
+  .gym-concl-num .u{font-size:12px;font-weight:600;color:var(--ink-soft);margin-left:2px;}
+  .gym-day-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .gym-day-row:last-child{border-bottom:none;}
+  .gym-day-row .k{font-size:12px;color:var(--ink-soft);font-weight:600;}
+  .gym-day-row .v{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;}
+
   /* 详情弹窗内容 */
   .detail-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);}
   .detail-row:last-child{border-bottom:none;}
@@ -877,7 +899,7 @@
           <div class="sub">身心状态记录</div>
         </div>
       </div>
-      <div class="today-chip" id="today-chip"></div>
+      <button type="button" class="today-chip gym-entry-btn" id="gym-entry-btn">健身房Roi</button>
     </div>
 
     <div class="card gz-today-card" id="ganzhi-today-card">
@@ -1030,6 +1052,79 @@
         <span class="icon">🌱</span>
         还没有历史记录，先从今天的精力状态开始记录吧。
       </div>
+    </div>
+  </div>
+
+  <!-- ============ 健身房Roi（独立顶级视图） ============ -->
+  <div id="gym-view" class="hidden">
+    <div class="topbar" style="padding-top:calc(18px + env(safe-area-inset-top));">
+      <div class="back" id="gym-back"><span class="arr">←</span> 返回</div>
+      <div class="today-chip">健身房Roi</div>
+    </div>
+
+    <!-- 自上而下顺序固定：顶栏 → 基础数据区 → 月历区 → 结论区 -->
+    <div class="card">
+      <h3>基础数据</h3>
+      <div class="gym-stats">
+        <div class="gym-stat">
+          <div class="k">年卡价格</div>
+          <div class="v"><span id="gym-price">2920</span><span class="u">元</span></div>
+        </div>
+        <div class="gym-stat">
+          <div class="k">总出勤天数</div>
+          <div class="v"><span id="gym-days">0</span><span class="u">天</span></div>
+        </div>
+        <div class="gym-stat">
+          <div class="k">累计总时长</div>
+          <div class="v"><span id="gym-total">0分钟</span></div>
+        </div>
+        <div class="gym-stat">
+          <div class="k">距年卡到期</div>
+          <div class="v"><span id="gym-remain">—</span><span class="u">天</span></div>
+        </div>
+      </div>
+      <button class="btn small ghost gym-today-btn" id="gym-today-btn">今天去了</button>
+    </div>
+
+    <div class="card">
+      <div class="energy-history-nav gym-month-nav">
+        <button class="btn small ghost" id="gym-prev">‹ 上一月</button>
+        <div class="energy-history-month" id="gym-month"></div>
+        <button class="btn small ghost" id="gym-next">下一月 ›</button>
+      </div>
+      <div class="energy-history-weekdays">
+        <div class="energy-history-weekday">一</div>
+        <div class="energy-history-weekday">二</div>
+        <div class="energy-history-weekday">三</div>
+        <div class="energy-history-weekday">四</div>
+        <div class="energy-history-weekday">五</div>
+        <div class="energy-history-weekday">六</div>
+        <div class="energy-history-weekday">日</div>
+      </div>
+      <div class="energy-month-grid" id="gym-month-grid"></div>
+    </div>
+
+    <div class="card gym-conclusion">
+      <h3>结论</h3>
+      <div class="gym-concl-row">
+        <span class="k">单次价格</span>
+        <span class="gym-concl-num"><span id="gym-percost">—</span><span class="u">元</span></span>
+      </div>
+      <div class="gym-concl-row">
+        <span class="k">每次平均时长</span>
+        <span class="gym-concl-num"><span id="gym-peravg">—</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 健身房出勤日详情弹窗（独立一层，已登记进 handleBack 最前几层） -->
+  <div class="modal-overlay" id="gym-day-modal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <h3 id="gym-day-title">出勤记录</h3>
+        <button class="modal-close" id="gym-day-close">&times;</button>
+      </div>
+      <div id="gym-day-body"></div>
     </div>
   </div>
 
@@ -1575,6 +1670,7 @@ function showView(id){
   document.getElementById('home-view').classList.toggle('hidden', id!=='home');
   document.getElementById('energy-view').classList.toggle('hidden', id!=='energy');
   document.getElementById('energy-history-view').classList.toggle('hidden', id!=='energy-history');
+  document.getElementById('gym-view').classList.toggle('hidden', id!=='gym');
   document.getElementById('liuyao-view').classList.toggle('hidden', id!=='liuyao');
   document.getElementById('liuyao-history-view').classList.toggle('hidden', id!=='liuyao-history');
   document.getElementById('req-view').classList.toggle('hidden', id!=='req');
@@ -1585,6 +1681,7 @@ function showView(id){
   window.scrollTo(0,0);
   if(id==='energy') renderEnergy();
   if(id==='energy-history') renderEnergyHistory();
+  if(id==='gym') renderGymView();
   if(id==='liuyao') renderLiuyaoForm();
   if(id==='liuyao-history') renderLiuyaoHistoryList();
   if(id==='req') renderReqList();
@@ -1611,6 +1708,7 @@ function currentPrimaryViewId(){
     ['bazi-form-view','bazi-form'],
     ['liuyao-view','liuyao'],
     ['energy-history-view','energy-history'],
+    ['gym-view','gym'],
     ['energy-view','energy'],
     ['home-view','home']
   ];
@@ -1703,7 +1801,9 @@ function openHomeGanZhiCard(){
 }
 
 function renderHome(){
-  document.getElementById('today-chip').textContent = '今天 · ' + fmtDateCN(todayStr());
+  // 注意：主界面右上角已改为「健身房Roi」入口按钮（#gym-entry-btn），
+  // 原「今天 · X月X日」日期显示已取消（日期信息由「今日干支」卡片承担）。
+  // 不要再往 #today-chip 写值 —— 该元素已不存在，写入会抛异常导致整页白屏。
   const today = state.records[todayStr()];
   const tier = scoreTier(today ? today.score : null);
   document.getElementById('hero-score').innerHTML = (today?today.score:'—')+'<span class="unit">/100</span>';
@@ -1866,6 +1966,231 @@ function renderEnergyHistory(){
     grid.appendChild(cell);
   }
 }
+
+/* ---------------- 健身房Roi ---------------- */
+// 口径常量：年卡价格与到期日按需求写死为具名常量，避免散落魔法数字。
+const GYM_CARD_PRICE = 2920;              // 年卡价格（元）
+const GYM_CARD_EXPIRY = '2027-08-08';     // 年卡到期日
+const GYM_STORAGE_KEY = 'guanji_gym_v1';
+const GYM_DEFAULT_MINUTES = 60;           // 「今天去了」快捷记录的默认时长（分钟），可在详情里改
+let gymState = { sessions: {} };
+let gymYear = null;
+let gymMonth = null;
+
+function gymLoad(){
+  try{
+    const raw = localStorage.getItem(GYM_STORAGE_KEY);
+    if(!raw) return { sessions:{} };
+    const data = JSON.parse(raw);
+    const sessions = data && typeof data.sessions === 'object' && data.sessions ? data.sessions : {};
+    const clean = {};
+    Object.keys(sessions).forEach(k=>{
+      const rec = sessions[k];
+      if(!rec || typeof rec !== 'object') return;                 // 缺字段/脏数据直接跳过，不抛错
+      const minutes = Number(rec.minutes);
+      if(!isFinite(minutes) || minutes <= 0) return;
+      clean[k] = { minutes: Math.round(minutes) };
+    });
+    return { sessions: clean };
+  }catch(e){ return { sessions:{} }; }
+}
+function gymSave(){
+  try{ localStorage.setItem(GYM_STORAGE_KEY, JSON.stringify(gymState)); }
+  catch(e){ showToast('保存失败'); }
+}
+// 有出勤记录的日期数量（同一天只算 1 天）
+function gymStats(){
+  const dates = Object.keys(gymState.sessions).sort();
+  let total = 0;
+  dates.forEach(d=>{ total += gymState.sessions[d].minutes; });
+  return { days:dates.length, totalMinutes:total };
+}
+// 分钟 → 展示文案：不满 1 小时只写「xx分钟」；满 1 小时写「x小时xx分钟」（整点写「x小时」）。
+// 注意：不要叫 formatDuration —— 项目里已有同名的「小时」口径函数给睡眠时长用（见精力状态页），
+// 同名会互相覆盖，属于静默改坏既有功能。
+function formatMinutesCN(minutes){
+  const m = Math.max(0, Math.round(Number(minutes) || 0));
+  if(m < 60) return m + '分钟';
+  const h = Math.floor(m / 60), rest = m % 60;
+  return rest === 0 ? h + '小时' : h + '小时' + rest + '分钟';
+}
+// 距年卡到期天数：按设备本地日历日差（到期当天 0，过期后为负）
+function gymDaysLeft(){
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const parts = GYM_CARD_EXPIRY.split('-').map(Number);
+  const expiry = new Date(parts[0], parts[1]-1, parts[2]);
+  return Math.round((expiry - today) / 86400000);
+}
+// 最早有出勤记录的月份（用于「上一月」的下界）
+function gymEarliestMonth(){
+  const dates = Object.keys(gymState.sessions).sort();
+  if(!dates.length) return null;
+  const [year, month] = dates[0].split('-').map(Number);
+  return { year, month };
+}
+function gymOpenMonth(){
+  const now = new Date();
+  gymYear = now.getFullYear();
+  gymMonth = now.getMonth() + 1;
+}
+function gymChangeMonth(delta){
+  if(gymYear == null || gymMonth == null) gymOpenMonth();
+  const now = new Date();
+  const currentIndex = now.getFullYear() * 12 + now.getMonth();
+  const nextIndex = gymYear * 12 + (gymMonth - 1) + delta;
+  if(delta > 0 && nextIndex > currentIndex){ showToast('不能查看未来月份'); return; }
+  if(delta < 0){
+    const earliest = gymEarliestMonth();
+    if(earliest){
+      const earliestIndex = earliest.year * 12 + (earliest.month - 1);
+      if(nextIndex < earliestIndex){ showToast('已到最早记录月份'); return; }
+    }
+  }
+  const nextDate = new Date(Math.floor(nextIndex / 12), ((nextIndex % 12) + 12) % 12, 1);
+  gymYear = nextDate.getFullYear();
+  gymMonth = nextDate.getMonth() + 1;
+  renderGymView();
+}
+function gymDayDetail(dateStr){
+  const rec = gymState.sessions[dateStr] || null;
+  return rec ? rec.minutes : null;
+}
+// 同一天只允许一条记录：已有则覆盖
+function gymSetDay(dateStr, minutes){
+  const m = Math.round(Number(minutes));
+  if(!isFinite(m) || m <= 0){ showToast('请输入大于 0 的整数分钟'); return false; }
+  gymState.sessions[dateStr] = { minutes: m };
+  gymSave();
+  return true;
+}
+function gymDeleteDay(dateStr){
+  if(gymState.sessions[dateStr]){ delete gymState.sessions[dateStr]; gymSave(); }
+}
+
+function renderGymView(){
+  if(gymYear == null || gymMonth == null) gymOpenMonth();
+  const stats = gymStats();
+  const priceEl = document.getElementById('gym-price');
+  if(priceEl) priceEl.textContent = String(GYM_CARD_PRICE);
+  document.getElementById('gym-days').textContent = String(stats.days);
+  document.getElementById('gym-total').textContent = formatMinutesCN(stats.totalMinutes);
+  document.getElementById('gym-remain').textContent = String(gymDaysLeft());
+  // 除零保护：没有出勤时一律显示「—」，不出现 Infinity / NaN
+  document.getElementById('gym-percost').textContent =
+    stats.days > 0 ? (GYM_CARD_PRICE / stats.days).toFixed(2) : '—';
+  document.getElementById('gym-peravg').textContent =
+    stats.days > 0 ? formatMinutesCN(stats.totalMinutes / stats.days) : '—';
+  // 「今天去了」按钮的当前态反馈
+  const todayBtn = document.getElementById('gym-today-btn');
+  if(todayBtn){
+    const todayMin = gymDayDetail(todayStr());
+    todayBtn.textContent = todayMin ? ('今天已记录 ' + formatMinutesCN(todayMin) + ' · 点击修改') : '今天去了';
+    todayBtn.classList.toggle('done', !!todayMin);
+  }
+  // 月历
+  const current = new Date();
+  const currentIndex = current.getFullYear() * 12 + current.getMonth();
+  const monthIndex = gymYear * 12 + (gymMonth - 1);
+  const earliest = gymEarliestMonth();
+  document.getElementById('gym-month').textContent = gymYear + '年' + gymMonth + '月';
+  document.getElementById('gym-next').disabled = monthIndex >= currentIndex;
+  document.getElementById('gym-prev').disabled = !!earliest && monthIndex <= earliest.year * 12 + (earliest.month - 1);
+
+  const grid = document.getElementById('gym-month-grid');
+  const lead = (new Date(gymYear, gymMonth - 1, 1).getDay() + 6) % 7;   // 周一为每周首日
+  const daysInMonth = new Date(gymYear, gymMonth, 0).getDate();
+  const totalSlots = Math.ceil((lead + daysInMonth) / 7) * 7;
+  const pad = n => String(n).padStart(2, '0');
+  const today = todayStr();
+  grid.innerHTML = '';
+  for(let slot=0; slot<totalSlots; slot++){
+    const day = slot - lead + 1;
+    if(day < 1 || day > daysInMonth){
+      const blank = document.createElement('div');
+      blank.className = 'energy-month-blank';
+      grid.appendChild(blank);
+      continue;
+    }
+    const dateStr = gymYear + '-' + pad(gymMonth) + '-' + pad(day);
+    const minutes = gymDayDetail(dateStr);
+    const future = dateStr > today;
+    const cell = document.createElement('div');
+    cell.className = 'energy-month-day gym-month-day' + (dateStr===today?' today':'') +
+      (future?' future':'') + (minutes?' recorded':'');
+    cell.dataset.date = dateStr;
+    cell.innerHTML = '<div class="dn">' + day + '</div>' +
+      (minutes
+        ? '<div class="gym-day-dot"></div><div class="gym-day-minutes">' + formatMinutesCN(minutes) + '</div>'
+        : '<div class="energy-history-placeholder">—</div>');
+    cell.onclick = () => {
+      if(future) return;                       // 未来日期不可操作
+      openGymDayDetail(dateStr);
+    };
+    grid.appendChild(cell);
+  }
+}
+
+function openGymView(){
+  gymOpenMonth();                              // 每次进入默认当前月
+  showView('gym');
+}
+function backFromGym(){ showView('home'); }
+
+function openGymDayDetail(dateStr){
+  const minutes = gymDayDetail(dateStr);
+  document.getElementById('gym-day-title').textContent = dateStr + ' 出勤';
+  const body = document.getElementById('gym-day-body');
+  body.innerHTML =
+    '<div class="gym-day-row"><span class="k">时长</span><span class="v">' +
+      (minutes ? escapeHtml(formatMinutesCN(minutes)) : '未记录') + '</span></div>' +
+    '<div class="prompt-actions">' +
+      (minutes ? '<button class="btn small ghost" id="gym-day-del" style="flex:1;">删除记录</button>' : '') +
+      '<button class="btn small" id="gym-day-edit" style="flex:1;">' + (minutes ? '修改时长' : '记录时长') + '</button>' +
+    '</div>';
+  const editBtn = document.getElementById('gym-day-edit');
+  if(editBtn) editBtn.addEventListener('click', () => gymEditDay(dateStr));
+  const delBtn = document.getElementById('gym-day-del');
+  if(delBtn) delBtn.addEventListener('click', () => {
+    gymDeleteDay(dateStr);
+    closeGymDayDetail();
+    renderGymView();
+    showToast('已删除该日出勤');
+  });
+  document.getElementById('gym-day-modal').classList.add('show');
+}
+function closeGymDayDetail(){
+  document.getElementById('gym-day-modal').classList.remove('show');
+}
+// 时长输入走项目自绘弹窗（原生 prompt() 在本项目里不可用）
+function gymEditDay(dateStr){
+  const current = gymDayDetail(dateStr);
+  const isToday = dateStr === todayStr();
+  openTextPrompt({
+    title: dateStr + ' 使用时长（分钟）',
+    value: current == null ? String(GYM_DEFAULT_MINUTES) : String(current),
+    placeholder: '例如 75',
+    confirmText: '保存'
+  }).then(value => {
+    if(value === null) return;                 // 取消 / 返回键 / 点遮罩 → 不写回
+    const m = Number(String(value).trim());
+    if(!isFinite(m) || !Number.isInteger(m) || m <= 0){ showToast('请输入大于 0 的整数分钟'); return; }
+    gymSetDay(dateStr, m);
+    closeGymDayDetail();
+    renderGymView();
+    showToast(isToday ? '已记录今天的出勤' : '已记录 ' + dateStr + ' 的出勤');
+  });
+}
+
+document.getElementById('gym-entry-btn').addEventListener('click', openGymView);
+document.getElementById('gym-back').addEventListener('click', backFromGym);
+document.getElementById('gym-prev').addEventListener('click', ()=>gymChangeMonth(-1));
+document.getElementById('gym-next').addEventListener('click', ()=>gymChangeMonth(1));
+document.getElementById('gym-today-btn').addEventListener('click', ()=>{ openGymDayDetail(todayStr()); });
+document.getElementById('gym-day-close').addEventListener('click', closeGymDayDetail);
+document.getElementById('gym-day-modal').addEventListener('click', (e)=>{
+  if(e.target === document.getElementById('gym-day-modal')) closeGymDayDetail();
+});
 
 document.getElementById('energy-history-btn').addEventListener('click', openEnergyHistory);
 document.getElementById('energy-history-back').addEventListener('click', backFromEnergyHistory);
@@ -2330,11 +2655,18 @@ function handleBack(){
     closeDayDetail();
     return;
   }
+  // 健身房出勤日详情弹窗：与 #day-modal 同为顶层弹窗，只关自身、页面不动。
+  // 放在弹窗组的最前面是因为它可能从健身房页打开，且其内部还会再叠一层文本输入弹窗（那一层在更上面）。
+  if(document.getElementById('gym-day-modal').classList.contains('show')){
+    closeGymDayDetail();
+    return;
+  }
   const reqVisible = !document.getElementById('req-view').classList.contains('hidden');
   const liuyaoHistoryVisible = !document.getElementById('liuyao-history-view').classList.contains('hidden');
   const liuyaoVisible = !document.getElementById('liuyao-view').classList.contains('hidden');
   const liuyaoResultVisible = liuyaoVisible && !document.getElementById('liuyao-result-view').classList.contains('hidden');
   const energyHistoryVisible = !document.getElementById('energy-history-view').classList.contains('hidden');
+  const gymVisible = !document.getElementById('gym-view').classList.contains('hidden');
   const energyVisible = !document.getElementById('energy-view').classList.contains('hidden');
   const baziFormVisible = !document.getElementById('bazi-form-view').classList.contains('hidden');
   const baziRecordsVisible = !document.getElementById('bazi-records-view').classList.contains('hidden');
@@ -2351,6 +2683,8 @@ function handleBack(){
     backFromBaziForm();  // 排盘页回它自己的来源页（主界面 / 命例记录 / 命盘信息页）
   } else if(energyHistoryVisible){
     backFromEnergyHistory();
+  } else if(gymVisible){
+    backFromGym();       // 健身房Roi 是独立顶级视图 → 回主界面
   } else if(energyVisible || liuyaoVisible || baziRecordsVisible){
     showView('home');  // 子页面 → 返回主界面
   } else {
@@ -5346,6 +5680,7 @@ document.getElementById('bz-group-modal').addEventListener('click', event => {
 document.getElementById('bz-group-add').addEventListener('click', addBaziGroupFromPrompt);
 
 // 初始化
+gymState = gymLoad();          // 健身房出勤记录（guanji_gym_v1），读不到就用空结构
 renderHome();
 // 今日干支卡片首次渲染 + 启动分钟级刷新（scheduleGanZhiTimer 幂等，不会重复注册）
 openHomeGanZhiCard();

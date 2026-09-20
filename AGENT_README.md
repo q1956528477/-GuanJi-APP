@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.13 (build 47)**　最后更新：2026-09-18
+> 当前版本：**v1.14.14 (build 48)**　最后更新：2026-09-18
 >
 > **版本已统一（2026-09-17）**：`codex/liuyao-audit-fixes`（09-16 16:00）与 `codex/liuyao-classical-text`（09-16 16:56）
 > 两条并行分支已按上传时间先后合并进本分支，对外只保留 **v1.14.8 (build 42)** 这一个号。
@@ -26,6 +26,10 @@
 > **v1.14.13 (build 47)**：主界面「今日精力状态」上方新增只读卡片**「今日干支」**：左为当天干支四柱
 > （年/月以节气为界、23:00–23:59 走既有晚子时规则）、下方为节气段与公元日期，右为时辰名与本地精确时间；
 > 每分钟对齐分钟边界自动刷新，离开主界面即清理定时器。数据全部取自 `window.Bazi`（见 2.1）。
+>
+> **v1.14.14 (build 48)**：主界面右上角原「今天 · X月X日」改为入口按钮**「健身房Roi」**，
+> 新增独立顶级视图 `#gym-view`（年卡价格 / 总出勤天数 / 累计总时长 / 距到期天数 + 月历出勤 + 单次价格与平均时长），
+> 数据存新键 `guanji_gym_v1`（见 4.5）。**原日期显示已移除，`renderHome()` 不再写 `#today-chip`。**
 
 ---
 
@@ -263,6 +267,29 @@ app/
 - 独立全屏页；增 / 改 / 删、一键复制全部、一键清空
 - 数据格式：`{ text: string, createdAt: timestamp }`
 
+### 4.5 健身房Roi（Gym，v1.14.14）
+
+主界面右上角入口「健身房Roi」进入的**独立顶级视图** `#gym-view`。页面布局自上而下**固定**为：
+顶栏 → 基础数据区 → 月历区 → 结论区（三张 `.card`，顺序有断言兜底）。
+
+- **常量**（具名，勿散落魔法数字）：`GYM_CARD_PRICE = 2920`（年卡价格）、`GYM_CARD_EXPIRY = '2027-08-08'`、
+  `GYM_DEFAULT_MINUTES = 60`（快捷记录默认时长）。
+- **数据**：`localStorage` 键 `guanji_gym_v1`，结构 `{ sessions: { "YYYY-MM-DD": { minutes: 整数 } } }`。
+  `gymLoad()` 对非法 JSON / 缺字段 / 非正数时长**一律降级跳过**，不抛错；**同一天只允许一条**（重复记录为覆盖）。
+- **口径**：总出勤天数 = 有记录的日期数；单次价格 = `2920 ÷ 天数`（保留 2 位小数）；
+  每次平均时长 = 累计分钟 ÷ **天数**（本项目天数==次数，但实现与注释都按「天」写）；除零时两者都显示 `—`。
+- **时长格式**：`formatMinutesCN(minutes)` —— 不满 1 小时只写「xx分钟」；满 1 小时写「x小时xx分钟」；整点写「x小时」。
+  ⚠️ **不要把它改名成 `formatDuration`**：项目里已有同名的「小时」口径函数给睡眠时长用，同名会互相覆盖。
+- **月历**：复用精力历史那套 `.energy-month-grid / .energy-month-day / .energy-history-weekday`，
+  周一为首日、今天高亮、未来日期灰显且不可点；默认当前月，不能进未来月，也不能早于**最早有记录月份**（与精力月历同口径）。
+  出勤日显示绿点 + 时长（`.gym-day-dot` / `.gym-day-minutes`）。
+- **交互**：点日期打开 `#gym-day-modal`（可记录 / 修改 / 删除）；时长输入走 `openTextPrompt()`（**禁用原生 `prompt()`**）；
+  「今天去了」按钮一键打开今天详情，已记录时按钮文案变为「今天已记录 X · 点击修改」并加 `.done` 样式。
+- **返回栈**：`#gym-day-modal` 已登记进 `handleBack()` 弹窗组（在 `#day-modal` 之后、页面分支之前）；
+  `#gym-view` 已登记进 `showView()` / `currentPrimaryViewId()` / `handleBack()` 三处，返回回主界面。
+- ⚠️ **主界面右上角已不再是日期**：`#today-chip` 元素被 `#gym-entry-btn`（同样带 `.today-chip` 样式类）替换，
+  `renderHome()` **不得再写 `#today-chip`**，否则因元素不存在抛异常导致整页白屏。
+
 ---
 
 ## 5. 数据存储
@@ -276,6 +303,7 @@ app/
 | `liuyao_history` | 六爻起卦记录数组（`fullResult` 存完整卦象；`pinned` / `pinnedAt` 存置顶状态） | `getLiuyaoHistory()` 等 |
 | `guanji_bazi_groups_v1` | 八字命例分组数组 | `BaziStorage` 对象 |
 | `guanji_bazi_persons_v1` | 八字命例数组（输入信息、四柱缓存与 `pinned` / `pinnedAt` 置顶状态） | `BaziStorage` 对象 |
+| `guanji_gym_v1` | 健身房出勤：`{sessions:{"YYYY-MM-DD":{minutes:整数}}}`（v1.14.14 新增，同一天只一条） | `gymLoad()` / `gymSave()` |
 
 **备份 / 恢复**：`native.js` 的 `writeBackup / readBackup` 会把 JSON 写到应用 Documents 目录（覆盖安装保留，卸载清除）；页面同时支持下载 JSON 与选择文件恢复。
 
@@ -347,7 +375,7 @@ python -m http.server 8080 --directory app/www
 
 ```powershell
 cd app
-npm test            # 全量：精力 + 模块注册表 + 六爻 + 八字 + 八字页面 + 导航 + 置顶
+npm test            # 全量 11 套：精力 + 模块注册表 + 需求 + 健身房 + 六爻(3) + 八字(2) + 导航 + 置顶
 npm run test:energy # 只跑精力状态模块
 npm run test:modules# 只跑主界面模块注册表
 ```
@@ -383,6 +411,10 @@ npm run test:modules# 只跑主界面模块注册表
 - `test_requirements.js` 用 jsdom 验证迭代需求记录页与**通用文本输入弹窗**：点「修改」必须回填原内容、
   保存是原地更新（条数不变、`createdAt` 不被破坏、其它记录不受影响）、取消与返回键不写回、新增才追加。
   另含「分组重命名必须回填原名」的同根因回归断言。
+- `test_gym.js`（v1.14.14 新增，第 11 套）用 jsdom 验证健身房Roi：入口文案与跳转、原日期显示已移除且无残留 `#today-chip` 赋值、
+  新视图与其它顶级视图互斥、页面四段顺序、月历（周一为首日 / 今天 / 未来 / 翻阅边界）、
+  出勤增删改落盘与**同一天只一条**、快捷按钮与已记录反馈、单次价格与平均时长的构造数据手算核对、
+  时长格式三态、**除零显示「—」且无 NaN/Infinity**、脏数据降级、既有 localStorage 键不受影响、返回键逐级返回。
 - `test_modules.js` 用 jsdom 遍历主界面**每一个**模块卡片，验证徽标与上线状态一致、点击后只进入一个视图、返回键可逐级退回主界面。
   **刻意不写死模块数量与名称**：以后新增模块会自动被覆盖，加模块不需要改这个测试。
   ⚠️ 因此**不要再往测试里写「模块卡片数量 = N」「未上线模块只有 M 个」这类断言**——每加一个模块都会误报，属于倒退。

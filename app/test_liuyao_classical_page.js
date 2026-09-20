@@ -121,3 +121,7 @@ check('本卦与变卦古文数据不串用',
 console.log('\n===== 六爻古文结果页测试结果 =====');
 results.forEach(result => console.log(result));
 console.log('===== 结束 =====');
+
+// 收尾：jsdom 的 pretendToBeVisual 会保留动画帧循环，测试跑完进程也不会退出。
+// 显式结束进程（只影响退出时机，不影响任何断言；exitCode 已由 check() 设置）。
+process.exit(process.exitCode || 0);
