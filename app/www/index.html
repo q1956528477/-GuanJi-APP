@@ -697,22 +697,38 @@
   .bz3-taiming-panel b{display:block;font-size:.8rem;color:#5d4509;margin-top:.15rem;}
   .bz3-section{margin-bottom:.85rem;}
   .bz3-section-title{font-size:.75rem;font-weight:800;color:#333;margin:.15rem 0 .5rem;}
-  .bz3-panel{background:#fff;border-radius:1rem;padding:0 .75rem .75rem;}
-  .bz3-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .bz3-panel{background:#fff;border-radius:1rem;padding:0 .5rem .75rem;max-width:100%;overflow:hidden;}
+  .bz3-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;max-width:100%;}
   .bz3-table-scroll::-webkit-scrollbar{display:none;}
-  .bz3-table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;}
+  .bz3-table{width:100%;min-width:21rem;border-collapse:collapse;table-layout:fixed;}
   .bz3-table .bz3-col-label{width:60px;}
   .bz3-table .bz3-col-flow{width:56px;}
-  .bz3-table td{border-bottom:1px solid #f0f0f0;padding:.45rem .18rem;text-align:center;vertical-align:top;font-size:.625rem;color:#666;line-height:1.4;overflow-wrap:anywhere;}
+  .bz3-table td,.bz3-table th{border-bottom:1px solid #f0f0f0;padding:.5rem .16rem;text-align:center;vertical-align:middle;font-size:.625rem;color:#666;line-height:1.5;overflow-wrap:anywhere;}
+  /* 表头：参考图为 日期 / 流年 / 大运 / 年柱 / 月柱 / 日柱 / 时柱 */
+  .bz3-table .bz3-col-head{font-size:.72rem;font-weight:600;color:#8c8c8c;border-bottom:1px solid #e8e8e8;padding:.55rem .12rem;white-space:nowrap;}
   .bz3-table tr:last-child td{border-bottom:none;}
-  .bz3-table .bz3-row-label{text-align:left;color:#999;font-size:.6rem;font-weight:500;vertical-align:middle;padding-left:0;}
-  .bz3-table .bz3-date-cell{color:#aaa;font-size:.575rem;padding-top:.5rem;padding-bottom:.35rem;}
-  .bz3-table .bz3-active-col{background:#ede6d6;}
-  .bz3-gan,.bz3-zhi{font-size:1.25rem;font-weight:800;line-height:1.05;white-space:nowrap;letter-spacing:0;}
-  .bz3-elem{font-size:.45rem;border:1px solid currentColor;border-radius:50%;padding:0 .15rem;margin-left:.08rem;vertical-align:.22rem;}
-  .bz3-hidden-list,.bz3-sha-list{display:flex;flex-direction:column;align-items:center;gap:.2rem;min-width:0;max-width:100%;}
-  .bz3-hidden-line,.bz3-sha-line{white-space:normal;overflow-wrap:anywhere;text-align:center;font-size:.625rem;font-weight:700;}
-  .bz3-sha-line{font-weight:600;}
+  .bz3-table .bz3-row-label{text-align:left;color:#9a9a9a;font-size:.66rem;font-weight:500;vertical-align:middle;padding-left:0;white-space:nowrap;}
+  .bz3-table .bz3-flow-col{width:19%;}
+  .bz3-table .bz3-date-cell{color:#ccc;font-size:.95rem;padding-top:.5rem;padding-bottom:.35rem;}
+  .bz3-sha-flag{color:#d9d9d9;font-size:.7rem;}
+  .bz3-pillar-gz{font-size:.78rem;font-weight:700;white-space:nowrap;color:#555;}
+  .bz3-this-year-mark{display:block;font-size:.5rem;color:#b93b31;font-weight:800;line-height:1.1;white-space:nowrap;}
+  .bz3-table th.bz3-this-year{color:#b93b31;font-weight:700;}
+  /* 当前流年列：仅当所选流年恰为今年才块状高亮（参考图用列底色而非描边） */
+  .bz3-table .bz3-active-col{background:transparent;}
+  .bz3-table.bz3-show .bz3-active-col{background:#ece3d2;}
+  /* 非选中的四柱列保持白底，避免与岁运列混为一体 */
+  .bz3-table .bz3-flow-col:not(.bz3-active-col){background:#fcfbf9;}
+  .bz3-gan,.bz3-zhi{font-size:1.6rem;font-weight:800;line-height:1.1;white-space:nowrap;letter-spacing:0;display:block;}
+  .bz3-ss{font-style:normal;font-size:.6rem;font-weight:600;color:#a08530;margin-left:.06rem;white-space:nowrap;}
+  .bz3-hidden-list,.bz3-sha-list{display:flex;flex-direction:column;align-items:center;gap:.16rem;min-width:0;max-width:100%;}
+  .bz3-hidden-line,.bz3-sha-line{white-space:normal;overflow-wrap:anywhere;text-align:center;font-size:.66rem;font-weight:700;line-height:1.4;}
+  .bz3-sha-line{font-weight:600;font-size:.62rem;}
+  /* 四柱神煞汇总（放在表格下方，参考图神煞行只容纳所选岁运，这里避免四柱神煞数据丢失） */
+  .bz3-sha-summary{padding:.55rem .1rem .1rem;border-top:1px dashed #eee;}
+  .bz3-sha-summary-row{display:flex;align-items:flex-start;gap:.42rem;font-size:.6rem;line-height:1.6;color:#999;}
+  .bz3-sha-summary-key{flex:0 0 2.2rem;font-weight:800;color:#8a7551;white-space:nowrap;}
+  .bz3-sha-summary-val{flex:1;word-break:break-word;}
   .bz3-start-info{background:#fff;border-radius:1rem;padding:.75rem .85rem;font-size:.64rem;color:#777;line-height:1.8;}
   .bz3-start-line{display:flex;align-items:flex-start;gap:.4rem;flex-wrap:wrap;}
   .bz3-start-line + .bz3-start-line{margin-top:.25rem;}
@@ -727,15 +743,21 @@
   .bz3-strip-viewport::before,.bz3-strip-viewport::after{content:"";position:absolute;top:0;bottom:0;width:.7rem;z-index:2;pointer-events:none;}
   .bz3-strip-viewport::before{left:0;background:linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,0));}
   .bz3-strip-viewport::after{right:0;background:linear-gradient(270deg,rgba(255,255,255,.96),rgba(255,255,255,0));}
-  .bz3-strip-scroll{display:flex;gap:.25rem;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:.15rem 0;}
+  .bz3-strip-scroll{display:flex;gap:.3rem;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:.15rem 0;}
   .bz3-strip-scroll::-webkit-scrollbar{display:none;}
-  .bz3-strip-col{flex:0 0 3.375rem;width:3.375rem;min-height:4.8rem;border:1px solid #eee8dc;border-radius:.7rem;padding:.38rem .15rem;text-align:center;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;box-sizing:border-box;}
-  .bz3-strip-col.active{background:#ede6d6;border-color:#d9c89f;}
-  .bz3-strip-col .year{font-size:.6rem;color:#888;white-space:nowrap;}
-  .bz3-strip-col .gz-line{font-size:.76rem;font-weight:800;white-space:nowrap;line-height:1.45;margin-top:.15rem;}
-  .bz3-strip-col .age{font-size:.56rem;color:#999;white-space:nowrap;margin-top:.15rem;}
-  .bz3-strip-col .term{font-size:.6rem;color:#777;white-space:nowrap;line-height:1.45;}
-  .bz3-strip-col .xiao-yun{font-size:.56rem;color:#a08530;white-space:nowrap;line-height:1.4;margin-top:.1rem;}
+  /* 卡片：年份 / 年龄 / 天干+十神 / 地支+十神 / 小运 五行结构（参考图） */
+  .bz3-strip-col{flex:0 0 3.6rem;width:3.6rem;min-height:6rem;border:1px solid #eee8dc;border-radius:.7rem;padding:.32rem .08rem;text-align:center;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:.06rem;cursor:pointer;box-sizing:border-box;}
+  .bz3-strip-col.active{background:#ece3d2;border-color:#d9c89f;}
+  .bz3-strip-col .gz-row{display:flex;align-items:baseline;justify-content:center;gap:0;white-space:nowrap;line-height:1.15;}
+  .bz3-strip-col .gz-char{font-size:1.05rem;font-weight:800;line-height:1.15;}
+  .bz3-strip-col .gz-ss{font-style:normal;font-size:.53rem;font-weight:600;color:#a08530;margin-left:.02rem;}
+  .bz3-strip-col .year{font-size:.6rem;color:#888;white-space:nowrap;line-height:1.2;}
+  .bz3-strip-col .year.this-year{color:#b93b31;font-weight:800;}
+  .bz3-strip-col .age{font-size:.53rem;color:#999;white-space:nowrap;line-height:1.2;}
+  .bz3-strip-col .term{font-size:.62rem;color:#555;white-space:nowrap;line-height:1.3;}
+  .bz3-strip-col .term-date{font-size:.53rem;color:#999;white-space:nowrap;line-height:1.2;}
+  .bz3-strip-col .xiao-yun{font-size:.53rem;color:#a08530;white-space:nowrap;line-height:1.25;margin-top:.05rem;}
+  .bz3-strip-heading .sub{font-size:.5rem;font-weight:600;color:#a08530;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.06rem;}
   .bz3-wuxing{display:grid;grid-template-columns:repeat(5,1fr);border-radius:.9rem;overflow:hidden;margin-bottom:.85rem;}
   .bz3-wuxing div{min-width:0;text-align:center;padding:.68rem .08rem;font-size:.65rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:clip;}
   .bz3-wuxing .metal{background:#f2ecd7;color:#7f6827;}
@@ -747,7 +769,8 @@
   .bz3-action-card{background:#f5f5f5;border-radius:.875rem;padding:.75rem .65rem;color:#333;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;border:none;font-family:inherit;min-width:0;}
   .bz3-relations{background:#fff;border-radius:1rem;padding:.2rem .8rem;margin-bottom:.8rem;}
   .bz3-relation-row{display:flex;align-items:flex-start;gap:.42rem;padding:.55rem 0;border-bottom:1px solid #f2f2f2;font-size:.64rem;line-height:1.65;}
-  .bz3-relation-row:last-child{border-bottom:none;}
+  .bz3-relation-row:nth-child(3){border-bottom:none;}
+  .bz3-relation-row:nth-child(4){border-top:1px solid #e8e0cf;margin-top:.45rem;padding-top:.75rem;}
   .bz3-relation-label{flex:0 0 3.35rem;color:#9b772d;font-weight:800;white-space:nowrap;}
   .bz3-relation-value{flex:1;color:#777;word-break:break-word;}
   .bz3-shensha-title{display:flex;align-items:center;justify-content:space-between;color:#222;font-size:.72rem;font-weight:800;margin:.7rem 0 .4rem;}
@@ -777,17 +800,19 @@
     .bz2-secondary-line,.bz2-sha-good,.bz2-sha-bad{font-size:.5625rem;}
   }
   @media (max-width:767px){
-    .bz3-panel{margin-left:-1rem;margin-right:-1rem;}
+    .bz3-panel{margin-left:-.5rem;margin-right:-.5rem;}
   }
   @media (max-width:375px){
-    .bz3-table .bz3-col-label{width:58px;}
-    .bz3-table .bz3-col-flow{width:54px;}
-    .bz3-table{min-width:22.375rem;}
+    .bz3-table{min-width:20.25rem;}
+    .bz3-table .bz3-row-label{font-size:.6rem;}
+    .bz3-gan,.bz3-zhi{font-size:1.45rem;}
   }
   @media (max-width:360px){
-    .bz3-panel{margin-left:-.25rem;margin-right:-.25rem;}
-    .bz3-gan,.bz3-zhi{font-size:1.0625rem;}
-    .bz3-table{min-width:22.375rem;}
+    #app{padding-left:.25rem;padding-right:.25rem;}
+    .bz3-panel{margin-left:-.25rem;margin-right:-.25rem;padding:0 .35rem .6rem;}
+    .bz3-gan,.bz3-zhi{font-size:1.35rem;}
+    .bz3-table{min-width:19.5rem;}
+    .bz3-table td,.bz3-table th{padding:.45rem .1rem;}
     .bz3-wuxing div{font-size:.58rem;}
   }
   @media (min-width:768px){
@@ -4221,33 +4246,57 @@ function renderBaziFineTable(result, dayun, liuNian){
   const columns = [liunianDetail, dayunDetail].concat(result.columns);
   const active = [true, true, false, false, false, false];
   const dayKong = result.pillarDetails.day.xunKong || '';
+  const today = new Date();
+  const todayStrKey = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  // 参考图：col1=日期(仅藏干行的神煞图标)、col2=流年、col3=大运、col4-7=年/月/日/时柱
+  const headers = ['日期', '流年', '大运', '年柱', '月柱', '日柱', '时柱'];
+  const colKeys = ['label', 'liunian', 'dayun', 'year', 'month', 'day', 'hour'];
+  // 小字号十神用金色，与参考图一致（不同柱位/岁运统一）
+  const shiShenHtml = name => name ? '<i class="bz3-ss">' + escapeHtml(name) + '</i>' : '';
+  const zhiShiShenHtml = (dayGan, zhi) => shiShenHtml(bz3ZhiShiShen(dayGan, zhi));
+  const shenShaListHtml = list => '<div class="bz3-sha-list">' + (list && list.length
+    ? list.map(name => '<span class="bz3-sha-line ' + (BZ2_GOOD_SHEN_SHA.has(name) ? 'bz2-sha-good' : 'bz2-sha-bad') + '">' + escapeHtml(name) + '</span>').join('')
+    : '—') + '</div>';
   const cell = (index, content, extraClass) =>
-    '<td class="' + (active[index] ? 'bz3-active-col ' : '') + (extraClass || '') + '">' + content + '</td>';
+    '<td class="' + (index < 2 ? 'bz3-flow-col ' : '') + (active[index] ? 'bz3-active-col ' : '') + (extraClass || '') + '">' + content + '</td>';
   const row = (label, render) =>
     '<tr><td class="bz3-row-label">' + label + '</td>' + columns.map((item, index) => cell(index, render(item, index))).join('') + '</tr>';
-  let html = '<div class="bz3-panel"><div class="bz3-table-scroll"><table class="bz3-table">' +
+  // 表头直接显示 流年 / 大运 / 年柱 / 月柱 / 日柱 / 时柱（参考图）
+  let html = '<div class="bz3-panel"><div class="bz3-table-scroll"><table class="bz3-table' +
+    (liuNian.year === today.getFullYear() ? ' bz3-show' : '') + '">' +
     '<colgroup><col class="bz3-col-label"><col class="bz3-col-flow"><col class="bz3-col-flow">' +
-    '<col><col><col><col></colgroup><tbody>';
-  html += '<tr><td class="bz3-row-label">日期</td>' + columns.map((item, index) =>
-    cell(index, '<span class="bz3-date-cell">' + escapeHtml(item.label) + '</span>')
-  ).join('') + '</tr>';
+    '<col><col><col><col></colgroup><thead><tr>' +
+    headers.map((text, index) =>
+      '<th class="bz3-col-head' + (index < 2 ? ' bz3-flow-col' : '') +
+      (index === 1 && liuNian.year === today.getFullYear() ? ' bz3-this-year' : '') + '">' + text + '</th>').join('') +
+    '</tr></thead><tbody>';
+  // 日期行：仅承载神煞图标（参考图 col1 只有一个图标），四柱列显示干支
+  html += '<tr><td class="bz3-row-label">日期</td>' + columns.map((item, index) => {
+    if(index === 0) return cell(index, '<span class="bz3-sha-flag">★</span>', 'bz3-date-cell');
+    return cell(index, '<span class="bz3-pillar-gz">' + bz3GzText(item.ganZhi) + '</span>' +
+      (index === 1 && liuNian.year === today.getFullYear() ? '<span class="bz3-this-year-mark">今年</span>' : ''));
+  }).join('') + '</tr>';
   html += row('主星', item => item.key === 'day'
-    ? escapeHtml(item.shiShen)
+    ? '<span class="' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.shiShen) + '</span>'
     : '<span class="' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.shiShen || '—') + '</span>');
   html += row('天干', item => '<span class="bz3-gan ' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.gan) + '</span>');
   html += row('地支', item => '<span class="bz3-zhi ' + bz2ElementClass(item.zhiElement) + '">' + escapeHtml(item.zhi) + '</span>');
-  html += row('藏干', item => '<div class="bz3-hidden-list">' + item.hidden.map(hidden =>
-    '<span class="bz3-hidden-line ' + bz2ElementClass(hidden.element) + '">' + escapeHtml(hidden.gan + hidden.shiShen) + '</span>'
-  ).join('') + '</div>');
+  html += row('藏干', item => '<div class="bz3-hidden-list">' +
+    (item.hidden.length ? item.hidden.map(hidden =>
+      '<span class="bz3-hidden-line ' + bz2ElementClass(hidden.element) + '">' +
+      escapeHtml(hidden.gan) + shiShenHtml(hidden.shiShen) + '</span>').join('') : '—') + '</div>');
   html += row('星运', item => escapeHtml(item.starLuck || '—'));
   html += row('自坐', item => escapeHtml(item.selfSeat || '—'));
   html += row('空亡', item => escapeHtml(item.xunKong || '—') +
     (dayKong.includes(item.zhi) ? '<span class="bz-kong-day">日空</span>' : ''));
   html += row('纳音', item => escapeHtml(item.naYin || '—'));
-  html += row('神煞', item => '<div class="bz3-sha-list">' + (item.shenSha.length
-    ? item.shenSha.map(name => '<span class="bz3-sha-line ' + (BZ2_GOOD_SHEN_SHA.has(name) ? 'bz2-sha-good' : 'bz2-sha-bad') + '">' + escapeHtml(name) + '</span>').join('')
-    : '—') + '</div>');
-  html += '</tbody></table></div></div>';
+  html += row('神煞', item => shenShaListHtml(item.shenSha));
+  html += '</tbody></table></div>';
+  // 四柱神煞汇总：参考图的神煞行只容纳当前所选岁运，完整四柱神煞保留在表格下方，避免数据丢失
+  html += '<div class="bz3-sha-summary">' + result.columns.map(item =>
+    '<div class="bz3-sha-summary-row"><span class="bz3-sha-summary-key">' + bz3GzText(item.ganZhi) + '</span>' +
+    '<span class="bz3-sha-summary-val">' + escapeHtml(bz3ShenShaText(item.shenSha)) + '</span></div>').join('') + '</div>';
+  html += '</div>';
   return html;
 }
 function renderBaziFineShenSha(result, dayun, selectedLiuNianIndex){
@@ -4298,34 +4347,48 @@ function renderBaziFine(result){
   let html = renderBaziFineTable(result, dayun, liuNian);
   html += bz3StartInfo(result);
 
+  // ===== 大运条带：左侧竖排「大运」+ 小运开关；每卡 年份 / 年龄 / 天干+十神 / 地支+十神 / 小运 =====
   html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">大运</span>' +
     '<input type="checkbox" class="bz3-strip-switch" id="bz3-xiaoyun-switch"' + (baziFineShowXiaoYun ? ' checked' : '') + '></div>' +
-    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-dayun-scroll">';
+    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll bz3-strip-dayun" id="bz3-dayun-scroll">';
   yun.daYun.forEach((item, index) => {
     const ganShen = bz3ShortShiShen(item.shiShen);
     const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(result.pillars.day[0], item.zhi));
-    const ageText = item.startAge === item.endAge ? item.startAge + '岁' : item.startAge + '-' + item.endAge + '岁';
+    // 参考图：首列「1~9岁」为起始区间，其后每列写「9岁」「19岁」；需求示例同样是单一起始岁
+    const ageText = index === 0 && item.endAge
+      ? '1~' + item.endAge + '岁'
+      : item.startAge + '岁';
+    const xiaoYun = baziFineShowXiaoYun ? bz3XiaoYun(item.startAge, result) : '';
     html += '<div class="bz3-strip-col' + (index === baziFineDaYunIndex ? ' active' : '') + '" data-index="' + index + '">' +
-      '<span class="year">' + item.startYear + '</span><span class="age">' + ageText + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.gan]) + '">' + escapeHtml(item.gan + ganShen) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.zhi]) + '">' + escapeHtml(item.zhi + zhiShen) + '</span>' +
-      (baziFineShowXiaoYun ? '<span class="xiao-yun">小运 ' + bz3XiaoYun(item.startAge, result) + '</span>' : '') +
+      '<span class="year">' + item.startYear + '</span>' +
+      '<span class="age">' + escapeHtml(ageText) + '</span>' +
+      '<span class="gz-row"><b class="gz-char ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.gan]) + '">' + escapeHtml(item.gan) + '</b>' +
+      (ganShen ? '<i class="gz-ss">' + escapeHtml(ganShen) + '</i>' : '') + '</span>' +
+      '<span class="gz-row"><b class="gz-char ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.zhi]) + '">' + escapeHtml(item.zhi) + '</b>' +
+      (zhiShen ? '<i class="gz-ss">' + escapeHtml(zhiShen) + '</i>' : '') + '</span>' +
+      (xiaoYun ? '<span class="xiao-yun">' + escapeHtml(xiaoYun) + '</span>' : '') +
       '</div>';
   });
   html += '</div></div></div>';
 
-  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流年</span></div>' +
+  // ===== 流年条带：左侧竖排「流年」+ 小运；每卡 年份(今年红) / 天干+十神 / 地支+十神 =====
+  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流年</span>' +
+    '<span class="sub">小运</span></div>' +
     '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liunian-scroll">';
   dayun.liuNian.forEach((item, index) => {
     const ganShen = bz3ShortShiShen(item.shiShen);
     const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(result.pillars.day[0], item.zhi));
+    const isThisYear = item.year === new Date().getFullYear();
     html += '<div class="bz3-strip-col' + (index === baziFineLiuNianIndex ? ' active' : '') + '" data-index="' + index + '">' +
-      '<span class="year">' + item.year + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.gan]) + '">' + escapeHtml(item.gan + ganShen) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.zhi]) + '">' + escapeHtml(item.zhi + zhiShen) + '</span></div>';
+      '<span class="year' + (isThisYear ? ' this-year' : '') + '">' + item.year + '</span>' +
+      '<span class="gz-row"><b class="gz-char ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.gan]) + '">' + escapeHtml(item.gan) + '</b>' +
+      (ganShen ? '<i class="gz-ss">' + escapeHtml(ganShen) + '</i>' : '') + '</span>' +
+      '<span class="gz-row"><b class="gz-char ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.zhi]) + '">' + escapeHtml(item.zhi) + '</b>' +
+      (zhiShen ? '<i class="gz-ss">' + escapeHtml(zhiShen) + '</i>' : '') + '</span></div>';
   });
   html += '</div></div></div>';
 
+  // ===== 流月条带：每卡 节气名 / 节气日期 / 天干+十神 / 地支+十神 =====
   html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流月</span></div>' +
     '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liuyue-scroll">';
   liuNian.liuYue.forEach((item, index) => {
@@ -4334,10 +4397,14 @@ function renderBaziFine(result){
     const termDate = item.jieQiDate ? item.jieQiDate.slice(5).replace('-','/').replace(/^0/,'') : fallback.date;
     const normalizedDate = termDate.replace('/0','/');
     const ganShen = bz3ShortShiShen(item.shiShen);
+    const yueZhiShen = bz3ShortShiShen(bz3ZhiShiShen(result.pillars.day[0], item.ganZhi[1]));
     html += '<div class="bz3-strip-col' + (index === baziFineLiuYueIndex ? ' active' : '') + '" data-index="' + index + '">' +
-      '<span class="term">' + escapeHtml(termName) + '</span><span class="term">' + escapeHtml(normalizedDate) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.ganZhi[0]]) + '">' + escapeHtml(item.ganZhi[0] + ganShen) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.ganZhi[1]]) + '">' + escapeHtml(item.ganZhi[1]) + '</span></div>';
+      '<span class="term">' + escapeHtml(termName) + '</span>' +
+      '<span class="term-date">' + escapeHtml(normalizedDate) + '</span>' +
+      '<span class="gz-row"><b class="gz-char ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.ganZhi[0]]) + '">' + escapeHtml(item.ganZhi[0]) + '</b>' +
+      (ganShen ? '<i class="gz-ss">' + escapeHtml(ganShen) + '</i>' : '') + '</span>' +
+      '<span class="gz-row"><b class="gz-char ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.ganZhi[1]]) + '">' + escapeHtml(item.ganZhi[1]) + '</b>' +
+      (yueZhiShen ? '<i class="gz-ss">' + escapeHtml(yueZhiShen) + '</i>' : '') + '</span></div>';
   });
   html += '</div></div></div>';
 
