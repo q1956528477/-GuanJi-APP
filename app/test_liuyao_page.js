@@ -411,6 +411,14 @@ function wait(ms) {
   check('静卦仍有复制按钮', !!document.getElementById('ly-prompt-copy'));
 
   // 历史记录点进去的结果页复用同一套渲染逻辑
+  const legacyFullResult = JSON.parse(JSON.stringify(movingResult));
+  legacyFullResult.ben.meta.classical = {
+    guaci: '旧版卦辞哨兵',
+    lines: legacyFullResult.ben.meta.classical.lines.map(line => ({
+      title: line.title,
+      text: line.text,
+    })),
+  };
   const historyRecord = {
     id: 9001,
     question: movingResult.question,
@@ -419,13 +427,42 @@ function wait(ms) {
     timestamp: '2026/9/16 10:00:00',
     benGua: movingResult.ben.meta.image,
     zhiGua: movingResult.zhi.meta.image,
-    fullResult: JSON.parse(JSON.stringify(movingResult)),
+    fullResult: legacyFullResult,
   };
   window.localStorage.setItem('liuyao_history', JSON.stringify([historyRecord]));
+  const historyBeforeOpen = window.localStorage.getItem('liuyao_history');
   window.showLiuyaoHistory();
   document.querySelector('#ly-history-list .ly-history-item').click();
   const historyPromptText = document.getElementById('ly-prompt-text').textContent;
+  const historyResultText = document.getElementById('ly-result').textContent;
+  check('旧历史记录动态补全彖传、大象传与小象传',
+    historyResultText.includes('万物资始，乃统天') &&
+    historyResultText.includes('天行健，君子以自强不息。') &&
+    historyResultText.includes('小象传阳在下也。') &&
+    !historyResultText.includes('旧版卦辞哨兵'));
+  check('历史记录动态补全不改写持久化数据且不重复建记录',
+    window.localStorage.getItem('liuyao_history') === historyBeforeOpen &&
+    history().length === 1 &&
+    history()[0].id === 9001 &&
+    history()[0].question === movingResult.question);
   check('历史记录进入的结果页也有同一段解卦提示词', historyPromptText === promptText);
+
+  const malformedHistory = {
+    id: 9002,
+    question: '缺少卦象数据的旧记录',
+    timestamp: '2026/9/16 10:01:00',
+    benGua: '未知卦',
+    zhiGua: '',
+  };
+  window.localStorage.setItem('liuyao_history', JSON.stringify([malformedHistory]));
+  const malformedBeforeOpen = window.localStorage.getItem('liuyao_history');
+  window.showLiuyaoHistory();
+  document.querySelector('#ly-history-list .ly-history-item').click();
+  check('缺少卦象数据的历史记录给出明确兜底提示',
+    document.getElementById('toast').textContent === '这条历史记录缺少完整卦象数据，无法展示');
+  check('异常历史记录不会触发写入或重复记录',
+    window.localStorage.getItem('liuyao_history') === malformedBeforeOpen &&
+    history().length === 1 && history()[0].id === 9002);
   window.localStorage.setItem('liuyao_history', '[]');
 
   check('页面运行无未捕获异常', runtimeErrors.length === 0);

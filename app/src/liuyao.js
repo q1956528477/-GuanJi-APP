@@ -74,12 +74,14 @@ const MERGED_CLASSICAL = YIJING_CLASSICAL.map(h => {
   });
 });
 const CLASSICAL_BY_BITS = {};
+const CLASSICAL_BY_IMAGE = {};
 MERGED_CLASSICAL.forEach(h => {
   CLASSICAL_BY_BITS[h.bits] = h;
+  CLASSICAL_BY_IMAGE[h.name] = h;
 });
 
 function attachClassical(meta) {
-  const classical = CLASSICAL_BY_BITS[meta.bits];
+  const classical = resolveClassical(meta);
   return classical ? Object.assign({}, meta, {classical}) : meta;
 }
 
@@ -606,7 +608,7 @@ function formatYongShenPrompt(analysis) {
 // 古文（卦辞 / 爻辞）：仅使用已核验的古典原文数据
 function formatClassicalPrompt(hexData, movingSet, label) {
   const meta = hexData.meta || {};
-  const classical = meta.classical || CLASSICAL_BY_BITS[meta.bits];
+  const classical = resolveClassical(meta);
   if (!classical) return [];
   const lines = [];
   if (classical.guaci) lines.push(label + '卦辞：' + classical.guaci);
@@ -686,6 +688,10 @@ export const CLASSICAL_HEXAGRAMS = MERGED_CLASSICAL;
 export const CLASSICAL_SOURCE = Object.assign({}, YIJING_CLASSICAL_SOURCE, {
   commentary: YIJING_COMMENTARY_SOURCE,
 });
+export function resolveClassical(meta) {
+  if (!meta) return null;
+  return CLASSICAL_BY_BITS[meta.bits] || CLASSICAL_BY_IMAGE[meta.image] || meta.classical || null;
+}
 export function getClassical(bits) {
   return CLASSICAL_BY_BITS[bits] || null;
 }

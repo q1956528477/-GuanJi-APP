@@ -435,6 +435,7 @@
   .rebu-yaoci-dong{display:inline-block;color:#fff;background:#d9534f;font-size:9px;font-weight:700;border-radius:8px;padding:1px 6px;margin:0 4px;}
   .rebu-xiaoxiang{font-size:12px;line-height:1.75;color:#6f6350;margin-top:4px;word-break:break-word;overflow-wrap:anywhere;}
   .rebu-xiaoxiang-label{font-weight:800;color:#9b772d;margin-right:4px;}
+  .rebu-classical-empty{font-size:12px;line-height:1.7;color:#999;text-align:center;padding:14px 8px;}
 
   /* 解卦提示词（纯文本，可滚动、可选中、一键复制） */
   .rebu-prompt-card{margin:14px 0 0;background:#fff;border:1px solid #e6dcc6;border-left:3px solid #d4a843;border-radius:8px;padding:10px 12px;box-shadow:0 1px 4px rgba(139,105,20,.06);}
@@ -5176,8 +5177,12 @@ function renderJieshiSection(ben, zhi, movingSet){
 // 单卦古文：卦辞 / 彖传 / 大象传 / 逐爻爻辞与小象传
 function renderJieshiContent(hexData, movingSet, isBen){
   const meta=hexData.meta;
-  const classical=meta.classical || (window.LiuYao && window.LiuYao.getClassical ? window.LiuYao.getClassical(meta.bits) : null);
-  if(!classical) return '';
+  const classical=window.LiuYao && window.LiuYao.resolveClassical
+    ? window.LiuYao.resolveClassical(meta)
+    : (meta.classical || null);
+  if(!classical){
+    return '<div class="rebu-block rebu-classical-empty">暂无对应卦象的卦辞与传文数据</div>';
+  }
   let h='';
   if(classical.guaci){
     h+='<div class="rebu-block">';
@@ -5496,6 +5501,10 @@ function viewLiuyaoHistoryRecord(id){
   const history = getLiuyaoHistory();
   const record = history.find(r => r.id === id);
   if(!record) return;
+  if(!record.fullResult || !record.fullResult.ben || !record.fullResult.ben.meta){
+    showToast('这条历史记录缺少完整卦象数据，无法展示');
+    return;
+  }
   currentResultId = id;
   
   // 显示结果页面

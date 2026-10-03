@@ -79,6 +79,16 @@ check('古文来源信息完整', LiuYao.CLASSICAL_SOURCE.guaciAndLines.file ===
   /^[a-f0-9]{64}$/.test(LiuYao.CLASSICAL_SOURCE.guaciAndLines.sha256));
 check('传文来源信息完整', LiuYao.CLASSICAL_SOURCE.commentary.revision === '8284adbf9e3435d713180e24f05bf75f8b7d1d96' &&
   LiuYao.CLASSICAL_SOURCE.commentary.repository === 'https://github.com/kanripo/KR1a0001');
+check('历史传文解析优先使用当前统一数据',
+  LiuYao.resolveClassical({
+    bits:'111111',
+    image:'乾为天',
+    classical:{guaci:'旧版卦辞', lines:[]},
+  }).tuan.includes('万物资始，乃统天'));
+check('历史记录缺少 bits 时可按卦名补全传文',
+  LiuYao.resolveClassical({image:'坤为地'}).lines[6].xiaoxiang === '「用六永贞」，以大终也。');
+check('无法识别的历史卦象返回空并交由页面兜底',
+  LiuYao.resolveClassical({bits:'999999', image:'未知卦'}) === null);
 
 const classicalMappingErrors = classical.filter(h => {
   const lines = h.bits.split('').map(bit => bit === '1' ? 'young_yang' : 'young_yin');

@@ -119,6 +119,13 @@ check('历史记录使用当前古文数据回填',
   legacyHtml.includes('>小象传</span>阳在下也。'));
 check('历史记录不显示旧现代解释', !legacyHtml.includes('旧数据翻译') && !legacyHtml.includes('旧数据邵雍') && !legacyHtml.includes('旧数据白话'));
 
+const unknownHtml = window.renderJieshiContent({
+  meta:{ bits:'999999', image:'未知历史卦' },
+}, new Set(), true);
+check('无法识别的历史卦象显示统一兜底文案',
+  unknownHtml.includes('暂无对应卦象的卦辞与传文数据') &&
+  !unknownHtml.includes('未知历史卦'));
+
 const changing = window.LiuYao.cast({
   method:'manual',
   lines:['old_yang','young_yang','young_yang','young_yang','young_yang','young_yang'],
