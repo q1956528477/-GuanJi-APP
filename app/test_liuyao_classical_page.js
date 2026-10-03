@@ -1,4 +1,4 @@
-// 六爻结果页古文展示回归测试：只允许大象传（若已核验）/卦辞/爻辞进入页面。
+// 六爻结果页古文展示回归测试：卦辞 / 彖传 / 大象传 / 爻辞 / 小象传。
 const fs = require('fs');
 const path = require('path');
 const { JSDOM, VirtualConsole } = require('jsdom');
@@ -49,8 +49,12 @@ for (const [name, opts] of Object.entries(methods)) {
   const jieshiText = document.querySelector('#ly-result .rebu-jieshi-section').textContent;
   const modernLeak = ['卦象','卦义','白话','断易','邵雍','传统解卦','现代解读']
     .filter(word => jieshiText.includes(word));
-  check(name + ' 结果页展示古文卦辞与爻辞',
-    text.includes('卦辞') && text.includes('爻辞') && text.includes(result.ben.meta.classical.guaci));
+  check(name + ' 结果页展示完整传文层级',
+    text.includes('卦辞') && text.includes('彖传') && text.includes('大象传') &&
+    text.includes('爻辞') && text.includes('小象传') &&
+    text.includes(result.ben.meta.classical.guaci) &&
+    text.includes(result.ben.meta.classical.tuan) &&
+    text.includes(result.ben.meta.classical.daxiang));
   check(name + ' 古文区不泄漏现代解读', modernLeak.length === 0);
 }
 
@@ -75,7 +79,27 @@ check('页面忽略旧数据中的现代解释字段',
 check('爻辞保留完整爻题', qianHtml.includes('初九：潜龙，勿用。') && qianHtml.includes('上九：亢龙，有悔。'));
 check('乾卦用九显示在末位', qianHtml.includes('用九：见群龙无首，吉。'));
 check('动爻高亮仍保留', qianHtml.includes('rebu-yaoci moving') && qianHtml.includes('rebu-yaoci-dong'));
-check('未核验大象传不显示空标题', !qianHtml.includes('大象传'));
+check('乾卦彖传/大象传/卦辞/爻辞按层级展示',
+  qianHtml.indexOf('卦辞') < qianHtml.indexOf('彖传') &&
+  qianHtml.indexOf('彖传') < qianHtml.indexOf('大象传') &&
+  qianHtml.indexOf('大象传') < qianHtml.indexOf('爻辞') &&
+  qianHtml.includes('万物资始，乃统天') &&
+  qianHtml.includes('天行健，君子以自强不息。'));
+
+const qianGroup = document.createElement('div');
+qianGroup.innerHTML = qianHtml;
+const qianYaoItems = [...qianGroup.querySelectorAll('.rebu-yaoci')];
+check('每个爻位均按“爻辞后紧接小象传”展示', qianYaoItems.length === 7 &&
+  qianYaoItems.every(item =>
+    item.firstElementChild.classList.contains('rebu-yaoci-title') &&
+    item.lastElementChild.classList.contains('rebu-xiaoxiang')));
+check('乾卦初爻小象与用九小象准确对应',
+  qianYaoItems[0].textContent.includes('初九：潜龙，勿用。') &&
+  qianYaoItems[0].textContent.includes('小象传阳在下也。') &&
+  qianYaoItems[6].textContent.includes('用九：见群龙无首，吉。') &&
+  qianYaoItems[6].textContent.includes('小象传天德不可为首也。'));
+check('动爻内容没有额外水平内边距',
+  /\.rebu-yaoci\.moving\{[^}]*padding:6px 0;/.test(html));
 
 const legacyMeta = {
   bits:'111111',
@@ -87,23 +111,13 @@ const legacyMeta = {
   lines:[{ text:'旧数据爻辞', translation:'旧数据白话' }],
 };
 const legacyHtml = window.renderJieshiContent({ meta:legacyMeta }, new Set(), true);
-check('历史记录使用当前古文数据回填', legacyHtml.includes('元亨，利贞。') && legacyHtml.includes('初九：潜龙，勿用。'));
+check('历史记录使用当前古文数据回填',
+  legacyHtml.includes('元亨，利贞。') &&
+  legacyHtml.includes('万物资始，乃统天') &&
+  legacyHtml.includes('天行健，君子以自强不息。') &&
+  legacyHtml.includes('初九：潜龙，勿用。') &&
+  legacyHtml.includes('>小象传</span>阳在下也。'));
 check('历史记录不显示旧现代解释', !legacyHtml.includes('旧数据翻译') && !legacyHtml.includes('旧数据邵雍') && !legacyHtml.includes('旧数据白话'));
-
-const verifiedQian = Object.assign({}, qian.ben, {
-  meta: Object.assign({}, qian.ben.meta, {
-    classical: Object.assign({}, qian.ben.meta.classical, {
-      daxiang:'天行健，君子以自强不息。',
-      daxiangSource:{ title:'测试核验来源' },
-    }),
-  }),
-});
-const verifiedHtml = window.renderJieshiContent(verifiedQian, new Set(), true);
-check('已核验大象传按顺序显示',
-  verifiedHtml.indexOf('大象传') >= 0 &&
-  verifiedHtml.indexOf('大象传') < verifiedHtml.indexOf('卦辞') &&
-  verifiedHtml.indexOf('卦辞') < verifiedHtml.indexOf('爻辞') &&
-  verifiedHtml.includes('天行健，君子以自强不息。'));
 
 const changing = window.LiuYao.cast({
   method:'manual',
@@ -114,9 +128,14 @@ window.renderLiuyaoResult(changing);
 const benText = document.getElementById('rebu-jieshi-ben').textContent;
 const zhiText = document.getElementById('rebu-jieshi-zhi').textContent;
 check('本卦与变卦古文数据不串用',
-  benText.includes('元亨，利贞。') &&
-  zhiText.includes('女壮，勿用取女。') &&
-  !zhiText.includes('元亨，利贞。'));
+  benText.includes('万物资始，乃统天') &&
+  benText.includes('天行健，君子以自强不息。') &&
+  benText.includes('小象传阳在下也。') &&
+  zhiText.includes('天下有风') &&
+  zhiText.includes('后以施命诰四方。') &&
+  zhiText.includes('柔道牵也。') &&
+  !zhiText.includes('万物资始，乃统天') &&
+  !zhiText.includes('阳在下也。'));
 
 console.log('\n===== 六爻古文结果页测试结果 =====');
 results.forEach(result => console.log(result));

@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.14 (build 48)**　最后更新：2026-09-18
+> 当前版本：**v1.14.15 (build 49)**　最后更新：2026-10-03
 >
 > **版本已统一（2026-09-17）**：`codex/liuyao-audit-fixes`（09-16 16:00）与 `codex/liuyao-classical-text`（09-16 16:56）
 > 两条并行分支已按上传时间先后合并进本分支，对外只保留 **v1.14.8 (build 42)** 这一个号。
@@ -30,6 +30,9 @@
 > **v1.14.14 (build 48)**：主界面右上角原「今天 · X月X日」改为入口按钮**「健身房Roi」**，
 > 新增独立顶级视图 `#gym-view`（年卡价格 / 总出勤天数 / 累计总时长 / 距到期天数 + 月历出勤 + 单次价格与平均时长），
 > 数据存新键 `guanji_gym_v1`（见 4.5）。**原日期显示已移除，`renderHome()` 不再写 `#today-chip`。**
+>
+> **v1.14.15 (build 49)**：六爻结果页古文区升级为 **卦辞 → 彖传 → 大象传 → 爻辞+小象传** 层级；
+> 64 卦传文独立存于 `yijing-commentary-data.js`，逐爻小象与爻辞按索引绑定，本卦/变卦分别取数。
 
 ---
 
@@ -123,6 +126,7 @@ app/
 │   ├── bazi.js                 # 八字历法、四柱、十神、大运流年与神煞引擎
 │   ├── yijing-data.js          # 64 卦数据（保留旧版卦辞、白话、断易、邵雍、爻辞字段）
 │   ├── yijing-classical-data.js # 结果页使用的卦辞、爻辞古文数据（由 Markdown 生成）
+│   ├── yijing-commentary-data.js # 64 卦彖传、大象传、逐爻小象传（Kanripo KR1a0001）
 │   ├── native.js               # 返回键 / 退出 / 备份读写
 │   └── notify.js               # 每日提醒调度
 ├── scripts/build.js / build.ps1 # 用 esbuild 生成四个 bundle.js（Node / PowerShell）
@@ -241,6 +245,10 @@ app/
 - ⚠️ 只有**用户真的改动本卦或变卦**（触发 `change`）时才会重算候选与提示；程序化赋值不触发事件，写测试时需自行派发 `change`。
 
 **引擎能力**（`src/liuyao.js`）：纳甲装卦、六亲、世应、伏神、六神、动爻与变卦推演、用神推断、月建/日辰状态（旺相休囚死、月破、空亡、入墓、化进/化退/回头生克）、六冲六合与反吟伏吟提示。
+
+**结果页传文层级（v1.14.15）**：每个本卦 / 变卦面板按「卦辞 → 彖传 → 大象传 → 爻辞」展示；
+每条爻辞下方紧接同一爻位的小象传，动爻不增加额外左右内边距。传文来源为固定修订的
+Kanripo KR1a0001《周易》，结果页按当前卦 `bits` 查找，历史记录和变卦均读取各自卦象的数据。
 
 **摇卦交互**：点铜钱 → 旋转 → 再点 → 出结果；重复 6 次；第 6 爻后 800ms 自动跳结果页并写入记录。
 
@@ -394,7 +402,7 @@ npm run test:modules# 只跑主界面模块注册表
   预设变卦的页面断言：默认「不变（静卦）」、**候选 65 项（「不变」+ 全 64 卦，含本卦自身）**、动爻提示数量与位置、
   选本卦自身提示为静卦且起卦落地 `zhi === null`、结果页表头为「本卦,变卦」、乾为天→坤为地六爻全动且本卦侧标 6 个「动」、
   静卦结果页只有单列、提示词三要素、落盘、**切本卦后保留已选变卦并按新组合刷新提示**、候选随本卦更新。
-- `test_liuyao_classical_page.js` 的「不泄漏现代解读」断言只作用于**古文区**（`.rebu-jieshi-section`）。
+- `test_liuyao_classical_page.js` 验证卦辞、彖传、大象传、爻辞和小象传的层级与逐爻对应；「不泄漏现代解读」断言只作用于**古文区**（`.rebu-jieshi-section`）。
   ⚠️ 不要改回整页扫描：结果页最下方的解卦提示词结尾句按需求固定含「卦象」二字，整页扫描必然误报。
 - `test_bazi_page.js` 用 jsdom 验证八字入口、保存命例、基本盘、大运流年和流月展开。
   另含「今日干支」卡片断言：**冷启动首屏即有内容**（初始化必须调用 `openHomeGanZhiCard()`）、卡片在 `#hero` 之前、
@@ -439,10 +447,11 @@ npm run test:modules# 只跑主界面模块注册表
    - 变卦的世应、伏神一律**不增不改**（有就显示，没有就不加）。
 3. **古文区** `renderJieshiSection(ben, zhi, movingSet)`
    - 顶部两个切换按钮 `本卦：xxx` / `变卦：xxx`（无变卦时只有一个），点击调 `switchGuaJieshi('ben'|'zhi')` 切换下方面板。
-   - 每个面板由 `renderJieshiContent(hexData, movingSet, isBen)` 生成，只展示指定 Markdown 来源的 **卦辞** 与 **爻辞**；若后续核验了正式出版的《大象传》原文，则在最前追加 **大象传**。
-   - `yijing-data.js` 中旧的白话、断易、邵雍等字段必须保留，但结果页不得读取或渲染。页面统一从 `yijing-classical-data.js` 读取古文数据；历史记录按当前卦的 `bits` 回填，避免旧记录继续显示现代解释。
-   - 乾卦保留「用九」，坤卦保留「用六」；本卦动爻高亮逻辑不变。
-   - Markdown 解析、64 卦映射及爻题校验脚本：`tools/generate-yijing-classical-data.js`。
+   - 每个面板由 `renderJieshiContent(hexData, movingSet, isBen)` 生成，顺序固定为 **卦辞 → 彖传 → 大象传 → 爻辞+小象传**。
+   - 每条爻辞与小象传共用一个 `.rebu-yaoci` 内容组：第一行爻辞，下一行小象传；动爻只加背景和标记，不增加额外左右内边距。
+   - `yijing-data.js` 中旧的白话、断易、邵雍等字段必须保留，但结果页不得读取或渲染。卦辞/爻辞来自 `yijing-classical-data.js`，传文来自 `yijing-commentary-data.js`；历史记录按当前卦的 `bits` 回填。
+   - 乾卦保留「用九」及小象传，坤卦保留「用六」及小象传；本卦动爻高亮逻辑不变。
+   - Markdown 解析与古文校验脚本：`tools/generate-yijing-classical-data.js`；传文来源修订记录在 `YIJING_COMMENTARY_SOURCE`。
 4. **解卦提示词卡片** `.rebu-prompt-card`（v1.14.9，结果页**最下方，必须在古文区之后**）
    - 结构：`📋 解卦提示词` 标题 + `复制` 按钮 + `<pre class="rebu-prompt-text">` 纯文本块；由 `renderGuaTextCard(r)` 生成，插在 `renderJieshiSection(...)` 之后。
    - 文本由 `LiuYao.buildGuaTextPrompt(result)` 生成（`app/src/liuyao.js`），`renderGuaTextCard` 与 `copyGuaPrompt` 都调它，天然同源。
@@ -450,7 +459,7 @@ npm run test:modules# 只跑主界面模块注册表
      本卦六爻自上而下逐爻（爻位·阴阳·纳甲干支·六亲·世应·是否动爻）/ 变卦六爻同上 / 卦辞与爻辞 / 用神与提示（全空则整节省略）/ 结尾请求句。
    - 复制：优先 `navigator.clipboard.writeText`，失败回退 `fallbackCopyText()`（`document.execCommand('copy')` 临时 textarea，用完即删）；
      成功提示「已复制解卦提示词」，全失败提示「复制失败，请长按上方文字手动复制」。
-   - **不要顺手改动**：① 卦象区爻线对齐；② 古文区只显示卦辞/爻辞；③ 结果页返回 → 起卦记录页；④ 原生 `prompt()` 不可用，输入一律用 `openTextPrompt()`；⑤ 不新增第三方依赖。
+   - **不要顺手改动**：① 卦象区爻线对齐；② 古文区只显示卦辞、彖传、大象传、爻辞与小象传，不读取旧白话字段；③ 结果页返回 → 起卦记录页；④ 原生 `prompt()` 不可用，输入一律用 `openTextPrompt()`；⑤ 不新增第三方依赖。
 - **变卦范围不受任何限制**（v1.14.12 纠正）：不要给 `variantBitsOf` / `validateVariant` 加"同宫""子集""动爻数量"之类的过滤，
   也不要在测试里断言「某卦不能变某卦」。判定基准见 4.3 的术数口径；`test_liuyao.js` 里有反向断言兜底（候选恰为 64 卦、64×64 全放行）。
 
@@ -623,6 +632,7 @@ npm run test:modules# 只跑主界面模块注册表
 - [x] 八字排盘模块（v1.14.4 起含四柱直排底部弹层）
 - [x] **六爻起卦审计修复**（v1.14.8，来自分支 `codex/liuyao-audit-fixes`）：卦名映射、数字/手动起卦输入校验、摇卦状态隔离
 - [x] **六爻结果页古文解读**（v1.14.8，来自分支 `codex/liuyao-classical-text`）：只显示卦辞与爻辞，数据源 `yijing-classical-data.js`
+- [x] **六爻传文层级与逐爻小象传**（v1.14.15，分支 `codex/liuyao-commentary-ui`）：卦辞 / 彖传 / 大象传 / 爻辞 / 小象传，来源 Kanripo KR1a0001
 - [x] **六爻结果页解卦提示词**（v1.14.9，来自分支 `codex/liuyao-gua-text`）：纯文本 + 一键复制，见 4.3 与 7.4
 - [ ] ⚠️ **待产品确认（v1.14.9 遗留）**：需求清单第 1–10 条**没有**要求把卦辞/爻辞写进提示词，
       但结尾句却写着「请结合以上卦象与卦辞、爻辞，为我解读这一卦。」，所以本版把卦辞/爻辞也拼了进去（数据来自 `meta.classical`）。

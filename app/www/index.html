@@ -427,12 +427,14 @@
   /* 解读分段 */
   .rebu-block{background:#fff;border-left:3px solid #d4a843;border-radius:8px;padding:10px 12px;margin:10px 0;box-shadow:0 1px 4px rgba(139,105,20,.06);}
   .rebu-block-title{font-size:12px;font-weight:800;color:#7a5d12;margin-bottom:6px;letter-spacing:1px;}
-  .rebu-block .rebu-text{font-size:12px;line-height:1.8;color:#333;margin:0;}
+  .rebu-block .rebu-text{font-size:12px;line-height:1.8;color:#333;margin:0;word-break:break-word;overflow-wrap:anywhere;}
   .rebu-yaoci{padding:6px 0;border-bottom:1px dashed #f0ead9;}
   .rebu-yaoci:last-child{border-bottom:none;}
-  .rebu-yaoci.moving{background:#fff8ef;border-radius:6px;padding:6px 8px;}
+  .rebu-yaoci.moving{background:#fff8ef;border-radius:6px;padding:6px 0;}
   .rebu-yaoci-title{font-size:12px;font-weight:700;color:#5a4310;line-height:1.7;}
   .rebu-yaoci-dong{display:inline-block;color:#fff;background:#d9534f;font-size:9px;font-weight:700;border-radius:8px;padding:1px 6px;margin:0 4px;}
+  .rebu-xiaoxiang{font-size:12px;line-height:1.75;color:#6f6350;margin-top:4px;word-break:break-word;overflow-wrap:anywhere;}
+  .rebu-xiaoxiang-label{font-weight:800;color:#9b772d;margin-right:4px;}
 
   /* 解卦提示词（纯文本，可滚动、可选中、一键复制） */
   .rebu-prompt-card{margin:14px 0 0;background:#fff;border:1px solid #e6dcc6;border-left:3px solid #d4a843;border-radius:8px;padding:10px 12px;box-shadow:0 1px 4px rgba(139,105,20,.06);}
@@ -5171,22 +5173,28 @@ function renderJieshiSection(ben, zhi, movingSet){
   return h;
 }
 
-// 单卦古文：大象传（仅有核验原文时）/ 卦辞 / 爻辞
+// 单卦古文：卦辞 / 彖传 / 大象传 / 逐爻爻辞与小象传
 function renderJieshiContent(hexData, movingSet, isBen){
   const meta=hexData.meta;
   const classical=meta.classical || (window.LiuYao && window.LiuYao.getClassical ? window.LiuYao.getClassical(meta.bits) : null);
   if(!classical) return '';
   let h='';
-  if(classical.daxiang){
-    h+='<div class="rebu-block">';
-    h+='<div class="rebu-block-title">大象传</div>';
-    h+='<p class="rebu-text">'+escapeHtml(classical.daxiang)+'</p>';
-    h+='</div>';
-  }
   if(classical.guaci){
     h+='<div class="rebu-block">';
     h+='<div class="rebu-block-title">卦辞</div>';
     h+='<p class="rebu-text">'+escapeHtml(classical.guaci)+'</p>';
+    h+='</div>';
+  }
+  if(classical.tuan){
+    h+='<div class="rebu-block">';
+    h+='<div class="rebu-block-title">彖传</div>';
+    h+='<p class="rebu-text">'+escapeHtml(classical.tuan)+'</p>';
+    h+='</div>';
+  }
+  if(classical.daxiang){
+    h+='<div class="rebu-block">';
+    h+='<div class="rebu-block-title">大象传</div>';
+    h+='<p class="rebu-text">'+escapeHtml(classical.daxiang)+'</p>';
     h+='</div>';
   }
   if(classical.lines && classical.lines.length){
@@ -5196,6 +5204,9 @@ function renderJieshiContent(hexData, movingSet, isBen){
       const moving = isBen && movingSet.has(i);
       h+='<div class="rebu-yaoci'+(moving?' moving':'')+'">';
       h+='<div class="rebu-yaoci-title">'+escapeHtml(ln.title?ln.title+'：':'')+escapeHtml(ln.text||'')+(moving?'<span class="rebu-yaoci-dong">动</span>':'')+'</div>';
+      if(ln.xiaoxiang){
+        h+='<div class="rebu-xiaoxiang"><span class="rebu-xiaoxiang-label">小象传</span>'+escapeHtml(ln.xiaoxiang)+'</div>';
+      }
       h+='</div>';
     });
     h+='</div>';

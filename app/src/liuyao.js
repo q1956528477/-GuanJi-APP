@@ -3,6 +3,10 @@ import {
   YIJING_CLASSICAL,
   YIJING_CLASSICAL_SOURCE,
 } from './yijing-classical-data.js';
+import {
+  YIJING_COMMENTARY,
+  YIJING_COMMENTARY_SOURCE,
+} from './yijing-commentary-data.js';
 
 // ========== 基础常量 ==========
 const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
@@ -53,8 +57,24 @@ const HEX_LIST = YIJING_HEXAGRAMS.map(h => {
   HEX_BY_BITS[h.bits] = h;
   return {id:h.id, name:h.name, image:h.image, bits:h.bits};
 });
+const COMMENTARY_BY_BITS = {};
+YIJING_COMMENTARY.forEach(h => {
+  COMMENTARY_BY_BITS[h.bits] = h;
+});
+const MERGED_CLASSICAL = YIJING_CLASSICAL.map(h => {
+  const commentary = COMMENTARY_BY_BITS[h.bits];
+  if (!commentary) return h;
+  return Object.assign({}, h, {
+    tuan: commentary.tuan,
+    daxiang: commentary.daxiang,
+    daxiangSource: YIJING_COMMENTARY_SOURCE,
+    lines: h.lines.map((line, index) => Object.assign({}, line, {
+      xiaoxiang: commentary.xiaoxiang[index] || '',
+    })),
+  });
+});
 const CLASSICAL_BY_BITS = {};
-YIJING_CLASSICAL.forEach(h => {
+MERGED_CLASSICAL.forEach(h => {
   CLASSICAL_BY_BITS[h.bits] = h;
 });
 
@@ -662,8 +682,10 @@ export function buildGuaTextPrompt(result) {
 }
 
 export const HEXAGRAMS = HEX_LIST;
-export const CLASSICAL_HEXAGRAMS = YIJING_CLASSICAL;
-export const CLASSICAL_SOURCE = YIJING_CLASSICAL_SOURCE;
+export const CLASSICAL_HEXAGRAMS = MERGED_CLASSICAL;
+export const CLASSICAL_SOURCE = Object.assign({}, YIJING_CLASSICAL_SOURCE, {
+  commentary: YIJING_COMMENTARY_SOURCE,
+});
 export function getClassical(bits) {
   return CLASSICAL_BY_BITS[bits] || null;
 }

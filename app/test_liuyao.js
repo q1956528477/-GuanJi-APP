@@ -46,6 +46,16 @@ check('坤卦保留用六', classical[1].lines[6].title === '用六' && classica
 check('古文爻辞均含爻题与正文', classical.every(h => h.lines.every(line =>
   typeof line.title === 'string' && line.title && typeof line.text === 'string' && line.text
 )));
+check('64 卦均有彖传', classical.every(h => typeof h.tuan === 'string' && h.tuan.length > 0));
+check('64 卦均有大象传', classical.every(h => typeof h.daxiang === 'string' && h.daxiang.length > 0));
+check('每条爻辞均有对应小象传', classical.every(h => h.lines.every(line =>
+  typeof line.xiaoxiang === 'string' && line.xiaoxiang.length > 0
+)));
+check('传文未混入其他段落标记', classical.every(h =>
+  !h.tuan.includes('《象》') &&
+  !h.daxiang.includes('《象》') &&
+  h.lines.every(line => !line.xiaoxiang.includes('《象》曰：') && !line.xiaoxiang.includes('《文言》'))
+));
 check('古文数据不包含现代解读字段', classical.every(h =>
   !Object.prototype.hasOwnProperty.call(h, 'translation') &&
   !Object.prototype.hasOwnProperty.call(h, 'guaciTranslation') &&
@@ -56,9 +66,19 @@ check('古文数据不包含现代解读字段', classical.every(h =>
     !Object.prototype.hasOwnProperty.call(line, 'shaoyong')
   )
 ));
-check('未核验大象传不伪造数据', classical.every(h => h.daxiang === null && h.daxiangSource === null));
+check('乾卦彖传与大象传对应正确',
+  classical[0].tuan.includes('万物资始，乃统天') &&
+  classical[0].daxiang === '天行健，君子以自强不息。');
+check('乾卦初爻与用九小象传对应正确',
+  classical[0].lines[0].xiaoxiang === '阳在下也。' &&
+  classical[0].lines[6].xiaoxiang === '天德不可为首也。');
+check('坤卦上六与用六小象传对应正确',
+  classical[1].lines[5].xiaoxiang === '「龙战于野」，其道穷也。' &&
+  classical[1].lines[6].xiaoxiang === '「用六永贞」，以大终也。');
 check('古文来源信息完整', LiuYao.CLASSICAL_SOURCE.guaciAndLines.file === '周易六十四卦_卦辞爻辞.md' &&
   /^[a-f0-9]{64}$/.test(LiuYao.CLASSICAL_SOURCE.guaciAndLines.sha256));
+check('传文来源信息完整', LiuYao.CLASSICAL_SOURCE.commentary.revision === '8284adbf9e3435d713180e24f05bf75f8b7d1d96' &&
+  LiuYao.CLASSICAL_SOURCE.commentary.repository === 'https://github.com/kanripo/KR1a0001');
 
 const classicalMappingErrors = classical.filter(h => {
   const lines = h.bits.split('').map(bit => bit === '1' ? 'young_yang' : 'young_yin');
@@ -70,7 +90,10 @@ const classicalMappingErrors = classical.filter(h => {
   return result.ben.meta.bits !== h.bits ||
     result.ben.meta.image !== h.name ||
     !result.ben.meta.classical ||
-    result.ben.meta.classical.guaci !== h.guaci;
+    result.ben.meta.classical.guaci !== h.guaci ||
+    result.ben.meta.classical.tuan !== h.tuan ||
+    result.ben.meta.classical.daxiang !== h.daxiang ||
+    result.ben.meta.classical.lines.some((line, index) => line.xiaoxiang !== h.lines[index].xiaoxiang);
 });
 check('64 卦 bits、卦名与古文数据映射一致', classicalMappingErrors.length === 0);
 
