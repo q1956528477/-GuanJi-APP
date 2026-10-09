@@ -596,49 +596,212 @@
   .bz-records-bulk-btn{flex:0 0 auto;border:none;border-radius:.7rem;padding:.58rem .72rem;background:#f2f2f2;color:#333;font-size:.7rem;font-weight:700;font-family:inherit;}
   .bz-records-bulk-btn.danger{background:#d9534f;color:#fff;}
   .bz-empty{text-align:center;color:var(--ink-soft);font-size:13px;padding:44px 12px;}
-  .bz-info-head{background:linear-gradient(135deg,#fffdf7,#f7f0df);border:1px solid #eadfca;border-radius:20px;padding:18px;margin-bottom:14px;}
-  .bz-info-name{font-size:23px;font-weight:800;color:#5d4509;}
-  .bz-info-name small{font-size:12px;color:#7a5d12;margin-left:8px;}
-  .bz-info-meta{font-size:12px;color:#7b6c4c;line-height:1.8;margin-top:8px;}
-  .bz-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
-  .bz-summary-item{background:rgba(255,255,255,.72);border-radius:11px;padding:8px 10px;font-size:11px;color:#7b6c4c;}
-  .bz-summary-item b{display:block;color:#5d4509;font-size:14px;margin-top:2px;}
-  .bz-info-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
-  .bz-info-tabs button{border:1px solid #e3d8c2;background:#fff;color:#7a5d12;border-radius:12px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;}
-  .bz-info-tabs button.active{background:#7a5d12;color:#fff;border-color:#7a5d12;}
-  .bz-basic-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px 4px;}
-  .bz-basic-table{width:100%;min-width:560px;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;}
-  .bz-basic-table th,.bz-basic-table td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:9px 6px;text-align:center;vertical-align:top;font-size:11px;line-height:1.55;}
-  .bz-basic-table th:last-child,.bz-basic-table td:last-child{border-right:none;}
-  .bz-basic-table tr:last-child td{border-bottom:none;}
-  .bz-basic-table th{background:#faf5e9;color:#7a5d12;font-size:11px;font-weight:800;}
-  .bz-basic-table td:first-child{width:58px;background:#fbfaf7;color:#8a8696;font-weight:700;}
-  .bz-ganzhi-cell b{display:block;font-size:22px;color:#5d4509;line-height:1.25;}
-  .bz-ganzhi-cell span{font-size:12px;color:#8a8696;}
-  .bz-hidden-line{display:block;margin-bottom:3px;color:#7a5d12;}
-  .bz-hidden-line:last-child{margin-bottom:0;}
-  .bz-shensha{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;}
-  .bz-shensha span{background:#faf3df;color:#7a5d12;border-radius:999px;padding:2px 6px;font-size:9px;font-weight:700;}
-  .bz-extra-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
-  .bz-extra-item{background:#faf8f4;border-radius:12px;padding:10px;text-align:center;}
-  .bz-extra-item .k{font-size:10px;color:var(--ink-soft);}
-  .bz-extra-item .v{font-size:14px;font-weight:800;color:#5d4509;margin-top:3px;}
-  .bz-wuxing{grid-column:1/-1;display:flex;justify-content:space-around;gap:5px;}
-  .bz-wuxing span{font-size:12px;font-weight:700;color:#5d4509;}
-  .bz-dayun-strip{display:flex;gap:8px;overflow-x:auto;padding:2px 1px 10px;}
-  .bz-dayun-card{flex:0 0 104px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center;cursor:pointer;}
-  .bz-dayun-card.active{border-color:#b8933a;background:#fffaf0;box-shadow:0 0 0 2px rgba(184,147,58,.12);}
-  .bz-dayun-card b{display:block;font-size:19px;color:#5d4509;}
-  .bz-dayun-card span{display:block;font-size:10px;color:var(--ink-soft);line-height:1.5;margin-top:3px;}
-  .bz-liunian-list{background:#faf8f4;border-radius:14px;padding:8px;margin-top:8px;}
-  .bz-liunian-item{background:#fff;border-radius:11px;padding:10px 11px;margin-bottom:7px;cursor:pointer;border:1px solid #f0ece5;}
-  .bz-liunian-item:last-child{margin-bottom:0;}
-  .bz-liunian-item.current{border-color:#b8933a;background:#fffaf0;}
-  .bz-liunian-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
-  .bz-liunian-head b{font-size:15px;color:#5d4509;}
-  .bz-liunian-head span{font-size:11px;color:var(--ink-soft);}
-  .bz-liuyue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
-  .bz-liuyue-grid div{background:#faf8f4;border-radius:8px;padding:6px 3px;text-align:center;font-size:10px;color:#7a5d12;font-weight:700;}
+  /* ---------- 八字结果页：新视觉（基本盘 / 细盘） ---------- */
+  body.bz-detail{background:#f4f5f7;}
+  #bazi-info-view{margin-left:-16px;margin-right:-16px;}
+  #bazi-info-view > .topbar{padding-left:16px;padding-right:16px;}
+  #bz-info-panel{padding:0 12px;}
+
+  /* 顶部命例栏 */
+  .bz2-profile{
+    background:linear-gradient(180deg,#26282e 0%,#191a1f 100%);
+    padding:14px 16px 13px;display:flex;align-items:center;gap:11px;position:relative;
+  }
+  .bz2-profile::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+    background:linear-gradient(90deg,rgba(176,140,74,0),rgba(176,140,74,.5),rgba(176,140,74,0));
+  }
+  .bz2-avatar{
+    flex:0 0 48px;width:48px;height:48px;border:1.5px solid #c8a552;border-radius:50%;
+    background:#1d1e23;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .bz2-zodiac{font-size:24px;line-height:1;color:transparent;-webkit-text-stroke:1px #c8a552;font-weight:700;}
+  .bz2-profile-main{flex:1;min-width:0;}
+  .bz2-profile-name{
+    font-family:"Songti SC","Source Han Serif SC","SimSun",Georgia,serif;
+    font-size:19px;font-weight:700;letter-spacing:.06em;color:#dcc287;line-height:1.15;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .bz2-profile-line{
+    font-size:9.5px;line-height:1.65;color:#8d9199;margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .bz2-profile-actions{display:flex;align-items:center;gap:7px;align-self:flex-start;padding-top:2px;}
+  .bz2-icon-btn{
+    width:26px;height:26px;border-radius:50%;border:1px solid rgba(200,167,92,.6);
+    background:rgba(200,167,92,.08);color:#cdae68;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;padding:0;font-family:inherit;
+  }
+  .bz3-toggle{
+    display:flex;align-items:center;gap:5px;height:26px;padding:0 4px 0 9px;border-radius:999px;
+    background:#fff;color:#3a3e45;font-size:9.5px;font-weight:600;cursor:pointer;line-height:1;
+  }
+  .bz3-toggle input{display:none;}
+  .bz3-toggle i{position:relative;display:block;width:20px;height:12px;border-radius:999px;background:#d8dbe0;transition:background .2s;}
+  .bz3-toggle i::after{
+    content:"";position:absolute;top:1.5px;left:1.5px;width:9px;height:9px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 1.5px rgba(0,0,0,.25);transition:transform .2s;
+  }
+  .bz3-toggle input:checked + i{background:#b08c4a;}
+  .bz3-toggle input:checked + i::after{transform:translateX(8px);}
+  .bz3-taiming-panel{
+    display:grid;grid-template-columns:repeat(3,1fr);background:#fff;
+    border-bottom:1px solid #edeef1;padding:9px 16px 10px;
+  }
+  .bz3-taiming-panel div{text-align:center;font-size:8.5px;color:#a6abb2;}
+  .bz3-taiming-panel b{display:block;font-size:12px;color:#33383f;margin-top:3px;font-weight:700;}
+
+  /* 基本盘 / 细盘 切换 */
+  .bz-info-tabs{display:flex;background:#fff;border-bottom:1px solid #edeef1;}
+  .bz-info-tabs button{
+    flex:1;position:relative;border:none;background:transparent;cursor:pointer;font-family:inherit;
+    padding:11px 0 10px;font-size:12px;font-weight:600;color:#9ba1a9;letter-spacing:.06em;
+  }
+  .bz-info-tabs button.active{color:#8e6e33;font-weight:700;}
+  .bz-info-tabs button.active::after{
+    content:"";position:absolute;left:50%;bottom:0;width:26px;height:2px;border-radius:2px;
+    background:#b08c4a;transform:translateX(-50%);
+  }
+
+  /* 卡片与分节标题 */
+  .bz-card{
+    background:#fff;border-radius:9px;margin:9px 0 0;overflow:hidden;
+    box-shadow:0 1px 2px rgba(20,28,40,.05),0 0 0 .5px rgba(20,28,40,.035);
+  }
+  .bz-sec-head{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;}
+  .bz-sec-title{font-size:10.5px;font-weight:700;color:#42474e;letter-spacing:.02em;}
+  .bz-sec-title em{font-style:normal;color:#8e6e33;}
+  .bz-sec-sub{font-size:9px;color:#9ba1a9;}
+
+  /* 四柱 / 岁运 对照表 */
+  .bz2-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  .bz2-table col.bz2-col-label{width:40px;}
+  .bz2-table th{
+    font-weight:600;font-size:9.5px;color:#9ba1a9;letter-spacing:.04em;
+    padding:8px 0 6px;text-align:center;border-bottom:1px solid #edeef1;
+  }
+  .bz2-table td{
+    padding:6px 1px;text-align:center;vertical-align:middle;font-size:9.5px;color:#4a4f57;
+    border-bottom:1px solid #edeef1;overflow-wrap:anywhere;
+  }
+  .bz2-table tr:last-child td{border-bottom:none;}
+  .bz2-table .bz2-row-label{
+    text-align:left;padding-left:11px;color:#a6abb2;font-size:9.5px;font-weight:500;white-space:nowrap;
+  }
+  .bz2-table th.bz2-divider,.bz2-table td.bz2-divider{border-left:1px solid #e2e6ea;}
+  .bz2-gan,.bz2-zhi{font-size:19px;font-weight:700;line-height:1.1;display:inline-block;white-space:nowrap;}
+  .bz2-hidden-list{display:flex;flex-direction:column;gap:1.5px;align-items:center;}
+  .bz2-hidden-line{font-size:9px;line-height:1.32;white-space:nowrap;font-weight:700;}
+  .bz2-secondary-line{font-size:9px;line-height:1.32;white-space:nowrap;color:#9ba1a9;}
+  .bz2-tiny{font-size:9px;color:#5a6069;line-height:1.45;}
+  .bz2-sha-list{display:flex;flex-direction:column;gap:1px;align-items:center;}
+  .bz2-sha-good,.bz2-sha-bad{font-size:8.5px;line-height:1.3;white-space:nowrap;}
+  .bz2-sha-good{color:#9e7a22;font-weight:700;}
+  .bz2-sha-bad{color:#6a7078;font-weight:600;}
+  .bz-kong-day{display:block;font-size:8px;color:#c8a75c;line-height:1.2;margin-top:1px;}
+
+  /* 起运 / 交运 */
+  .bz3-start-info{padding:10px 12px 11px;}
+  .bz3-start-line{display:flex;align-items:baseline;gap:6px;}
+  .bz3-start-line + .bz3-start-line{margin-top:4px;}
+  .bz3-start-label{flex:0 0 auto;color:#9ba1a9;font-size:9.5px;}
+  .bz3-start-text{color:#4a4f57;font-size:9.5px;line-height:1.6;}
+  .bz3-current-age{
+    margin-left:auto;font-family:"Songti SC","SimSun",serif;font-size:17px;font-weight:700;
+    color:#8e6e33;line-height:1;
+  }
+  .bz3-current-age small{font-size:9px;font-weight:400;margin-left:1px;}
+  .bz3-commander{color:#8e6e33;font-size:9.5px;font-weight:600;white-space:nowrap;}
+
+  /* 大运 / 流年 / 流月 横选 */
+  .bz3-strip{display:flex;gap:6px;margin:9px 0 0;align-items:stretch;}
+  .bz3-strip-heading{
+    flex:0 0 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  }
+  .bz3-strip-heading .txt{
+    writing-mode:vertical-rl;text-orientation:upright;font-size:10px;font-weight:700;
+    color:#8e6e33;letter-spacing:.16em;
+  }
+  .bz3-strip-heading .dot{width:3px;height:3px;border-radius:50%;background:rgba(176,140,74,.35);}
+  .bz3-strip-heading .bz3-strip-switch{width:9px;height:9px;margin:0;accent-color:#b08c4a;}
+  .bz3-strip-viewport{flex:1;min-width:0;}
+  .bz3-strip-scroll{display:grid;gap:2px;}
+  .bz3-strip-col{
+    background:#fff;border-radius:5px;padding:5px 1px 6px;text-align:center;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0;overflow:hidden;
+    box-shadow:0 0 0 .5px rgba(20,28,40,.05);
+  }
+  .bz3-strip-col.active{background:#fbf2da;box-shadow:0 0 0 .5px rgba(176,140,74,.45),0 1px 3px rgba(176,140,74,.12);}
+  .bz3-strip-col .year{font-size:7.5px;color:#aab0b7;line-height:1.2;white-space:nowrap;}
+  .bz3-strip-col .age{font-size:7px;color:#b6bbc2;line-height:1.2;white-space:nowrap;}
+  .bz3-strip-col .term{font-size:7.5px;color:#aab0b7;line-height:1.25;white-space:nowrap;}
+  .bz3-strip-col .gz-line{font-size:10.5px;font-weight:700;line-height:1.35;white-space:nowrap;}
+  .bz3-strip-col .xiao-yun{font-size:6.5px;color:#a08530;line-height:1.3;white-space:nowrap;}
+  .bz3-strip-col.active .year,.bz3-strip-col.active .term{color:#a8863c;}
+
+  /* 五行旺衰色带 */
+  .bz3-wuxing{display:flex;gap:6px;margin:9px 0 0;align-items:stretch;}
+  .bz3-wuxing-label{flex:0 0 20px;display:flex;align-items:center;justify-content:center;}
+  .bz3-wuxing-label span{
+    writing-mode:vertical-rl;text-orientation:upright;font-size:10px;font-weight:700;
+    color:#8e6e33;letter-spacing:.16em;
+  }
+  .bz3-wuxing-grid{
+    flex:1;min-width:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+    background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 0 0 .5px rgba(20,28,40,.05);
+  }
+  .bz3-wuxing-cell{padding:7px 2px;text-align:center;}
+  .bz3-wuxing-name{font-size:10.5px;font-weight:700;letter-spacing:.03em;white-space:nowrap;}
+  .bz3-wuxing-bar{height:3px;border-radius:2px;margin:5px 7px 0;background:#eff1f4;overflow:hidden;}
+  .bz3-wuxing-bar i{display:block;height:100%;border-radius:2px;}
+
+  /* 关系 */
+  .bz3-relations{
+    background:#fff;border-radius:9px;margin:9px 0 0;padding:2px 0;
+    box-shadow:0 1px 2px rgba(20,28,40,.05),0 0 0 .5px rgba(20,28,40,.035);
+  }
+  .bz3-relation-row{
+    display:flex;align-items:flex-start;gap:8px;padding:7px 12px;font-size:9.5px;line-height:1.6;
+    border-bottom:1px solid #f5f6f8;
+  }
+  .bz3-relation-row:last-child{border-bottom:none;}
+  .bz3-relation-label{flex:0 0 46px;color:#8e6e33;font-weight:700;letter-spacing:.02em;white-space:nowrap;}
+  .bz3-relation-value{flex:1;color:#6a7078;word-break:break-word;}
+  .bz3-empty{color:#c2c6cc;}
+
+  /* 神煞 */
+  .bz3-shensha-list{
+    background:#fff;border-radius:9px;margin:9px 0 0;padding:2px 0;
+    box-shadow:0 1px 2px rgba(20,28,40,.05),0 0 0 .5px rgba(20,28,40,.035);
+  }
+  .bz3-sha-group{
+    padding:6px 12px 4px;font-size:8.5px;font-weight:700;color:#b0b5bc;letter-spacing:.08em;
+    background:#fafbfc;border-bottom:1px solid #f5f6f8;
+  }
+  .bz3-sha-row{
+    display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:9.5px;
+    border-bottom:1px solid #f5f6f8;
+  }
+  .bz3-sha-row:last-child{border-bottom:none;}
+  .bz3-shensha-pillar{flex:0 0 44px;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.06em;}
+  .bz3-shensha-values{flex:1;color:#6a7078;font-size:9px;line-height:1.55;word-break:break-word;}
+  .bz3-pill{background:#fbf2da;border-radius:4px;padding:2px 0;box-shadow:0 0 0 .5px rgba(176,140,74,.4);}
+  .bz3-expand-btn{
+    border:none;background:transparent;color:#8e6e33;font-size:9px;font-weight:700;
+    cursor:pointer;padding:0;font-family:inherit;
+  }
+  .bz3-footnote{padding:10px 0 0;font-size:8.5px;color:#b6bbc2;line-height:1.6;}
+
+  /* 命盘要素格 */
+  .bz2-kv{display:grid;grid-template-columns:1fr 1fr;}
+  .bz2-kv-cell{padding:9px 12px;border-bottom:1px solid #f5f6f8;border-right:1px solid #f5f6f8;}
+  .bz2-kv-cell:nth-child(2n){border-right:none;}
+  .bz2-kv-cell.full{grid-column:1/-1;border-right:none;}
+  .bz2-kv-cell .k{font-size:8.5px;color:#a6abb2;letter-spacing:.02em;}
+  .bz2-kv-cell .v{font-size:12px;font-weight:700;color:#33383f;margin-top:3px;letter-spacing:.02em;}
+  .bz2-kv-cell .v em{font-style:normal;font-size:10px;font-weight:600;color:#6a7078;margin-left:2px;}
+  .bz2-wxc{font-size:11px;font-weight:700;letter-spacing:.06em;}
+  .bz2-wxc + .bz2-wxc{margin-left:10px;}
   .bz-modal-actions{display:flex;flex-direction:column;gap:9px;margin-top:8px;}
   .bz-modal-actions button{width:100%;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;background:#f5f1e8;color:#5d4509;}
   .bz-modal-actions button.danger{background:#fff0ed;color:#d9534f;}
@@ -650,148 +813,23 @@
   .bz-group-actions button{border:none;background:#f5f1e8;color:#7a5d12;border-radius:8px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;}
   .bz-group-actions button.danger{background:#fff0ed;color:#d9534f;}
 
-  /* 八字基本盘 v2 */
-  .bz2-profile{background:#1a1a1a;border-radius:1.25rem;padding:1.0625rem 1rem;display:flex;align-items:center;gap:.8125rem;margin-bottom:.875rem;}
-  .bz2-avatar{width:3.75rem;height:3.75rem;flex:0 0 3.75rem;border:1.5px solid #c8a552;border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .bz2-zodiac{font-size:1.9375rem;line-height:1;color:transparent;-webkit-text-stroke:1px #c8a552;font-weight:700;}
-  .bz2-profile-main{flex:1;min-width:0;}
-  .bz2-profile-name{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .bz2-profile-line{font-size:.625rem;line-height:1.65;color:#b8b8b8;margin-top:.1875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .bz2-profile-actions{display:flex;align-items:center;gap:.375rem;align-self:flex-start;}
-  .bz2-icon-btn{width:1.8125rem;height:1.8125rem;border:1px solid rgba(200,165,82,.5);border-radius:.5625rem;background:transparent;color:#c8a552;font-size:1rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit;}
-  .bz2-panel{background:#fff;border-radius:1.125rem;padding:0 .75rem .75rem;}
-  .bz2-table-scroll{overflow:visible;max-width:100%;margin:0;padding:0;}
-  .bz2-table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;}
-  .bz2-table .bz2-col-label{width:64px;}
-  .bz2-table td{border-bottom:1px solid #f0f0f0;padding:.5rem .25rem;text-align:center;vertical-align:top;font-size:.6875rem;color:#666;line-height:1.45;overflow-wrap:anywhere;}
-  .bz2-table tr:last-child td{border-bottom:none;}
-  .bz2-table .bz2-row-label{text-align:left;color:#999;font-size:.625rem;font-weight:500;vertical-align:middle;white-space:nowrap;padding-left:0;}
-  .bz2-table .bz2-date-cell{color:#aaa;font-size:.625rem;padding-top:.625rem;padding-bottom:.375rem;}
-  .bz2-main-star{font-size:.75rem;font-weight:700;}
-  .bz2-gan,.bz2-zhi{font-size:1.375rem;font-weight:800;line-height:1.05;letter-spacing:0;white-space:nowrap;}
-  .bz2-elem{display:inline-block;font-size:.5rem;line-height:1.2;border:1px solid currentColor;border-radius:50%;padding:0 .1875rem;margin-left:.125rem;vertical-align:.3125rem;font-weight:700;}
-  .bz2-hidden-list,.bz2-sha-list{display:flex;flex-direction:column;align-items:center;gap:.25rem;min-width:0;max-width:100%;}
-  .bz2-hidden-line{white-space:normal;overflow-wrap:anywhere;font-size:.75rem;font-weight:700;}
-  .bz2-secondary-line{white-space:normal;overflow-wrap:anywhere;font-size:.625rem;color:#888;}
-  .bz-kong-day{display:block;font-size:.5rem;color:#a08530;margin-top:.1rem;}
-  .bz2-row-label.star-label::after{content:"★";display:block;color:#bdbdbd;font-size:8px;line-height:1;margin-top:3px;}
-  .bz2-sha-good{color:#9b772d;font-size:.625rem;font-weight:700;white-space:normal;overflow-wrap:anywhere;text-align:center;}
-  .bz2-sha-bad{color:#555;font-size:.625rem;font-weight:700;white-space:normal;overflow-wrap:anywhere;text-align:center;}
-  .bz2-relations{background:#fff;border-radius:1rem;padding:.25rem .875rem;}
-  .bz2-relation-row{display:flex;align-items:flex-start;gap:.5rem;padding:.625rem 0;border-bottom:1px solid #f2f2f2;font-size:.6875rem;line-height:1.7;}
-  .bz2-relation-row:last-child{border-bottom:none;}
-  .bz2-relation-label{flex:0 0 3.625rem;color:#9b772d;font-weight:800;}
-  .bz2-relation-value{flex:1;color:#777;word-break:break-word;}
-  .bz2-el-fire{color:#c0392b!important;}
-  .bz2-el-metal{color:#a08530!important;}
-  .bz2-el-water{color:#5b7e9b!important;}
-  .bz2-el-wood{color:#4e7a3a!important;}
-  .bz2-el-earth{color:#8b7355!important;}
-
-  /* 八字细盘 */
-  .bz3-toggle{display:flex;flex-direction:column;align-items:center;gap:.15rem;color:#fff;font-size:.6rem;line-height:1;}
-  .bz3-toggle input{display:none;}
-  .bz3-toggle i{position:relative;display:block;width:1.7rem;height:.9rem;border-radius:999px;background:#777;transition:background .2s;}
-  .bz3-toggle i::after{content:"";position:absolute;top:.12rem;left:.12rem;width:.66rem;height:.66rem;border-radius:50%;background:#fff;transition:transform .2s;}
-  .bz3-toggle input:checked + i{background:#c8a552;}
-  .bz3-toggle input:checked + i::after{transform:translateX(.8rem);}
-  .bz3-taiming-panel{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin:-.45rem 0 .85rem;padding:.65rem;background:#f5f1e8;border-radius:0 0 1rem 1rem;}
-  .bz3-taiming-panel div{text-align:center;font-size:.625rem;color:#8a7551;}
-  .bz3-taiming-panel b{display:block;font-size:.8rem;color:#5d4509;margin-top:.15rem;}
-  .bz3-section{margin-bottom:.85rem;}
-  .bz3-section-title{font-size:.75rem;font-weight:800;color:#333;margin:.15rem 0 .5rem;}
-  .bz3-panel{background:#fff;border-radius:1rem;padding:0 .75rem .75rem;}
-  .bz3-table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-  .bz3-table-scroll::-webkit-scrollbar{display:none;}
-  .bz3-table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;}
-  .bz3-table .bz3-col-label{width:60px;}
-  .bz3-table .bz3-col-flow{width:56px;}
-  .bz3-table td{border-bottom:1px solid #f0f0f0;padding:.45rem .18rem;text-align:center;vertical-align:top;font-size:.625rem;color:#666;line-height:1.4;overflow-wrap:anywhere;}
-  .bz3-table tr:last-child td{border-bottom:none;}
-  .bz3-table .bz3-row-label{text-align:left;color:#999;font-size:.6rem;font-weight:500;vertical-align:middle;padding-left:0;}
-  .bz3-table .bz3-date-cell{color:#aaa;font-size:.575rem;padding-top:.5rem;padding-bottom:.35rem;}
-  .bz3-table .bz3-active-col{background:#ede6d6;}
-  .bz3-gan,.bz3-zhi{font-size:1.25rem;font-weight:800;line-height:1.05;white-space:nowrap;letter-spacing:0;}
-  .bz3-elem{font-size:.45rem;border:1px solid currentColor;border-radius:50%;padding:0 .15rem;margin-left:.08rem;vertical-align:.22rem;}
-  .bz3-hidden-list,.bz3-sha-list{display:flex;flex-direction:column;align-items:center;gap:.2rem;min-width:0;max-width:100%;}
-  .bz3-hidden-line,.bz3-sha-line{white-space:normal;overflow-wrap:anywhere;text-align:center;font-size:.625rem;font-weight:700;}
-  .bz3-sha-line{font-weight:600;}
-  .bz3-start-info{background:#fff;border-radius:1rem;padding:.75rem .85rem;font-size:.64rem;color:#777;line-height:1.8;}
-  .bz3-start-line{display:flex;align-items:flex-start;gap:.4rem;flex-wrap:wrap;}
-  .bz3-start-line + .bz3-start-line{margin-top:.25rem;}
-  .bz3-start-label{flex:0 0 auto;white-space:nowrap;}
-  .bz3-current-age{margin-left:auto;color:#5d4509;font-size:1rem;font-weight:800;white-space:nowrap;}
-  .bz3-commander{margin-left:.55rem;color:#9b772d;font-weight:700;white-space:nowrap;}
-  .bz3-strip{display:flex;gap:.45rem;margin-bottom:.8rem;min-width:0;}
-  .bz3-strip-heading{flex:0 0 2.3rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25rem;color:#8f7a51;font-size:.65rem;font-weight:800;}
-  .bz3-strip-heading .txt{writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.1rem;}
-  .bz3-strip-switch{width:.85rem;height:.85rem;accent-color:#b8933a;}
-  .bz3-strip-viewport{position:relative;flex:1;min-width:0;}
-  .bz3-strip-viewport::before,.bz3-strip-viewport::after{content:"";position:absolute;top:0;bottom:0;width:.7rem;z-index:2;pointer-events:none;}
-  .bz3-strip-viewport::before{left:0;background:linear-gradient(90deg,rgba(255,255,255,.96),rgba(255,255,255,0));}
-  .bz3-strip-viewport::after{right:0;background:linear-gradient(270deg,rgba(255,255,255,.96),rgba(255,255,255,0));}
-  .bz3-strip-scroll{display:flex;gap:.25rem;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:.15rem 0;}
-  .bz3-strip-scroll::-webkit-scrollbar{display:none;}
-  .bz3-strip-col{flex:0 0 3.375rem;width:3.375rem;min-height:4.8rem;border:1px solid #eee8dc;border-radius:.7rem;padding:.38rem .15rem;text-align:center;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;cursor:pointer;box-sizing:border-box;}
-  .bz3-strip-col.active{background:#ede6d6;border-color:#d9c89f;}
-  .bz3-strip-col .year{font-size:.6rem;color:#888;white-space:nowrap;}
-  .bz3-strip-col .gz-line{font-size:.76rem;font-weight:800;white-space:nowrap;line-height:1.45;margin-top:.15rem;}
-  .bz3-strip-col .age{font-size:.56rem;color:#999;white-space:nowrap;margin-top:.15rem;}
-  .bz3-strip-col .term{font-size:.6rem;color:#777;white-space:nowrap;line-height:1.45;}
-  .bz3-strip-col .xiao-yun{font-size:.56rem;color:#a08530;white-space:nowrap;line-height:1.4;margin-top:.1rem;}
-  .bz3-wuxing{display:grid;grid-template-columns:repeat(5,1fr);border-radius:.9rem;overflow:hidden;margin-bottom:.85rem;}
-  .bz3-wuxing div{min-width:0;text-align:center;padding:.68rem .08rem;font-size:.65rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:clip;}
-  .bz3-wuxing .metal{background:#f2ecd7;color:#7f6827;}
-  .bz3-wuxing .water{background:#e2edf3;color:#4e718b;}
-  .bz3-wuxing .earth{background:#eee7de;color:#755f47;}
-  .bz3-wuxing .fire{background:#f7e2de;color:#a73b31;}
-  .bz3-wuxing .wood{background:#e3eddf;color:#456c34;}
-  .bz3-actions{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin:0 0 .65rem;}
-  .bz3-action-card{background:#f5f5f5;border-radius:.875rem;padding:.75rem .65rem;color:#333;font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;border:none;font-family:inherit;min-width:0;}
-  .bz3-relations{background:#fff;border-radius:1rem;padding:.2rem .8rem;margin-bottom:.8rem;}
-  .bz3-relation-row{display:flex;align-items:flex-start;gap:.42rem;padding:.55rem 0;border-bottom:1px solid #f2f2f2;font-size:.64rem;line-height:1.65;}
-  .bz3-relation-row:last-child{border-bottom:none;}
-  .bz3-relation-label{flex:0 0 3.35rem;color:#9b772d;font-weight:800;white-space:nowrap;}
-  .bz3-relation-value{flex:1;color:#777;word-break:break-word;}
-  .bz3-shensha-title{display:flex;align-items:center;justify-content:space-between;color:#222;font-size:.72rem;font-weight:800;margin:.7rem 0 .4rem;}
-  .bz3-expand-btn{border:none;background:transparent;color:#9b772d;font-size:.65rem;font-weight:700;cursor:pointer;padding:.15rem 0;font-family:inherit;}
-  .bz3-shensha-list{background:#fff;border-radius:1rem;padding:.15rem .8rem;}
-  .bz3-shensha-row{display:flex;align-items:flex-start;gap:.45rem;padding:.55rem 0;border-bottom:1px solid #f2f2f2;font-size:.64rem;line-height:1.65;}
-  .bz3-shensha-row:last-child{border-bottom:none;}
-  .bz3-shensha-pillar{flex:0 0 auto;font-weight:800;white-space:nowrap;}
-  .bz3-shensha-values{flex:1;color:#888;word-break:break-word;}
-  .bz3-pill{display:inline-block;background:#ede6d6;border-radius:999px;padding:.08rem .38rem;color:#6f5927;}
-  .bz3-footnote{font-size:.58rem;color:#aaa;line-height:1.6;margin-top:.35rem;}
-
+  /* ---------- 八字结果页：五行配色 ---------- */
+  .bz2-el-fire{color:#d0453d!important;}
+  .bz2-el-metal{color:#b08a2e!important;}
+  .bz2-el-water{color:#2b3a4a!important;}
+  .bz2-el-wood{color:#3e8e4e!important;}
+  .bz2-el-earth{color:#8a6a45!important;}
   @media (max-width:360px){
     #app{padding-left:.25rem;padding-right:.25rem;}
     .bz-records-list-wrap{padding-right:1.65rem;}
     .bz-record-row{grid-template-columns:minmax(0,1.15fr) minmax(8rem,1fr);gap:.4rem;padding-left:.7rem;}
     .bz-record-row.edit-mode{grid-template-columns:.85rem minmax(0,1.15fr) minmax(8rem,1fr);}
-    .bz2-panel{padding:0 .25rem .5rem;}
-    .bz2-table-scroll{margin:0;padding:0;}
-    .bz2-table .bz2-col-label{width:64px;}
-    .bz2-table td{padding:.375rem .125rem;font-size:.625rem;}
-    .bz2-table .bz2-row-label{font-size:.5625rem;}
-    .bz2-table .bz2-date-cell{font-size:.5625rem;}
-    .bz2-gan,.bz2-zhi{font-size:1.125rem;}
-    .bz2-elem{font-size:.4375rem;padding:0 .1rem;margin-left:.05rem;vertical-align:.2rem;}
-    .bz2-hidden-line{font-size:.6875rem;}
-    .bz2-secondary-line,.bz2-sha-good,.bz2-sha-bad{font-size:.5625rem;}
+    #bazi-info-view{margin-left:-4px;margin-right:-4px;}
+    #bazi-info-view > .topbar{padding-left:4px;padding-right:4px;}
+    #bz-info-panel{padding:0 8px;}
   }
-  @media (max-width:767px){
-    .bz3-panel{margin-left:-1rem;margin-right:-1rem;}
-  }
-  @media (max-width:375px){
-    .bz3-table .bz3-col-label{width:58px;}
-    .bz3-table .bz3-col-flow{width:54px;}
-    .bz3-table{min-width:22.375rem;}
-  }
-  @media (max-width:360px){
-    .bz3-panel{margin-left:-.25rem;margin-right:-.25rem;}
-    .bz3-gan,.bz3-zhi{font-size:1.0625rem;}
-    .bz3-table{min-width:22.375rem;}
-    .bz3-wuxing div{font-size:.58rem;}
+  @media (min-width:768px){
+    #app{max-width:480px;}
   }
   @media (min-width:768px){
     #app{max-width:480px;}
@@ -1222,7 +1260,7 @@
     <div class="topbar" style="padding-top:calc(18px + env(safe-area-inset-top));">
       <div class="back" id="bz-info-back"><span class="arr">←</span> 返回</div>
       <div class="today-chip" id="bz-info-title">八字信息</div>
-      <div class="bz-top-actions"><span id="bz-info-edit">编辑</span></div>
+      <div class="bz-top-actions"></div>
     </div>
     <div id="bz-info-content"></div>
   </div>
@@ -1684,6 +1722,7 @@ function showView(id){
   document.getElementById('bazi-form-view').classList.toggle('hidden', id!=='bazi-form');
   document.getElementById('bazi-records-view').classList.toggle('hidden', id!=='bazi-records');
   document.getElementById('bazi-info-view').classList.toggle('hidden', id!=='bazi-info');
+  document.body.classList.toggle('bz-detail', id==='bazi-info');
   if(id !== 'bazi-records') document.getElementById('req-float-btn').classList.remove('hidden');
   window.scrollTo(0,0);
   if(id==='energy') renderEnergy();
@@ -3947,130 +3986,7 @@ function formatBaziSolarHeader(result){
   const [year, month, day] = (date || '').split('-');
   return '阳历：' + year + '年' + month + '月' + day + '日 ' + (time || '').slice(0,5) + ':00';
 }
-function renderBaziProfile(result, person, options){
-  options = options || {};
-  const taiMingShen = options.fine
-    ? '<label class="bz3-toggle"><span>胎命身</span><input type="checkbox" id="bz3-taimingshen"' + (baziFineShowTaiMingShen ? ' checked' : '') + '><i></i></label>'
-    : '';
-  const birthLines = result.hasBirthTime
-    ? '<div class="bz2-profile-line">' + escapeHtml(formatBaziLunarHeader(result, person)) + '</div>' +
-      '<div class="bz2-profile-line">' + escapeHtml(formatBaziSolarHeader(result)) + '</div>'
-    : '<div class="bz2-profile-line">四柱直录（无出生时间）</div>';
-  return '<div class="bz2-profile">' +
-    '<div class="bz2-avatar"><span class="bz2-zodiac">' + escapeHtml(result.zodiac || '命') + '</span></div>' +
-    '<div class="bz2-profile-main">' +
-    '<div class="bz2-profile-name">' + escapeHtml(person.name) + '</div>' +
-    birthLines + '</div>' +
-    '<div class="bz2-profile-actions">' +
-    '<button type="button" class="bz2-icon-btn" id="bz2-visible-btn" title="查看">◉</button>' +
-    '<button type="button" class="bz2-icon-btn" id="bz2-top-edit" title="编辑">✎</button>' +
-    taiMingShen +
-    '</div></div>';
-}
-
-function renderBaziInfo(){
-  const person = getBaziPerson(baziCurrentPersonId);
-  const box = document.getElementById('bz-info-content');
-  if(!person){
-    document.getElementById('bz-info-title').textContent = '八字信息';
-    box.innerHTML = '<div class="bz-empty">命例不存在</div>';
-    return;
-  }
-  document.getElementById('bz-info-title').textContent = person.name;
-  document.getElementById('bz-info-edit').onclick = () => openBaziForm(person.id);
-  let result;
-  try{ result = Bazi.calculate(person); }
-  catch(err){
-    box.innerHTML = '<div class="card"><div class="bz-empty">排盘失败：' + escapeHtml(err.message) + '</div></div>';
-    return;
-  }
-  if(!result.yun && baziInfoTab === 'fine') baziInfoTab = 'basic';
-  const summary = renderBaziProfile(result, person, {fine:baziInfoTab === 'fine'});
-  const taiMingShen = baziInfoTab === 'fine' && baziFineShowTaiMingShen
-    ? '<div class="bz3-taiming-panel">' +
-      '<div>胎元<b>' + escapeHtml(result.extras.taiYuan || '—') + '</b></div>' +
-      '<div>命宫<b>' + escapeHtml(result.extras.mingGong || '—') + '</b></div>' +
-      '<div>身宫<b>' + escapeHtml(result.extras.shenGong || '—') + '</b></div></div>'
-    : '';
-  const tabs = '<div class="bz-info-tabs">' +
-    '<button type="button" data-tab="basic" class="' + (baziInfoTab === 'basic' ? 'active' : '') + '">基本盘</button>' +
-    '<button type="button" data-tab="fine" class="' + (baziInfoTab === 'fine' ? 'active' : '') + '">细盘</button></div>';
-  box.innerHTML = summary + taiMingShen + tabs + '<div id="bz-info-panel"></div>';
-  box.querySelectorAll('.bz-info-tabs button').forEach(button => {
-    button.onclick = () => {
-      if(button.dataset.tab === 'fine' && !result.yun){
-        showToast('四柱直录无出生时间，暂不展示细盘');
-        return;
-      }
-      baziInfoTab = button.dataset.tab;
-      baziOpenLiuNian = -1;
-      renderBaziInfo();
-    };
-  });
-  const taiMingToggle = document.getElementById('bz3-taimingshen');
-  if(taiMingToggle){
-    taiMingToggle.onchange = () => {
-      baziFineShowTaiMingShen = taiMingToggle.checked;
-      renderBaziInfo();
-    };
-  }
-  const topEdit = document.getElementById('bz2-top-edit');
-  if(topEdit) topEdit.onclick = () => openBaziForm(person.id);
-  if(baziInfoTab === 'basic') renderBaziBasic(result);
-  else renderBaziFine(result);
-}
-
-function renderBaziBasic(result){
-  const columns = result.columns;
-  const row = (label, render, labelClass) =>
-    '<tr><td class="bz2-row-label ' + (labelClass || '') + '">' + label + '</td>' + columns.map(render).join('') + '</tr>';
-  const elementMark = element => '<i class="bz2-elem ' + bz2ElementClass(element) + '">' + escapeHtml(element) + '</i>';
-  const textColor = (text, element) => '<span class="' + bz2ElementClass(element) + '">' + escapeHtml(text) + '</span>';
-
-  let basic = '<div class="bz2-panel"><div class="bz2-table-scroll"><table class="bz2-table">' +
-    '<colgroup><col class="bz2-col-label">' + columns.map(() => '<col>').join('') + '</colgroup><tbody>';
-  basic += '<tr><td class="bz2-row-label">日期</td>' + columns.map(item => '<td class="bz2-date-cell">' + escapeHtml(item.label) + '</td>').join('') + '</tr>';
-  basic += row('主星', item => item.key === 'day'
-    ? '<td>' + escapeHtml(item.shiShen) + '</td>'
-    : '<td>' + textColor(item.shiShen || '—', item.ganElement) + '</td>');
-  basic += row('天干', item => '<td><span class="bz2-gan ' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.gan) + elementMark(item.ganElement) + '</span></td>');
-  basic += row('地支', item => '<td><span class="bz2-zhi ' + bz2ElementClass(item.zhiElement) + '">' + escapeHtml(item.zhi) + elementMark(item.zhiElement) + '</span></td>');
-  basic += row('藏干', item => '<td><div class="bz2-hidden-list">' + item.hidden.map(hidden =>
-    '<span class="bz2-hidden-line ' + bz2ElementClass(hidden.element) + '">' + escapeHtml(hidden.gan) + '</span>'
-  ).join('') + '</div></td>', 'star-label');
-  basic += row('副星', item => '<td><div class="bz2-hidden-list">' + item.hidden.map(hidden =>
-    '<span class="bz2-secondary-line ' + bz2ElementClass(hidden.element) + '">' + escapeHtml(hidden.shiShen) + '</span>'
-  ).join('') + '</div></td>');
-  basic += row('星运', item => '<td>' + escapeHtml(item.starLuck || '—') + '</td>');
-  basic += row('自坐', item => '<td>' + escapeHtml(item.selfSeat || '—') + '</td>');
-  const dayKong = result.pillarDetails.day.xunKong || '';
-  basic += row('空亡', item => '<td>' + escapeHtml(item.xunKong || '—') +
-    (dayKong.includes(item.zhi) ? '<span class="bz-kong-day">日空</span>' : '') + '</td>');
-  basic += row('纳音', item => '<td>' + escapeHtml(item.naYin || '—') + '</td>');
-  basic += row('神煞', item => '<td>' + (item.shenSha.length
-    ? '<div class="bz2-sha-list">' + item.shenSha.map(name =>
-        '<span class="' + (BZ2_GOOD_SHEN_SHA.has(name) ? 'bz2-sha-good' : 'bz2-sha-bad') + '">' + escapeHtml(name) + '</span>').join('') + '</div>'
-    : '—') + '</td>');
-  basic += '</tbody></table></div></div>';
-
-  const relations = analyzeBaziRelations(result);
-  const relationRow = (label, list) =>
-    '<div class="bz2-relation-row"><div class="bz2-relation-label">' + label + '</div><div class="bz2-relation-value">' +
-    escapeHtml(list.length ? list.join('｜') : '无') + '</div></div>';
-  basic += '<div class="bz2-relations">' + relationRow('原局天干', relations.gan) +
-    relationRow('原局地支', relations.zhi) + relationRow('原局整柱', relations.full) + '</div>';
-  const wuXingCounts = Object.keys(result.extras.wuXing)
-    .map(key => key + ' ' + result.extras.wuXing[key]).join('　');
-  basic += '<div class="bz-extra-grid">' +
-    '<div class="bz-extra-item"><div class="k">胎元</div><div class="v">' + escapeHtml(result.extras.taiYuan || '—') + '</div></div>' +
-    '<div class="bz-extra-item"><div class="k">命宫 / 身宫</div><div class="v">' + escapeHtml(result.extras.mingGong || '—') + ' / ' + escapeHtml(result.extras.shenGong || '—') + '</div></div>' +
-    '<div class="bz-extra-item"><div class="k">日主</div><div class="v">' + escapeHtml(result.extras.dayMaster.gan + ' · ' + result.extras.dayMaster.yinYang + result.extras.dayMaster.element) + '</div></div>' +
-    '<div class="bz-extra-item"><div class="k">司令</div><div class="v">' + escapeHtml((result.extras.renYuanSiLing || {}).gan || '—') + '</div></div>' +
-    '<div class="bz-extra-item bz-wuxing"><div class="k">五行个数（明干支·不含藏干）</div><div class="v">' + escapeHtml(wuXingCounts) + '</div></div>' +
-    '</div>';
-  document.getElementById('bz-info-panel').innerHTML = basic;
-}
-
+/* ================= 八字结果页（基本盘 / 细盘）================= */
 const BZ3_TERMS = [
   {name:'立春', date:'2/4'}, {name:'惊蛰', date:'3/5'}, {name:'清明', date:'4/5'},
   {name:'立夏', date:'5/6'}, {name:'芒种', date:'6/6'}, {name:'小暑', date:'7/7'},
@@ -4081,17 +3997,25 @@ const BZ3_SHORT_SHI_SHEN = {
   比肩:'比', 劫财:'劫', 食神:'食', 伤官:'伤', 偏财:'才', 正财:'财',
   七杀:'杀', 正官:'官', 偏印:'枭', 正印:'印'
 };
+const BZ3_WUXING_HEX = {木:'#3E8E4E', 火:'#D0453D', 土:'#8A6A45', 金:'#B08A2E', 水:'#2B3A4A'};
+const BZ3_WUXING_LEVEL = {旺:1, 相:.76, 休:.54, 囚:.38, 死:.24};
+const BZ3_PENCIL_SVG = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
+  'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 19.5h3.6L18.6 9a2.05 2.05 0 0 0 0-2.9l-.7-.7a2.05 2.05 0 0 0-2.9 0L4.5 15.9v3.6z"/>' +
+  '<path d="M14.2 6.6l3.2 3.2"/></svg>';
 
+function bz3ShortShiShen(name){ return BZ3_SHORT_SHI_SHEN[name] || ''; }
+function bz3ElementSpan(text, element){
+  return '<span class="' + bz2ElementClass(element) + '">' + escapeHtml(text) + '</span>';
+}
+function bz3ZhiShiShen(dayGan, zhi){
+  const hidden = Bazi.getHiddenGan(zhi);
+  return hidden.length ? Bazi.tenGod(dayGan, hidden[0]) : '';
+}
 function bz3XunKong(ganZhi){
   const index = Bazi.JIAZI.indexOf(ganZhi);
   if(index < 0) return '';
   const zhiIndex = index % 12;
   return Bazi.ZHI[(zhiIndex + 10) % 12] + Bazi.ZHI[(zhiIndex + 11) % 12];
-}
-function bz3ShortShiShen(name){ return BZ3_SHORT_SHI_SHEN[name] || ''; }
-function bz3ZhiShiShen(dayGan, zhi){
-  const hidden = Bazi.getHiddenGan(zhi);
-  return hidden.length ? Bazi.tenGod(dayGan, hidden[0]) : '';
 }
 function bz3FlowShenSha(ganZhi, result){
   const key = [result.pillars.year, result.pillars.month, result.pillars.day, result.pillars.hour, ganZhi].join('|');
@@ -4159,18 +4083,7 @@ function bz3EnsureSelection(result){
   if(baziFineLiuYueIndex < 0 || baziFineLiuYueIndex > 11) baziFineLiuYueIndex = 0;
 }
 function bz3CenterStrips(){
-  setTimeout(() => {
-    [
-      ['bz3-dayun-scroll', '#bz3-dayun-scroll .bz3-strip-col.active'],
-      ['bz3-liunian-scroll', '#bz3-liunian-scroll .bz3-strip-col.active'],
-      ['bz3-liuyue-scroll', '#bz3-liuyue-scroll .bz3-strip-col.active']
-    ].forEach(([id, selector]) => {
-      const scroll = document.getElementById(id);
-      const active = document.querySelector(selector);
-      if(!scroll || !active || !scroll.clientWidth) return;
-      scroll.scrollLeft = Math.max(0, active.offsetLeft - (scroll.clientWidth - active.offsetWidth) / 2);
-    });
-  }, 0);
+  // 新版为等分栅格，列全部可见，无需横向滚动居中
 }
 function bz3JiaoYunText(result){
   const solar = String(result.yun.start.solar || '').slice(0, 10);
@@ -4189,104 +4102,290 @@ function bz3JiaoYunText(result){
   const [term, termDay] = termMap[month] || ['节气', 1];
   return '逢' + gan + '、' + other + '年 ' + term + '后' + Math.max(0, day - termDay) + '天 交大运';
 }
-function bz3StartInfo(result){
-  const start = result.yun.start;
-  const duration = start.years + '年' + start.months + '月' + start.days + '天' + (start.hours ? start.hours + '时' : '');
-  const commander = (result.extras.renYuanSiLing || {}).gan || '—';
-  return '<div class="bz3-start-info">' +
-    '<div class="bz3-start-line"><span class="bz3-start-label">起运：</span><span>出生后' + escapeHtml(duration) + '起运</span>' +
-    '<span class="bz3-current-age">' + result.virtualAge + '岁</span><span class="bz3-commander">✦ 司令：' + escapeHtml(commander) + '</span></div>' +
-    '<div class="bz3-start-line"><span class="bz3-start-label">交运：</span><span>' + escapeHtml(bz3JiaoYunText(result)) + '</span></div></div>';
-}
 function bz3WuXingState(result){
   const month = result.pillarDetails.month.zhi;
-  if(['寅','卯','辰'].includes(month)) return [['木','旺','wood'],['火','相','fire'],['水','休','water'],['金','囚','metal'],['土','死','earth']];
-  if(['巳','午','未'].includes(month)) return [['火','旺','fire'],['土','相','earth'],['木','休','wood'],['水','囚','water'],['金','死','metal']];
-  if(['申','酉','戌'].includes(month)) return [['金','旺','metal'],['水','相','water'],['土','休','earth'],['火','囚','fire'],['木','死','wood']];
-  return [['水','旺','water'],['木','相','wood'],['金','休','metal'],['土','囚','earth'],['火','死','fire']];
-}
-function bz3GzText(ganZhi){
-  const gan = ganZhi[0], zhi = ganZhi[1];
-  return '<span class="' + bz2ElementClass(Bazi.GAN_ELEMENT[gan]) + '">' + escapeHtml(gan) + '</span>' +
-    '<span class="' + bz2ElementClass(Bazi.ZHI_ELEMENT[zhi]) + '">' + escapeHtml(zhi) + '</span>';
-}
-function bz3ShenShaText(list){
-  return list && list.length ? list.join(' ') : '无';
+  if(['寅','卯','辰'].includes(month)) return [['木','旺','木'],['火','相','火'],['水','休','水'],['金','囚','金'],['土','死','土']];
+  if(['巳','午','未'].includes(month)) return [['火','旺','火'],['土','相','土'],['木','休','木'],['水','囚','水'],['金','死','金']];
+  if(['申','酉','戌'].includes(month)) return [['金','旺','金'],['水','相','水'],['土','休','土'],['火','囚','火'],['木','死','木']];
+  return [['水','旺','水'],['木','相','木'],['金','休','金'],['土','囚','土'],['火','死','火']];
 }
 function bz3XiaoYun(age, result){
   const base = Bazi.JIAZI.indexOf(result.pillars.hour);
   const offset = result.yun.forward ? age : -age;
   return Bazi.JIAZI[((base + offset) % 60 + 60) % 60];
 }
-function renderBaziFineTable(result, dayun, liuNian){
-  const dayunDetail = bz3FlowDetail(dayun.ganZhi, result, '大运');
-  const liunianDetail = bz3FlowDetail(liuNian.ganZhi, result, '流年');
-  const columns = [liunianDetail, dayunDetail].concat(result.columns);
-  const active = [true, true, false, false, false, false];
-  const dayKong = result.pillarDetails.day.xunKong || '';
-  const cell = (index, content, extraClass) =>
-    '<td class="' + (active[index] ? 'bz3-active-col ' : '') + (extraClass || '') + '">' + content + '</td>';
+
+/* ---------------- 顶部命例栏 ---------------- */
+function renderBaziProfile(result, person, options){
+  options = options || {};
+  const taiMingShen = options.fine
+    ? '<label class="bz3-toggle"><span>胎命身</span><input type="checkbox" id="bz3-taimingshen"' +
+      (baziFineShowTaiMingShen ? ' checked' : '') + '><i></i></label>'
+    : '';
+  const birthLines = result.hasBirthTime
+    ? '<div class="bz2-profile-line">' + escapeHtml(formatBaziLunarHeader(result, person)) + '</div>' +
+      '<div class="bz2-profile-line">' + escapeHtml(formatBaziSolarHeader(result)) + '</div>'
+    : '<div class="bz2-profile-line">四柱直录（无出生时间）</div>';
+  return '<div class="bz2-profile">' +
+    '<div class="bz2-avatar"><span class="bz2-zodiac">' + escapeHtml(result.zodiac || '命') + '</span></div>' +
+    '<div class="bz2-profile-main">' +
+      '<div class="bz2-profile-name">' + escapeHtml(person.name) + '</div>' +
+      birthLines +
+    '</div>' +
+    '<div class="bz2-profile-actions">' +
+      '<button type="button" class="bz2-icon-btn" id="bz2-top-edit" title="编辑">' + BZ3_PENCIL_SVG + '</button>' +
+      taiMingShen +
+    '</div>' +
+  '</div>';
+}
+
+/* ---------------- 结果页主入口 ---------------- */
+function renderBaziInfo(){
+  const person = getBaziPerson(baziCurrentPersonId);
+  const box = document.getElementById('bz-info-content');
+  if(!person){
+    document.getElementById('bz-info-title').textContent = '八字信息';
+    box.innerHTML = '<div class="bz-empty">命例不存在</div>';
+    return;
+  }
+  document.getElementById('bz-info-title').textContent = person.name;
+  let result;
+  try{ result = Bazi.calculate(person); }
+  catch(err){
+    box.innerHTML = '<div class="bz-empty">排盘失败：' + escapeHtml(err.message) + '</div>';
+    return;
+  }
+  if(!result.yun && baziInfoTab === 'fine') baziInfoTab = 'basic';
+  const summary = renderBaziProfile(result, person, {fine:baziInfoTab === 'fine'});
+  const taiMingShen = baziInfoTab === 'fine' && baziFineShowTaiMingShen
+    ? '<div class="bz3-taiming-panel">' +
+      '<div>胎元<b>' + escapeHtml(result.extras.taiYuan || '—') + '</b></div>' +
+      '<div>命宫<b>' + escapeHtml(result.extras.mingGong || '—') + '</b></div>' +
+      '<div>身宫<b>' + escapeHtml(result.extras.shenGong || '—') + '</b></div></div>'
+    : '';
+  const tabs = '<div class="bz-info-tabs">' +
+    '<button type="button" data-tab="basic" class="' + (baziInfoTab === 'basic' ? 'active' : '') + '">基本盘</button>' +
+    '<button type="button" data-tab="fine" class="' + (baziInfoTab === 'fine' ? 'active' : '') + '">细盘</button></div>';
+  box.innerHTML = summary + taiMingShen + tabs + '<div id="bz-info-panel"></div>';
+  box.querySelectorAll('.bz-info-tabs button').forEach(button => {
+    button.onclick = () => {
+      if(button.dataset.tab === 'fine' && !result.yun){
+        showToast('四柱直录无出生时间，暂不展示细盘');
+        return;
+      }
+      baziInfoTab = button.dataset.tab;
+      baziOpenLiuNian = -1;
+      renderBaziInfo();
+    };
+  });
+  const taiMingToggle = document.getElementById('bz3-taimingshen');
+  if(taiMingToggle){
+    taiMingToggle.onchange = () => {
+      baziFineShowTaiMingShen = taiMingToggle.checked;
+      renderBaziInfo();
+    };
+  }
+  const topEdit = document.getElementById('bz2-top-edit');
+  if(topEdit) topEdit.onclick = () => openBaziForm(person.id);
+  if(baziInfoTab === 'basic') renderBaziBasic(result);
+  else renderBaziFine(result);
+}
+
+/* ---------------- 对照表（基本盘 4 列 / 细盘 6 列共用）---------------- */
+function bz3TableHtml(list, dividers, dayKong){
+  dividers = dividers || [];
+  const dv = index => dividers.indexOf(index) >= 0 ? ' bz2-divider' : '';
+  let html = '<div class="bz-card"><table class="bz2-table">' +
+    '<colgroup><col class="bz2-col-label">' + list.map(() => '<col>').join('') + '</colgroup>';
+  html += '<thead><tr><th></th>' + list.map((item, index) =>
+    '<th class="' + dv(index).trim() + '">' + escapeHtml(item.label) + '</th>').join('') + '</tr></thead><tbody>';
   const row = (label, render) =>
-    '<tr><td class="bz3-row-label">' + label + '</td>' + columns.map((item, index) => cell(index, render(item, index))).join('') + '</tr>';
-  let html = '<div class="bz3-panel"><div class="bz3-table-scroll"><table class="bz3-table">' +
-    '<colgroup><col class="bz3-col-label"><col class="bz3-col-flow"><col class="bz3-col-flow">' +
-    '<col><col><col><col></colgroup><tbody>';
-  html += '<tr><td class="bz3-row-label">日期</td>' + columns.map((item, index) =>
-    cell(index, '<span class="bz3-date-cell">' + escapeHtml(item.label) + '</span>')
-  ).join('') + '</tr>';
-  html += row('主星', item => item.key === 'day'
-    ? escapeHtml(item.shiShen)
-    : '<span class="' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.shiShen || '—') + '</span>');
-  html += row('天干', item => '<span class="bz3-gan ' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.gan) + '</span>');
-  html += row('地支', item => '<span class="bz3-zhi ' + bz2ElementClass(item.zhiElement) + '">' + escapeHtml(item.zhi) + '</span>');
-  html += row('藏干', item => '<div class="bz3-hidden-list">' + item.hidden.map(hidden =>
-    '<span class="bz3-hidden-line ' + bz2ElementClass(hidden.element) + '">' + escapeHtml(hidden.gan + hidden.shiShen) + '</span>'
+    '<tr><td class="bz2-row-label">' + label + '</td>' + list.map((item, index) =>
+      '<td class="' + dv(index).trim() + '">' + render(item, index) + '</td>').join('') + '</tr>';
+
+  html += row('主星', item => '<span class="bz2-tiny">' + escapeHtml(item.shiShen || '—') + '</span>');
+  html += row('天干', item => '<span class="bz2-gan ' + bz2ElementClass(item.ganElement) + '">' + escapeHtml(item.gan) + '</span>');
+  html += row('地支', item => '<span class="bz2-zhi ' + bz2ElementClass(item.zhiElement) + '">' + escapeHtml(item.zhi) + '</span>');
+  html += row('藏干', item => '<div class="bz2-hidden-list">' + item.hidden.map(hidden =>
+    '<span class="bz2-hidden-line ' + bz2ElementClass(hidden.element) + '">' + escapeHtml(hidden.gan + hidden.shiShen) + '</span>'
   ).join('') + '</div>');
-  html += row('星运', item => escapeHtml(item.starLuck || '—'));
-  html += row('自坐', item => escapeHtml(item.selfSeat || '—'));
-  html += row('空亡', item => escapeHtml(item.xunKong || '—') +
-    (dayKong.includes(item.zhi) ? '<span class="bz-kong-day">日空</span>' : ''));
-  html += row('纳音', item => escapeHtml(item.naYin || '—'));
-  html += row('神煞', item => '<div class="bz3-sha-list">' + (item.shenSha.length
-    ? item.shenSha.map(name => '<span class="bz3-sha-line ' + (BZ2_GOOD_SHEN_SHA.has(name) ? 'bz2-sha-good' : 'bz2-sha-bad') + '">' + escapeHtml(name) + '</span>').join('')
-    : '—') + '</div>');
-  html += '</tbody></table></div></div>';
+  if(list.length === 4){
+    html += row('副星', item => '<div class="bz2-hidden-list">' + item.hidden.map(hidden =>
+      '<span class="bz2-secondary-line">' + escapeHtml(hidden.shiShen) + '</span>'
+    ).join('') + '</div>');
+  }
+  html += row('星运', item => '<span class="bz2-tiny">' + escapeHtml(item.starLuck || '—') + '</span>');
+  html += row('自坐', item => '<span class="bz2-tiny">' + escapeHtml(item.selfSeat || '—') + '</span>');
+  html += row('空亡', item => '<span class="bz2-tiny">' + escapeHtml(item.xunKong || '—') + '</span>' +
+    (dayKong && dayKong.includes(item.zhi) ? '<span class="bz-kong-day">日空</span>' : ''));
+  html += row('纳音', item => '<span class="bz2-tiny">' + escapeHtml(item.naYin || '—') + '</span>');
+  html += row('神煞', item => (item.shenSha && item.shenSha.length
+    ? '<div class="bz2-sha-list">' + item.shenSha.map(name =>
+        '<span class="' + (BZ2_GOOD_SHEN_SHA.has(name) ? 'bz2-sha-good' : 'bz2-sha-bad') + '">' + escapeHtml(name) + '</span>').join('') + '</div>'
+    : '<span class="bz2-tiny" style="color:#c2c6cc">—</span>'));
+  html += '</tbody></table></div>';
   return html;
 }
+
+function bz3RelationHtml(title, sub, rows){
+  let html = '<div class="bz-sec-head"><span class="bz-sec-title">' + title + '</span>' +
+    (sub ? '<span class="bz-sec-sub">' + sub + '</span>' : '') + '</div><div class="bz3-relations">';
+  rows.forEach(item => {
+    html += '<div class="bz3-relation-row"><span class="bz3-relation-label">' + item[0] + '</span>' +
+      '<span class="bz3-relation-value">' + (item[1].length ? escapeHtml(item[1].join('｜')) : '<span class="bz3-empty">无</span>') + '</span></div>';
+  });
+  return html + '</div>';
+}
+
+/* ---------------- 基本盘 ---------------- */
+function renderBaziBasic(result){
+  const columns = result.columns;
+  let html = bz3TableHtml(columns, [], result.pillarDetails.day.xunKong || '');
+  const relations = analyzeBaziRelations(result);
+  html += bz3RelationHtml('原局关系', '合冲刑害会', [
+    ['原局天干', relations.gan], ['原局地支', relations.zhi], ['原局整柱', relations.full]
+  ]);
+
+  const extras = result.extras;
+  const dayMaster = extras.dayMaster || {};
+  const wuXingCounts = ['金','木','水','火','土'].map(key =>
+    '<span class="bz2-wxc ' + bz2ElementClass(key) + '">' + key + ' ' + (extras.wuXing[key] || 0) + '</span>').join('');
+  html += '<div class="bz-sec-head"><span class="bz-sec-title">命盘要素</span><span class="bz-sec-sub">胎元 · 宫位 · 日主</span></div>';
+  html += '<div class="bz-card"><div class="bz2-kv">' +
+    '<div class="bz2-kv-cell"><div class="k">胎元</div><div class="v">' + escapeHtml(extras.taiYuan || '—') + '</div></div>' +
+    '<div class="bz2-kv-cell"><div class="k">命宫 / 身宫</div><div class="v">' + escapeHtml(extras.mingGong || '—') +
+      ' <em>/</em> ' + escapeHtml(extras.shenGong || '—') + '</div></div>' +
+    '<div class="bz2-kv-cell"><div class="k">日主</div><div class="v ' + bz2ElementClass(dayMaster.element) + '">' +
+      escapeHtml(dayMaster.gan || '—') + '<em>' + escapeHtml((dayMaster.yinYang || '') + (dayMaster.element || '')) + '</em></div></div>' +
+    '<div class="bz2-kv-cell"><div class="k">司令</div><div class="v">' + escapeHtml((extras.renYuanSiLing || {}).gan || '—') + '</div></div>' +
+    '<div class="bz2-kv-cell full"><div class="k">五行个数（明干支 · 不含藏干）</div><div class="v">' + wuXingCounts + '</div></div>' +
+  '</div></div>';
+  html += '<div class="bz3-footnote">基本盘展示四柱原局信息，不含大运、流年推算。</div>';
+  document.getElementById('bz-info-panel').innerHTML = html;
+}
+
+/* ---------------- 细盘 ---------------- */
+function renderBaziFineTable(result, dayun, liuNian){
+  const columns = [bz3FlowDetail(liuNian.ganZhi, result, '流年'), bz3FlowDetail(dayun.ganZhi, result, '大运')]
+    .concat(result.columns);
+  return bz3TableHtml(columns, [0, 2], result.pillarDetails.day.xunKong || '');
+}
+
+function bz3StartInfo(result, liuNian){
+  const start = result.yun.start;
+  const duration = start.years + '年' + start.months + '月' + start.days + '天' + (start.hours ? start.hours + '时' : '');
+  const birthYear = Number(String(result.solarDatetime || '').slice(0, 4)) || result.currentYear;
+  const age = liuNian ? liuNian.year - birthYear + 1 : result.virtualAge;
+  const commander = (result.extras.renYuanSiLing || {}).gan || '—';
+  return '<div class="bz-card"><div class="bz3-start-info">' +
+    '<div class="bz3-start-line"><span class="bz3-start-label">起运</span>' +
+      '<span class="bz3-start-text">出生后 ' + escapeHtml(duration) + ' 起运</span>' +
+      '<span class="bz3-current-age">' + escapeHtml(String(age)) + '<small>岁</small></span></div>' +
+    '<div class="bz3-start-line"><span class="bz3-start-label">交运</span>' +
+      '<span class="bz3-start-text">' + escapeHtml(bz3JiaoYunText(result)) + '</span>' +
+      '<span class="bz3-commander">司令 ' + escapeHtml(commander) + '</span></div>' +
+  '</div></div>';
+}
+
+function bz3StripHtml(result){
+  const yun = result.yun;
+  const dayun = yun.daYun[baziFineDaYunIndex];
+  const liuNian = dayun.liuNian[baziFineLiuNianIndex];
+  const dayGan = result.pillars.day[0];
+  let html = '';
+
+  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">大运</span>' +
+    '<input type="checkbox" class="bz3-strip-switch" id="bz3-xiaoyun-switch"' + (baziFineShowXiaoYun ? ' checked' : '') + '></div>' +
+    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-dayun-scroll" style="grid-template-columns:repeat(' +
+    yun.daYun.length + ',minmax(0,1fr))">';
+  yun.daYun.forEach((item, index) => {
+    const ganShen = bz3ShortShiShen(item.shiShen);
+    const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(dayGan, item.zhi));
+    const ageText = item.startAge === item.endAge ? item.startAge + '岁' : item.startAge + '-' + item.endAge + '岁';
+    html += '<div class="bz3-strip-col' + (index === baziFineDaYunIndex ? ' active' : '') + '" data-index="' + index + '">' +
+      '<span class="year">' + item.startYear + '</span><span class="age">' + escapeHtml(ageText) + '</span>' +
+      '<span class="gz-line">' + bz3ElementSpan(item.gan + ganShen, Bazi.GAN_ELEMENT[item.gan]) + '</span>' +
+      '<span class="gz-line">' + bz3ElementSpan(item.zhi + zhiShen, Bazi.ZHI_ELEMENT[item.zhi]) + '</span>' +
+      (baziFineShowXiaoYun ? '<span class="xiao-yun">小运 ' + bz3XiaoYun(item.startAge, result) + '</span>' : '') +
+      '</div>';
+  });
+  html += '</div></div></div>';
+
+  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流年</span><span class="dot"></span></div>' +
+    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liunian-scroll" style="grid-template-columns:repeat(' +
+    dayun.liuNian.length + ',minmax(0,1fr))">';
+  dayun.liuNian.forEach((item, index) => {
+    const ganShen = bz3ShortShiShen(item.shiShen);
+    const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(dayGan, item.zhi));
+    html += '<div class="bz3-strip-col' + (index === baziFineLiuNianIndex ? ' active' : '') + '" data-index="' + index + '">' +
+      '<span class="year">' + item.year + '</span>' +
+      '<span class="gz-line">' + bz3ElementSpan(item.gan + ganShen, Bazi.GAN_ELEMENT[item.gan]) + '</span>' +
+      '<span class="gz-line">' + bz3ElementSpan(item.zhi + zhiShen, Bazi.ZHI_ELEMENT[item.zhi]) + '</span>' +
+      '</div>';
+  });
+  html += '</div></div></div>';
+
+  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流月</span><span class="dot"></span></div>' +
+    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liuyue-scroll" style="grid-template-columns:repeat(' +
+    liuNian.liuYue.length + ',minmax(0,1fr))">';
+  liuNian.liuYue.forEach((item, index) => {
+    const fallback = BZ3_TERMS[index] || {name:item.name, date:'—'};
+    const termName = item.jieQiName || fallback.name;
+    const termDate = item.jieQiDate
+      ? item.jieQiDate.slice(5).replace('-', '/').replace(/^0/, '').replace('/0', '/')
+      : fallback.date;
+    const ganShen = bz3ShortShiShen(item.shiShen);
+    const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(dayGan, item.ganZhi[1]));
+    html += '<div class="bz3-strip-col' + (index === baziFineLiuYueIndex ? ' active' : '') + '" data-index="' + index + '">' +
+      '<span class="term">' + escapeHtml(termName) + '</span><span class="term">' + escapeHtml(termDate) + '</span>' +
+      '<span class="gz-line">' + bz3ElementSpan(item.ganZhi[0] + ganShen, Bazi.GAN_ELEMENT[item.ganZhi[0]]) + '</span>' +
+      '<span class="gz-line">' + bz3ElementSpan(item.ganZhi[1] + zhiShen, Bazi.ZHI_ELEMENT[item.ganZhi[1]]) + '</span>' +
+      '</div>';
+  });
+  html += '</div></div></div>';
+  return html;
+}
+
+function bz3WuXingHtml(result){
+  let html = '<div class="bz3-wuxing"><div class="bz3-wuxing-label"><span>五行</span></div><div class="bz3-wuxing-grid">';
+  bz3WuXingState(result).forEach(item => {
+    const hex = BZ3_WUXING_HEX[item[2]] || '#5a6069';
+    const level = BZ3_WUXING_LEVEL[item[1]] || .3;
+    html += '<div class="bz3-wuxing-cell">' +
+      '<div class="bz3-wuxing-name" style="color:' + hex + '">' + escapeHtml(item[0] + item[1]) + '</div>' +
+      '<div class="bz3-wuxing-bar"><i style="width:' + Math.round(level * 100) + '%;background:' + hex +
+      ';opacity:' + (0.45 + level * 0.55).toFixed(2) + '"></i></div></div>';
+  });
+  return html + '</div></div>';
+}
+
 function renderBaziFineShenSha(result, dayun, selectedLiuNianIndex){
-  let html = '<div class="bz3-shensha-title">四柱神煞</div><div class="bz3-shensha-list">';
-  result.columns.forEach(item => {
-    html += '<div class="bz3-shensha-row"><span class="bz3-shensha-pillar">' + bz3GzText(item.ganZhi) + '</span>' +
-      '<span class="bz3-shensha-values">' + escapeHtml(bz3ShenShaText(item.shenSha)) + '</span></div>';
-  });
-  html += '</div>';
-  html += '<div class="bz3-shensha-title">大运神煞</div><div class="bz3-shensha-list">';
+  const shaRow = (ganZhi, list, highlight) =>
+    '<div class="bz3-sha-row"><span class="bz3-shensha-pillar' + (highlight ? ' bz3-pill' : '') + '">' +
+      bz3ElementSpan(ganZhi[0], Bazi.GAN_ELEMENT[ganZhi[0]]) + bz3ElementSpan(ganZhi[1], Bazi.ZHI_ELEMENT[ganZhi[1]]) +
+    '</span><span class="bz3-shensha-values">' +
+      escapeHtml(list && list.length ? list.join('　') : '无') + '</span></div>';
+
+  let html = '<div class="bz-sec-head"><span class="bz-sec-title">神煞 · <em>四柱 / 大运 / 流年</em></span>' +
+    '<button type="button" class="bz3-expand-btn" id="bz3-toggle-liunian-shensha">' +
+    (baziFineExpandLiuNianShenSha ? '收起流年 ▴' : '展开流年 ▾') + '</button></div>';
+  html += '<div class="bz3-shensha-list"><div class="bz3-sha-group">四柱神煞</div>';
+  result.columns.forEach(item => { html += shaRow(item.ganZhi, item.shenSha, false); });
+  html += '<div class="bz3-sha-group">大运神煞</div>';
   result.yun.daYun.forEach((item, index) => {
-    const detail = bz3FlowDetail(item.ganZhi, result, '大运');
-    const gz = index === baziFineDaYunIndex
-      ? '<span class="bz3-pill">' + bz3GzText(item.ganZhi) + '</span>'
-      : bz3GzText(item.ganZhi);
-    html += '<div class="bz3-shensha-row"><span class="bz3-shensha-pillar">' + gz + '</span>' +
-      '<span class="bz3-shensha-values">' + escapeHtml(bz3ShenShaText(detail.shenSha)) + '</span></div>';
+    html += shaRow(item.ganZhi, bz3FlowDetail(item.ganZhi, result, '大运').shenSha, index === baziFineDaYunIndex);
   });
-  html += '</div>';
-  html += '<div class="bz3-shensha-title">流年神煞<button type="button" class="bz3-expand-btn" id="bz3-toggle-liunian-shensha">' +
-    (baziFineExpandLiuNianShenSha ? '收起 ▴' : '展开 ▾') + '</button></div><div class="bz3-shensha-list">';
+  html += '<div class="bz3-sha-group">流年神煞</div>';
   const liuNianList = baziFineExpandLiuNianShenSha
     ? dayun.liuNian
     : [dayun.liuNian[selectedLiuNianIndex]].filter(Boolean);
   liuNianList.forEach(item => {
     const originalIndex = dayun.liuNian.findIndex(year => year.ganZhi === item.ganZhi && year.year === item.year);
-    const detail = bz3FlowDetail(item.ganZhi, result, '流年');
-    const gz = originalIndex === selectedLiuNianIndex
-      ? '<span class="bz3-pill">' + bz3GzText(item.ganZhi) + '</span>'
-      : bz3GzText(item.ganZhi);
-    html += '<div class="bz3-shensha-row"><span class="bz3-shensha-pillar">' + gz + '</span>' +
-      '<span class="bz3-shensha-values">' + escapeHtml(bz3ShenShaText(detail.shenSha)) + '</span></div>';
+    html += shaRow(item.ganZhi, bz3FlowDetail(item.ganZhi, result, '流年').shenSha, originalIndex === selectedLiuNianIndex);
   });
-  html += '</div>';
-  return html;
+  return html + '</div>';
 }
+
 function renderBaziFine(result){
   bz3EnsureSelection(result);
   const yun = result.yun;
@@ -4299,64 +4398,13 @@ function renderBaziFine(result){
   ]);
 
   let html = renderBaziFineTable(result, dayun, liuNian);
-  html += bz3StartInfo(result);
-
-  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">大运</span>' +
-    '<input type="checkbox" class="bz3-strip-switch" id="bz3-xiaoyun-switch"' + (baziFineShowXiaoYun ? ' checked' : '') + '></div>' +
-    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-dayun-scroll">';
-  yun.daYun.forEach((item, index) => {
-    const ganShen = bz3ShortShiShen(item.shiShen);
-    const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(result.pillars.day[0], item.zhi));
-    const ageText = item.startAge === item.endAge ? item.startAge + '岁' : item.startAge + '-' + item.endAge + '岁';
-    html += '<div class="bz3-strip-col' + (index === baziFineDaYunIndex ? ' active' : '') + '" data-index="' + index + '">' +
-      '<span class="year">' + item.startYear + '</span><span class="age">' + ageText + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.gan]) + '">' + escapeHtml(item.gan + ganShen) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.zhi]) + '">' + escapeHtml(item.zhi + zhiShen) + '</span>' +
-      (baziFineShowXiaoYun ? '<span class="xiao-yun">小运 ' + bz3XiaoYun(item.startAge, result) + '</span>' : '') +
-      '</div>';
-  });
-  html += '</div></div></div>';
-
-  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流年</span></div>' +
-    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liunian-scroll">';
-  dayun.liuNian.forEach((item, index) => {
-    const ganShen = bz3ShortShiShen(item.shiShen);
-    const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(result.pillars.day[0], item.zhi));
-    html += '<div class="bz3-strip-col' + (index === baziFineLiuNianIndex ? ' active' : '') + '" data-index="' + index + '">' +
-      '<span class="year">' + item.year + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.gan]) + '">' + escapeHtml(item.gan + ganShen) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.zhi]) + '">' + escapeHtml(item.zhi + zhiShen) + '</span></div>';
-  });
-  html += '</div></div></div>';
-
-  html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流月</span></div>' +
-    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liuyue-scroll">';
-  liuNian.liuYue.forEach((item, index) => {
-    const fallback = BZ3_TERMS[index] || {name:item.name, date:'—'};
-    const termName = item.jieQiName || fallback.name;
-    const termDate = item.jieQiDate ? item.jieQiDate.slice(5).replace('-','/').replace(/^0/,'') : fallback.date;
-    const normalizedDate = termDate.replace('/0','/');
-    const ganShen = bz3ShortShiShen(item.shiShen);
-    html += '<div class="bz3-strip-col' + (index === baziFineLiuYueIndex ? ' active' : '') + '" data-index="' + index + '">' +
-      '<span class="term">' + escapeHtml(termName) + '</span><span class="term">' + escapeHtml(normalizedDate) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.GAN_ELEMENT[item.ganZhi[0]]) + '">' + escapeHtml(item.ganZhi[0] + ganShen) + '</span>' +
-      '<span class="gz-line ' + bz2ElementClass(Bazi.ZHI_ELEMENT[item.ganZhi[1]]) + '">' + escapeHtml(item.ganZhi[1]) + '</span></div>';
-  });
-  html += '</div></div></div>';
-
-  html += '<div class="bz3-wuxing">' + bz3WuXingState(result).map(item =>
-    '<div class="' + item[2] + '">' + item[0] + item[1] + '</div>').join('') + '</div>';
-
-  html += '<div class="bz3-actions">' +
-    '<button type="button" class="bz3-action-card"><span>智能干支图示</span><span>›</span></button>' +
-    '<button type="button" class="bz3-action-card"><span>AI指令</span><span>›</span></button></div>';
-  const relationRow = (label, list) =>
-    '<div class="bz3-relation-row"><div class="bz3-relation-label">' + label + '</div><div class="bz3-relation-value">' +
-    escapeHtml(list.length ? list.join('｜') : '无') + '</div></div>';
-  html += '<div class="bz3-relations">' +
-    relationRow('岁运天干', suiYun.gan) + relationRow('岁运地支', suiYun.zhi) + relationRow('岁运整柱', suiYun.full) +
-    relationRow('原局天干', relationBase.gan) + relationRow('原局地支', relationBase.zhi) + relationRow('原局整柱', relationBase.full) +
-    '</div>';
+  html += bz3StartInfo(result, liuNian);
+  html += bz3StripHtml(result);
+  html += bz3WuXingHtml(result);
+  html += bz3RelationHtml('岁运与原局 · 关系', '合冲刑害会', [
+    ['岁运天干', suiYun.gan], ['岁运地支', suiYun.zhi], ['岁运整柱', suiYun.full],
+    ['原局天干', relationBase.gan], ['原局地支', relationBase.zhi], ['原局整柱', relationBase.full]
+  ]);
   html += renderBaziFineShenSha(result, dayun, baziFineLiuNianIndex);
   html += '<div class="bz3-footnote">大运、流年与流月按现有排盘结果联动展示，不参与重新计算。</div>';
 

@@ -70,30 +70,48 @@ check('基本信息页四柱正确', JSON.stringify(persons[0].fourPillars) === 
 const profileText = document.querySelector('.bz2-profile').textContent;
 check('顶部农历信息格式正确', profileText.includes('农历：1990年五月廿三 辰时 坤造'));
 check('顶部阳历信息格式正确', profileText.includes('阳历：1990年06月15日 08:32:00'));
-check('基本盘11行渲染完成', document.querySelectorAll('.bz2-table tbody tr').length === 11);
+check('基本盘10行渲染完成', document.querySelectorAll('.bz2-table tbody tr').length === 10);
 check('五列等宽结构已生成', document.querySelectorAll('.bz2-table colgroup col').length === 5);
 check('五行着色元素已生成', document.querySelectorAll('.bz2-table [class*="bz2-el-"]').length > 0);
+check('基本盘含副星行（基本盘独有）', [...document.querySelectorAll('.bz2-table tbody tr')]
+  .some(row => row.firstElementChild.textContent.trim() === '副星'));
 const kongRow = [...document.querySelectorAll('.bz2-table tbody tr')].find(row => row.firstElementChild.textContent.trim() === '空亡');
 check('空亡按各柱旬空显示', !!kongRow && !kongRow.textContent.includes('—'));
 check('占位卡片已移除', document.querySelectorAll('.bz2-action-card').length === 0);
-check('干支作用关系三行渲染完成', document.querySelectorAll('.bz2-relation-row').length === 3);
+check('无效的智能干支图示/AI指令按钮已移除', document.querySelectorAll('.bz3-action-card').length === 0);
+check('基本盘/细盘两个切换按钮已恢复', document.querySelectorAll('.bz-info-tabs button').length === 2 &&
+  [...document.querySelectorAll('.bz-info-tabs button')].map(button => button.textContent.trim()).join('/') === '基本盘/细盘');
+check('基本盘默认激活', document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+check('命盘要素格渲染完成', document.querySelectorAll('.bz2-kv-cell').length === 5);
+check('干支作用关系三行渲染完成', document.querySelectorAll('.bz3-relation-row').length === 3);
 
 document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
-check('细盘七列表格结构正确', document.querySelectorAll('.bz3-table colgroup col').length === 7);
-check('细盘大运流年列默认高亮', document.querySelectorAll('.bz3-table .bz3-active-col').length === 20);
+check('细盘已切换到激活态', document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
+check('细盘七列表格结构正确', document.querySelectorAll('.bz2-table colgroup col').length === 7);
+check('细盘岁运两列无底色高亮（旧 bz3-active-col 已移除）', document.querySelectorAll('.bz3-active-col').length === 0);
+check('行标签列与流年列之间有竖线', document.querySelectorAll('.bz2-table thead th.bz2-divider').length === 2);
+check('每行两条竖线分隔（流年 / 年柱 各一）',
+  document.querySelectorAll('.bz2-table tbody tr:first-child td.bz2-divider').length === 2);
 check('大运、流年、流月三条横带存在', document.querySelectorAll('.bz3-strip').length === 3);
 check('三条横带默认各高亮一列', document.querySelectorAll('.bz3-strip-col.active').length === 3);
-check('起运与交运信息完整', document.querySelector('.bz3-start-info').textContent.includes('起运：') && document.querySelector('.bz3-start-info').textContent.includes('交运：'));
-check('五行旺衰五段渲染完成', document.querySelectorAll('.bz3-wuxing > div').length === 5);
-check('五行旺衰按出生月令计算', document.querySelector('.bz3-wuxing > div').textContent.includes('火旺'));
+check('大运/流年各十列、流月十二列全部可见（等分栅格）',
+  document.querySelectorAll('#bz3-dayun-scroll .bz3-strip-col').length === 10 &&
+  document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col').length === 10 &&
+  document.querySelectorAll('#bz3-liuyue-scroll .bz3-strip-col').length === 12);
+check('起运与交运信息完整', document.querySelector('.bz3-start-info').textContent.includes('起运') &&
+  document.querySelector('.bz3-start-info').textContent.includes('交运') &&
+  document.querySelector('.bz3-start-info').textContent.includes('司令') &&
+  !!document.querySelector('.bz3-current-age'));
+check('五行旺衰五段渲染完成', document.querySelectorAll('.bz3-wuxing .bz3-wuxing-cell').length === 5);
+check('五行旺衰按出生月令计算', document.querySelector('.bz3-wuxing .bz3-wuxing-cell').textContent.includes('火旺'));
 check('岁运与原局共六行关系', document.querySelectorAll('.bz3-relation-row').length === 6);
-check('三类神煞区渲染完成', document.querySelectorAll('.bz3-shensha-title').length === 3);
+check('三类神煞区渲染完成', document.querySelectorAll('.bz3-sha-group').length === 3);
 const secondLiuNian = document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col')[1];
 secondLiuNian.click();
 check('点击流年可联动高亮', document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col')[1].classList.contains('active'));
-const beforeExpandRows = document.querySelectorAll('.bz3-shensha-row').length;
+const beforeExpandRows = document.querySelectorAll('.bz3-sha-row').length;
 document.getElementById('bz3-toggle-liunian-shensha').click();
-check('流年神煞可展开', document.querySelectorAll('.bz3-shensha-row').length > beforeExpandRows);
+check('流年神煞可展开', document.querySelectorAll('.bz3-sha-row').length > beforeExpandRows);
 
 const relationResult = window.Bazi.calculate({
   gender:'male', calendarType:'ganzhi', solarDate:'1990-06-15', time:'12:00', useTrueSolarTime:false,
