@@ -819,6 +819,125 @@
   .bz2-el-water{color:#2b3a4a!important;}
   .bz2-el-wood{color:#3e8e4e!important;}
   .bz2-el-earth{color:#8a6a45!important;}
+
+  /* ---------- 八字结果页：v1.14.18 字体缩放与横带滚动 ---------- */
+  #bz-info-content.bz-tab-basic{
+    --bz-scale:1.5;
+    --bz-pad-scale:1.35;
+    --bz-strip-col-width:75px;
+  }
+  #bz-info-content.bz-tab-fine{
+    --bz-scale:1.25;
+    --bz-pad-scale:1.2;
+    --bz-strip-col-width:70px;
+  }
+  #bz-info-content .bz-info-tabs button{
+    font-size:18px;
+    padding:16px 0 15px;
+  }
+
+  #bz-info-content .bz-sec-title{font-size:calc(10.5px * var(--bz-scale));}
+  #bz-info-content .bz-sec-sub{font-size:calc(9px * var(--bz-scale));}
+
+  #bz-info-content .bz2-table col.bz2-col-label{width:calc(40px * var(--bz-scale));}
+  #bz-info-content .bz2-table th{
+    font-size:calc(9.5px * var(--bz-scale));
+    padding:calc(8px * var(--bz-pad-scale)) 0 calc(6px * var(--bz-pad-scale));
+  }
+  #bz-info-content .bz2-table td{
+    font-size:calc(9.5px * var(--bz-scale));
+    padding:calc(6px * var(--bz-pad-scale)) 1px;
+  }
+  #bz-info-content .bz2-table .bz2-row-label{
+    font-size:calc(9.5px * var(--bz-scale));
+    padding-left:calc(11px * var(--bz-pad-scale));
+  }
+  #bz-info-content .bz2-gan,
+  #bz-info-content .bz2-zhi{font-size:calc(19px * var(--bz-scale));}
+  #bz-info-content .bz2-hidden-list{gap:calc(1.5px * var(--bz-scale));}
+  #bz-info-content .bz2-hidden-line{font-size:calc(9px * var(--bz-scale));}
+  #bz-info-content .bz2-secondary-line{font-size:calc(9px * var(--bz-scale));}
+  #bz-info-content .bz2-tiny{font-size:calc(9px * var(--bz-scale));}
+  #bz-info-content .bz2-sha-list{gap:calc(1px * var(--bz-scale));}
+  #bz-info-content .bz2-sha-good,
+  #bz-info-content .bz2-sha-bad{font-size:calc(8.5px * var(--bz-scale));}
+  #bz-info-content .bz-kong-day{font-size:calc(8px * var(--bz-scale));}
+
+  #bz-info-content .bz2-kv-cell{padding:calc(9px * var(--bz-pad-scale)) 12px;}
+  #bz-info-content .bz2-kv-cell .k{font-size:calc(8.5px * var(--bz-scale));}
+  #bz-info-content .bz2-kv-cell .v{font-size:calc(12px * var(--bz-scale));}
+  #bz-info-content .bz2-kv-cell .v em{font-size:calc(10px * var(--bz-scale));}
+  #bz-info-content .bz2-wxc{font-size:calc(11px * var(--bz-scale));}
+  #bz-info-content .bz3-footnote{font-size:calc(8.5px * var(--bz-scale));}
+
+  #bz-info-content .bz3-taiming-panel div{font-size:calc(8.5px * var(--bz-scale));}
+  #bz-info-content .bz3-taiming-panel b{font-size:calc(12px * var(--bz-scale));}
+  #bz-info-content .bz3-start-info{padding:calc(10px * var(--bz-pad-scale)) 12px calc(11px * var(--bz-pad-scale));}
+  #bz-info-content .bz3-start-line + .bz3-start-line{margin-top:calc(4px * var(--bz-pad-scale));}
+  #bz-info-content .bz3-start-label{font-size:calc(9.5px * var(--bz-scale));}
+  #bz-info-content .bz3-start-text{font-size:calc(9.5px * var(--bz-scale));}
+  #bz-info-content .bz3-current-age{font-size:calc(17px * var(--bz-scale));}
+  #bz-info-content .bz3-current-age small{font-size:calc(9px * var(--bz-scale));}
+  #bz-info-content .bz3-commander{font-size:calc(9.5px * var(--bz-scale));}
+
+  #bz-info-content .bz3-strip{gap:calc(6px * var(--bz-scale));margin-top:calc(9px * var(--bz-pad-scale));}
+  #bz-info-content .bz3-strip-heading{flex-basis:calc(20px * var(--bz-scale));}
+  #bz-info-content .bz3-strip-heading .txt{font-size:calc(10px * var(--bz-scale));}
+  #bz-info-content .bz3-strip-viewport{
+    position:relative;flex:1;min-width:0;overflow:hidden;
+  }
+  #bz-info-content .bz3-strip-viewport::before,
+  #bz-info-content .bz3-strip-viewport::after{
+    content:"";position:absolute;top:0;bottom:0;width:12px;z-index:2;pointer-events:none;
+  }
+  #bz-info-content .bz3-strip-viewport::before{
+    left:0;background:linear-gradient(90deg,rgba(244,245,247,.98),rgba(244,245,247,0));
+  }
+  #bz-info-content .bz3-strip-viewport::after{
+    right:0;background:linear-gradient(270deg,rgba(244,245,247,.98),rgba(244,245,247,0));
+  }
+  #bz-info-content .bz3-strip-scroll{
+    display:flex;gap:calc(4px * var(--bz-scale));
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;touch-action:pan-x pan-y;
+  }
+  #bz-info-content .bz3-strip-scroll::-webkit-scrollbar{display:none;}
+  #bz-info-content .bz3-strip-col{
+    flex:0 0 var(--bz-strip-col-width);width:var(--bz-strip-col-width);
+    padding:calc(5px * var(--bz-pad-scale)) 1px calc(6px * var(--bz-pad-scale));
+    gap:calc(1px * var(--bz-scale));overflow:visible;
+  }
+  #bz-info-content .bz3-strip-col .year{font-size:calc(7.5px * var(--bz-scale));}
+  #bz-info-content .bz3-strip-col .age{font-size:calc(7px * var(--bz-scale));}
+  #bz-info-content .bz3-strip-col .term{font-size:calc(7.5px * var(--bz-scale));}
+  #bz-info-content .bz3-strip-col .gz-line{font-size:calc(10.5px * var(--bz-scale));}
+  #bz-info-content .bz3-strip-col .xiao-yun{font-size:calc(6.5px * var(--bz-scale));}
+
+  #bz-info-content .bz3-wuxing{gap:calc(6px * var(--bz-scale));margin-top:calc(9px * var(--bz-pad-scale));}
+  #bz-info-content .bz3-wuxing-label{flex-basis:calc(20px * var(--bz-scale));}
+  #bz-info-content .bz3-wuxing-label span{font-size:calc(10px * var(--bz-scale));}
+  #bz-info-content .bz3-wuxing-cell{padding:calc(7px * var(--bz-pad-scale)) 2px;}
+  #bz-info-content .bz3-wuxing-name{font-size:calc(10.5px * var(--bz-scale));}
+
+  #bz-info-content .bz3-relation-row{
+    gap:calc(8px * var(--bz-scale));
+    padding:calc(7px * var(--bz-pad-scale)) 12px;
+    font-size:calc(9.5px * var(--bz-scale));
+  }
+  #bz-info-content .bz3-relation-label{flex-basis:calc(46px * var(--bz-scale));}
+  #bz-info-content .bz3-sha-group{
+    padding:calc(6px * var(--bz-pad-scale)) 12px calc(4px * var(--bz-pad-scale));
+    font-size:calc(8.5px * var(--bz-scale));
+  }
+  #bz-info-content .bz3-sha-row{
+    gap:calc(8px * var(--bz-scale));
+    padding:calc(6px * var(--bz-pad-scale)) 12px;
+    font-size:calc(9.5px * var(--bz-scale));
+  }
+  #bz-info-content .bz3-shensha-pillar{flex-basis:calc(44px * var(--bz-scale));font-size:calc(10.5px * var(--bz-scale));}
+  #bz-info-content .bz3-shensha-values{font-size:calc(9px * var(--bz-scale));}
+  #bz-info-content .bz3-expand-btn{font-size:calc(9px * var(--bz-scale));}
+
   @media (max-width:360px){
     #app{padding-left:.25rem;padding-right:.25rem;}
     .bz-records-list-wrap{padding-right:1.65rem;}
@@ -4083,7 +4202,15 @@ function bz3EnsureSelection(result){
   if(baziFineLiuYueIndex < 0 || baziFineLiuYueIndex > 11) baziFineLiuYueIndex = 0;
 }
 function bz3CenterStrips(){
-  // 新版为等分栅格，列全部可见，无需横向滚动居中
+  ['bz3-dayun-scroll', 'bz3-liunian-scroll', 'bz3-liuyue-scroll'].forEach(id => {
+    const scroll = document.getElementById(id);
+    if(!scroll) return;
+    const active = scroll.querySelector('.bz3-strip-col.active');
+    if(!active) return;
+    const target = active.offsetLeft - (scroll.clientWidth - active.offsetWidth) / 2;
+    const max = Math.max(0, scroll.scrollWidth - scroll.clientWidth);
+    scroll.scrollLeft = Math.max(0, Math.min(max, target));
+  });
 }
 function bz3JiaoYunText(result){
   const solar = String(result.yun.start.solar || '').slice(0, 10);
@@ -4166,6 +4293,8 @@ function renderBaziInfo(){
   const tabs = '<div class="bz-info-tabs">' +
     '<button type="button" data-tab="basic" class="' + (baziInfoTab === 'basic' ? 'active' : '') + '">基本盘</button>' +
     '<button type="button" data-tab="fine" class="' + (baziInfoTab === 'fine' ? 'active' : '') + '">细盘</button></div>';
+  box.classList.toggle('bz-tab-basic', baziInfoTab === 'basic');
+  box.classList.toggle('bz-tab-fine', baziInfoTab === 'fine');
   box.innerHTML = summary + taiMingShen + tabs + '<div id="bz-info-panel"></div>';
   box.querySelectorAll('.bz-info-tabs button').forEach(button => {
     button.onclick = () => {
@@ -4296,8 +4425,7 @@ function bz3StripHtml(result){
 
   html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">大运</span>' +
     '<input type="checkbox" class="bz3-strip-switch" id="bz3-xiaoyun-switch"' + (baziFineShowXiaoYun ? ' checked' : '') + '></div>' +
-    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-dayun-scroll" style="grid-template-columns:repeat(' +
-    yun.daYun.length + ',minmax(0,1fr))">';
+    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-dayun-scroll">';
   yun.daYun.forEach((item, index) => {
     const ganShen = bz3ShortShiShen(item.shiShen);
     const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(dayGan, item.zhi));
@@ -4312,8 +4440,7 @@ function bz3StripHtml(result){
   html += '</div></div></div>';
 
   html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流年</span><span class="dot"></span></div>' +
-    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liunian-scroll" style="grid-template-columns:repeat(' +
-    dayun.liuNian.length + ',minmax(0,1fr))">';
+    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liunian-scroll">';
   dayun.liuNian.forEach((item, index) => {
     const ganShen = bz3ShortShiShen(item.shiShen);
     const zhiShen = bz3ShortShiShen(bz3ZhiShiShen(dayGan, item.zhi));
@@ -4326,8 +4453,7 @@ function bz3StripHtml(result){
   html += '</div></div></div>';
 
   html += '<div class="bz3-strip"><div class="bz3-strip-heading"><span class="txt">流月</span><span class="dot"></span></div>' +
-    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liuyue-scroll" style="grid-template-columns:repeat(' +
-    liuNian.liuYue.length + ',minmax(0,1fr))">';
+    '<div class="bz3-strip-viewport"><div class="bz3-strip-scroll" id="bz3-liuyue-scroll">';
   liuNian.liuYue.forEach((item, index) => {
     const fallback = BZ3_TERMS[index] || {name:item.name, date:'—'};
     const termName = item.jieQiName || fallback.name;

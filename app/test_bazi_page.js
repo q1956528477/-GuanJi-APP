@@ -82,11 +82,19 @@ check('无效的智能干支图示/AI指令按钮已移除', document.querySelec
 check('基本盘/细盘两个切换按钮已恢复', document.querySelectorAll('.bz-info-tabs button').length === 2 &&
   [...document.querySelectorAll('.bz-info-tabs button')].map(button => button.textContent.trim()).join('/') === '基本盘/细盘');
 check('基本盘默认激活', document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+check('基本盘使用 1.5 倍统一下标缩放作用域',
+  document.getElementById('bz-info-content').classList.contains('bz-tab-basic') &&
+  /#bz-info-content\.bz-tab-basic\{[^}]*--bz-scale:1\.5/.test(html));
+check('Tab 标签选中与未选中均为放大后的 18px',
+  /\.bz-info-tabs button\{[^}]*font-size:18px/.test(html));
 check('命盘要素格渲染完成', document.querySelectorAll('.bz2-kv-cell').length === 5);
 check('干支作用关系三行渲染完成', document.querySelectorAll('.bz3-relation-row').length === 3);
 
 document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
 check('细盘已切换到激活态', document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
+check('细盘使用 1.25 倍统一下标缩放作用域',
+  document.getElementById('bz-info-content').classList.contains('bz-tab-fine') &&
+  /#bz-info-content\.bz-tab-fine\{[^}]*--bz-scale:1\.25/.test(html));
 check('细盘七列表格结构正确', document.querySelectorAll('.bz2-table colgroup col').length === 7);
 check('细盘岁运两列无底色高亮（旧 bz3-active-col 已移除）', document.querySelectorAll('.bz3-active-col').length === 0);
 check('行标签列与流年列之间有竖线', document.querySelectorAll('.bz2-table thead th.bz2-divider').length === 2);
@@ -94,10 +102,25 @@ check('每行两条竖线分隔（流年 / 年柱 各一）',
   document.querySelectorAll('.bz2-table tbody tr:first-child td.bz2-divider').length === 2);
 check('大运、流年、流月三条横带存在', document.querySelectorAll('.bz3-strip').length === 3);
 check('三条横带默认各高亮一列', document.querySelectorAll('.bz3-strip-col.active').length === 3);
-check('大运/流年各十列、流月十二列全部可见（等分栅格）',
+check('大运/流年各十列、流月十二列保持完整列数',
   document.querySelectorAll('#bz3-dayun-scroll .bz3-strip-col').length === 10 &&
   document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col').length === 10 &&
   document.querySelectorAll('#bz3-liuyue-scroll .bz3-strip-col').length === 12);
+check('三条横带使用独立横向滚动且不再等分压缩',
+  ['bz3-dayun-scroll','bz3-liunian-scroll','bz3-liuyue-scroll'].every(id => {
+    const el = document.getElementById(id);
+    return el && !el.getAttribute('style');
+  }) &&
+  /\.bz3-strip-scroll\{[^}]*display:flex[^}]*overflow-x:auto/.test(html) &&
+  /\.bz3-strip-col\{[^}]*flex:0 0 var\(--bz-strip-col-width\)/.test(html));
+const dayunScroll = document.getElementById('bz3-dayun-scroll');
+const dayunActive = dayunScroll.querySelector('.bz3-strip-col.active');
+Object.defineProperty(dayunScroll, 'clientWidth', {value:300, configurable:true});
+Object.defineProperty(dayunScroll, 'scrollWidth', {value:900, configurable:true});
+Object.defineProperty(dayunActive, 'offsetLeft', {value:420, configurable:true});
+Object.defineProperty(dayunActive, 'offsetWidth', {value:70, configurable:true});
+window.bz3CenterStrips();
+check('初始高亮列自动滚动到可视区域中央', dayunScroll.scrollLeft === 305);
 check('起运与交运信息完整', document.querySelector('.bz3-start-info').textContent.includes('起运') &&
   document.querySelector('.bz3-start-info').textContent.includes('交运') &&
   document.querySelector('.bz3-start-info').textContent.includes('司令') &&
@@ -107,8 +130,11 @@ check('五行旺衰按出生月令计算', document.querySelector('.bz3-wuxing .
 check('岁运与原局共六行关系', document.querySelectorAll('.bz3-relation-row').length === 6);
 check('三类神煞区渲染完成', document.querySelectorAll('.bz3-sha-group').length === 3);
 const secondLiuNian = document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col')[1];
+const firstDataColumnBefore = document.querySelector('.bz2-table tbody tr').children[1].textContent;
 secondLiuNian.click();
 check('点击流年可联动高亮', document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col')[1].classList.contains('active'));
+check('点击流年后主表流年列同步刷新',
+  document.querySelector('.bz2-table tbody tr').children[1].textContent !== firstDataColumnBefore);
 const beforeExpandRows = document.querySelectorAll('.bz3-sha-row').length;
 document.getElementById('bz3-toggle-liunian-shensha').click();
 check('流年神煞可展开', document.querySelectorAll('.bz3-sha-row').length > beforeExpandRows);
