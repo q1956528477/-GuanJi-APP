@@ -154,6 +154,94 @@ check('历史记录页存在左上角返回按钮', !!historyBackButton && histo
 historyBackButton.click();
 check('历史记录页返回按钮与返回键行为一致', visible('energy-view') && !visible('energy-history-view'));
 
-console.log('\n===== 精力状态模块测试结果 =====');
-results.forEach(result => console.log(result));
-console.log('===== 结束 =====');
+// 10. 复制过去一周作息信息
+async function runWeeklyCopyTests(){
+function saveWeeklyFixture(date, sleepTime, wakeTime, score){
+  const real = window.daysAgo;
+  window.daysAgo = () => date;
+  document.getElementById('score-input').value = String(score);
+  document.getElementById('note-input').value = '';
+  document.getElementById('date-input').value = date;
+  document.getElementById('sleep-input').value = sleepTime;
+  document.getElementById('wake-input').value = wakeTime;
+  document.getElementById('save-btn').click();
+  window.daysAgo = real;
+}
+const copyWeekButton = document.getElementById('copy-week-energy-btn');
+check('「数据与提醒」中存在复制一周状态信息按钮', !!copyWeekButton &&
+  copyWeekButton.textContent.trim() === '复制一周状态信息' &&
+  copyWeekButton.closest('.card').querySelector('h3').textContent.includes('数据与提醒'));
+
+const yesterday = window.daysAgo(1);
+const twoDaysAgo = window.daysAgo(2);
+const threeDaysAgo = window.daysAgo(3);
+saveWeeklyFixture(yesterday, '23:00', '07:00', 66);
+saveWeeklyFixture(twoDaysAgo, '00:30', '08:15', 58);
+const weeklyPrompt = window.buildWeeklyEnergyPrompt();
+const weeklyDataLines = weeklyPrompt.split('\n').filter(line => line.startsWith('- '));
+check('一周状态提示词包含最近 7 天且按日期升序',
+  weeklyDataLines.length === 7 &&
+  weeklyDataLines[0].includes(window.daysAgo(6)) &&
+  weeklyDataLines[6].includes(window.todayStr()));
+check('一周状态提示词包含完整作息与睡眠时长',
+  weeklyPrompt.includes(yesterday + '（周') &&
+  weeklyPrompt.includes('入睡 23:00；起床 07:00；睡眠时长 8小时') &&
+  weeklyPrompt.includes(twoDaysAgo + '（周') &&
+  weeklyPrompt.includes('入睡 00:30；起床 08:15；睡眠时长 7小时45分'));
+check('缺失记录与不完整数据如实标注',
+  weeklyDataLines.some(line => line.includes(threeDaysAgo) && line.includes('：未记录')) &&
+  weeklyDataLines.some(line => line.includes(window.todayStr()) && line.includes('睡眠时长 数据不完整')));
+check('一周状态提示词自带完整分析指令',
+  weeklyPrompt.includes('总结过去一周的作息规律、睡眠稳定性和可能存在的问题') &&
+  weeklyPrompt.includes('给出具体、可执行的作息与睡眠调整建议') &&
+  weeklyPrompt.includes('不得猜测或补造缺失信息'));
+
+const stateBeforeCopy = window.localStorage.getItem('guanji_data_v1');
+let copiedWeekly = '';
+Object.defineProperty(window.navigator, 'clipboard', {
+  configurable:true,
+  value:{ writeText: async text => { copiedWeekly = text; } },
+});
+copyWeekButton.click();
+await new Promise(resolve => setTimeout(resolve, 20));
+check('点击按钮复制完整一周提示词',
+  copiedWeekly === weeklyPrompt && document.getElementById('toast').textContent === '一周状态信息已复制');
+
+let fallbackCopied = '';
+Object.defineProperty(window.navigator, 'clipboard', {
+  configurable:true,
+  value:{ writeText: async () => { throw new Error('clipboard unavailable'); } },
+});
+const realExecCommand = document.execCommand;
+document.execCommand = function(){
+  const area = document.querySelector('textarea[readonly]');
+  fallbackCopied = area ? area.value : '';
+  return true;
+};
+copyWeekButton.click();
+await new Promise(resolve => setTimeout(resolve, 20));
+check('系统剪贴板失败时使用 execCommand 兜底',
+  fallbackCopied === weeklyPrompt &&
+  document.getElementById('toast').textContent === '一周状态信息已复制');
+
+document.execCommand = function(){ return false; };
+copyWeekButton.click();
+await new Promise(resolve => setTimeout(resolve, 20));
+check('复制全部失败时打开完整文本供手动复制',
+  document.getElementById('text-prompt-modal').classList.contains('show') &&
+  document.getElementById('text-prompt-area').value === weeklyPrompt &&
+  document.getElementById('toast').textContent === '复制失败，已打开文本，请手动选择复制');
+document.getElementById('text-prompt-cancel').click();
+document.execCommand = realExecCommand;
+check('复制一周状态信息不会改写精力记录数据',
+  window.localStorage.getItem('guanji_data_v1') === stateBeforeCopy);
+}
+
+runWeeklyCopyTests().then(() => {
+  console.log('\n===== 精力状态模块测试结果 =====');
+  results.forEach(result => console.log(result));
+  console.log('===== 结束 =====');
+}).catch(err => {
+  console.error(err);
+  process.exitCode = 1;
+});
