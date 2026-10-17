@@ -58,6 +58,34 @@ function swipe(target, dx, dy) {
   });
   target.dispatchEvent(end);
 }
+function touchSwipeWithPointerCancel(target, dx, dy) {
+  const start = new window.Event('touchstart', { bubbles:true, cancelable:true });
+  Object.defineProperty(start, 'touches', {
+    value:[{ clientX:120, clientY:260 }],
+  });
+  target.dispatchEvent(start);
+  target.dispatchEvent(new window.Event('pointercancel', { bubbles:true }));
+  const end = new window.Event('touchend', { bubbles:true, cancelable:true });
+  Object.defineProperty(end, 'changedTouches', {
+    value:[{ clientX:120 + dx, clientY:260 + dy }],
+  });
+  target.dispatchEvent(end);
+}
+function pointerSwipe(target, dx, dy) {
+  const start = new window.Event('pointerdown', { bubbles:true, cancelable:true });
+  Object.defineProperty(start, 'pointerType', { value:'mouse' });
+  Object.defineProperty(start, 'pointerId', { value:7 });
+  Object.defineProperty(start, 'button', { value:0 });
+  Object.defineProperty(start, 'clientX', { value:120 });
+  Object.defineProperty(start, 'clientY', { value:260 });
+  target.dispatchEvent(start);
+  const end = new window.Event('pointerup', { bubbles:true, cancelable:true });
+  Object.defineProperty(end, 'pointerType', { value:'mouse' });
+  Object.defineProperty(end, 'pointerId', { value:7 });
+  Object.defineProperty(end, 'clientX', { value:120 + dx });
+  Object.defineProperty(end, 'clientY', { value:260 + dy });
+  target.dispatchEvent(end);
+}
 
 const baziCard = [...document.querySelectorAll('.mod-card')].find(card => card.textContent.includes('八字排盘'));
 check('主页存在八字排盘入口', !!baziCard);
@@ -103,6 +131,22 @@ check('Tab 标签选中与未选中均为放大后的 18px',
 check('命盘要素格渲染完成', document.querySelectorAll('.bz2-kv-cell').length === 5);
 check('干支作用关系三行渲染完成', document.querySelectorAll('.bz3-relation-row').length === 3);
 
+swipe(document.querySelector('.bz2-table'), -30, 4);
+check('轻微横向移动不会误切 Tab',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+swipe(document.querySelector('.bz-info-tabs button[data-tab="basic"]'), -120, 4);
+check('从 Tab 控件开始的手势不会误触发页面切换',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+
+document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
+check('标签点击切到细盘时播放向右入场动画',
+  document.getElementById('bz-info-panel').classList.contains('bz-slide-next') &&
+  document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
+document.querySelector('.bz-info-tabs button[data-tab="basic"]').click();
+check('标签点击切回基本盘时播放向左入场动画',
+  document.getElementById('bz-info-panel').classList.contains('bz-slide-prev') &&
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+
 swipe(document.querySelector('.bz2-table'), 100, 5);
 check('基本盘右滑到边界不循环切换',
   document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
@@ -113,6 +157,12 @@ swipe(document.querySelector('.bz2-table'), -110, 5);
 check('基本盘左滑进入细盘且选中态同步',
   document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active') &&
   document.getElementById('bz-info-content').classList.contains('bz-tab-fine'));
+check('基本盘左滑进入细盘时动画方向正确',
+  document.getElementById('bz-info-panel').classList.contains('bz-slide-next'));
+touchSwipeWithPointerCancel(document.querySelector('.bz3-start-info'), 120, 5);
+check('触摸产生的 pointercancel 不会中断 touchend 返回基本盘',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
 swipe(document.getElementById('bz3-liunian-scroll'), 100, 5);
 check('选择带内横滑优先于 Tab 切换',
   document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
@@ -120,6 +170,36 @@ swipe(document.querySelector('.bz3-start-info'), 100, 5);
 check('细盘右滑返回基本盘且选中态同步',
   document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active') &&
   document.getElementById('bz-info-content').classList.contains('bz-tab-basic'));
+check('细盘右滑返回基本盘时动画方向正确',
+  document.getElementById('bz-info-panel').classList.contains('bz-slide-prev'));
+
+pointerSwipe(document.querySelector('.bz2-table'), -120, 4);
+check('桌面鼠标拖动可左滑进入细盘',
+  document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
+pointerSwipe(document.querySelector('.bz3-start-info'), 120, 4);
+check('桌面鼠标拖动可右滑返回基本盘',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+
+document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
+document.querySelector('.bz-info-tabs button[data-tab="basic"]').click();
+check('快速连续切换后 Tab 与内容状态一致',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active') &&
+  document.getElementById('bz-info-content').classList.contains('bz-tab-basic') &&
+  document.querySelectorAll('#bz-info-panel .bz2-table').length === 1);
+
+const realMatchMedia = window.matchMedia;
+window.matchMedia = query => ({
+  matches: query.includes('prefers-reduced-motion: reduce'),
+  media: query,
+  addListener(){}, removeListener(){}, addEventListener(){}, removeEventListener(){},
+});
+swipe(document.querySelector('.bz2-table'), -120, 4);
+check('减少动态效果开启时仍可切换且不播放动画',
+  document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active') &&
+  !document.getElementById('bz-info-panel').classList.contains('bz-slide-next') &&
+  !document.getElementById('bz-info-panel').classList.contains('bz-slide-prev'));
+window.matchMedia = realMatchMedia;
+document.querySelector('.bz-info-tabs button[data-tab="basic"]').click();
 
 document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
 check('细盘已切换到激活态', document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));

@@ -670,6 +670,22 @@
     content:"";position:absolute;left:50%;bottom:0;width:26px;height:2px;border-radius:2px;
     background:#b08c4a;transform:translateX(-50%);
   }
+  #bz-info-content{overflow-x:hidden;}
+  #bz-info-panel{min-width:0;}
+  #bz-info-panel.bz-slide-next{animation:bz-panel-enter-next .22s cubic-bezier(.22,.72,.28,1) both;}
+  #bz-info-panel.bz-slide-prev{animation:bz-panel-enter-prev .22s cubic-bezier(.22,.72,.28,1) both;}
+  @keyframes bz-panel-enter-next{
+    from{opacity:.45;transform:translate3d(18px,0,0);}
+    to{opacity:1;transform:translate3d(0,0,0);}
+  }
+  @keyframes bz-panel-enter-prev{
+    from{opacity:.45;transform:translate3d(-18px,0,0);}
+    to{opacity:1;transform:translate3d(0,0,0);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    #bz-info-panel.bz-slide-next,
+    #bz-info-panel.bz-slide-prev{animation:none !important;}
+  }
 
   /* 卡片与分节标题 */
   .bz-card{
@@ -4348,7 +4364,7 @@ function renderBaziProfile(result, person, options){
 }
 
 /* ---------------- 结果页主入口 ---------------- */
-function renderBaziInfo(){
+function renderBaziInfo(slideDirection){
   const person = getBaziPerson(baziCurrentPersonId);
   const box = document.getElementById('bz-info-content');
   if(!person){
@@ -4379,13 +4395,15 @@ function renderBaziInfo(){
   box.innerHTML = summary + taiMingShen + tabs + '<div id="bz-info-panel"></div>';
   box.querySelectorAll('.bz-info-tabs button').forEach(button => {
     button.onclick = () => {
-      if(button.dataset.tab === 'fine' && !result.yun){
+      const nextTab = button.dataset.tab;
+      if(nextTab === baziInfoTab) return;
+      if(nextTab === 'fine' && !result.yun){
         showToast('四柱直录无出生时间，暂不展示细盘');
         return;
       }
-      baziInfoTab = button.dataset.tab;
+      baziInfoTab = nextTab;
       baziOpenLiuNian = -1;
-      renderBaziInfo();
+      renderBaziInfo(nextTab === 'fine' ? 'next' : 'prev');
     };
   });
   const taiMingToggle = document.getElementById('bz3-taimingshen');
@@ -4400,41 +4418,85 @@ function renderBaziInfo(){
   if(baziInfoTab === 'basic') renderBaziBasic(result);
   else renderBaziFine(result);
   bindBaziInfoSwipe();
+  if(slideDirection) animateBaziInfoPanel(slideDirection);
 }
 
 let baziInfoSwipeState = null;
+let baziInfoAnimationTimer = null;
+function baziMotionReduced(){
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+function animateBaziInfoPanel(direction){
+  const panel = document.getElementById('bz-info-panel');
+  if(!panel || baziMotionReduced()) return;
+  const className = direction === 'next' ? 'bz-slide-next' : 'bz-slide-prev';
+  panel.classList.add(className);
+  clearTimeout(baziInfoAnimationTimer);
+  baziInfoAnimationTimer = setTimeout(() => {
+    panel.classList.remove('bz-slide-next', 'bz-slide-prev');
+  }, 240);
+}
+function baziSwipeTargetAllowed(target){
+  if(!target || !target.closest) return false;
+  return !target.closest('.bz3-strip, .bz-info-tabs, button, input, textarea, select, a, label, [contenteditable="true"], [data-no-swipe]');
+}
+function startBaziSwipe(x, y, kind, pointerId){
+  baziInfoSwipeState = {x, y, kind, pointerId:pointerId == null ? null : pointerId};
+}
+function finishBaziSwipe(x, y, kind, pointerId){
+  const state = baziInfoSwipeState;
+  baziInfoSwipeState = null;
+  if(!state || state.kind !== kind) return;
+  if(kind === 'pointer' && state.pointerId !== pointerId) return;
+  const dx = x - state.x;
+  const dy = y - state.y;
+  const threshold = Math.max(52, Math.min(72, window.innerWidth * 0.15));
+  if(Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+  let targetTab = null;
+  if(dx < 0 && baziInfoTab === 'basic') targetTab = 'fine';
+  if(dx > 0 && baziInfoTab === 'fine') targetTab = 'basic';
+  if(!targetTab) return;
+  const button = document.querySelector('.bz-info-tabs button[data-tab="' + targetTab + '"]');
+  if(button) button.click();
+}
+function cancelBaziSwipe(kind, pointerId){
+  if(!baziInfoSwipeState || baziInfoSwipeState.kind !== kind) return;
+  if(kind === 'pointer' && baziInfoSwipeState.pointerId !== pointerId) return;
+  baziInfoSwipeState = null;
+}
 function bindBaziInfoSwipe(){
   const view = document.getElementById('bazi-info-view');
   if(!view || view.dataset.baziSwipeBound === '1') return;
   view.dataset.baziSwipeBound = '1';
   view.addEventListener('touchstart', event => {
     const target = event.target;
-    if(!target || !target.closest || event.touches.length !== 1) return;
-    if(target.closest('.bz3-strip, .bz-info-tabs, button, input, textarea, select, a, label')){
+    if(event.touches.length !== 1 || !baziSwipeTargetAllowed(target)){
       baziInfoSwipeState = null;
       return;
     }
     const touch = event.touches[0];
-    baziInfoSwipeState = {x:touch.clientX, y:touch.clientY};
+    startBaziSwipe(touch.clientX, touch.clientY, 'touch');
   }, {passive:true});
   view.addEventListener('touchend', event => {
-    if(!baziInfoSwipeState || !event.changedTouches.length){
+    if(!event.changedTouches.length){
       baziInfoSwipeState = null;
       return;
     }
     const touch = event.changedTouches[0];
-    const dx = touch.clientX - baziInfoSwipeState.x;
-    const dy = touch.clientY - baziInfoSwipeState.y;
-    baziInfoSwipeState = null;
-    if(Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-    let targetTab = null;
-    if(dx < 0 && baziInfoTab === 'basic') targetTab = 'fine';
-    if(dx > 0 && baziInfoTab === 'fine') targetTab = 'basic';
-    if(!targetTab) return;
-    const button = document.querySelector('.bz-info-tabs button[data-tab="' + targetTab + '"]');
-    if(button) button.click();
+    finishBaziSwipe(touch.clientX, touch.clientY, 'touch');
   }, {passive:true});
-  view.addEventListener('touchcancel', () => { baziInfoSwipeState = null; }, {passive:true});
+  view.addEventListener('pointerdown', event => {
+    if(event.pointerType === 'touch' || event.button !== 0 || !baziSwipeTargetAllowed(event.target)) return;
+    startBaziSwipe(event.clientX, event.clientY, 'pointer', event.pointerId);
+  }, {passive:true});
+  view.addEventListener('pointerup', event => {
+    if(event.pointerType === 'touch') return;
+    finishBaziSwipe(event.clientX, event.clientY, 'pointer', event.pointerId);
+  }, {passive:true});
+  view.addEventListener('pointercancel', event => {
+    if(event.pointerType !== 'touch') cancelBaziSwipe('pointer', event.pointerId);
+  }, {passive:true});
+  view.addEventListener('touchcancel', () => { cancelBaziSwipe('touch'); }, {passive:true});
 }
 
 /* ---------------- 对照表（基本盘 4 列 / 细盘 6 列共用）---------------- */
