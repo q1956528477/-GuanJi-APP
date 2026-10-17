@@ -46,6 +46,18 @@ function sheetResultCards() {
 function sheetConfirm() {
   document.getElementById('gz-sheet-confirm').click();
 }
+function swipe(target, dx, dy) {
+  const start = new window.Event('touchstart', { bubbles:true, cancelable:true });
+  Object.defineProperty(start, 'touches', {
+    value:[{ clientX:120, clientY:260 }],
+  });
+  target.dispatchEvent(start);
+  const end = new window.Event('touchend', { bubbles:true, cancelable:true });
+  Object.defineProperty(end, 'changedTouches', {
+    value:[{ clientX:120 + dx, clientY:260 + dy }],
+  });
+  target.dispatchEvent(end);
+}
 
 const baziCard = [...document.querySelectorAll('.mod-card')].find(card => card.textContent.includes('八字排盘'));
 check('主页存在八字排盘入口', !!baziCard);
@@ -82,6 +94,7 @@ check('无效的智能干支图示/AI指令按钮已移除', document.querySelec
 check('基本盘/细盘两个切换按钮已恢复', document.querySelectorAll('.bz-info-tabs button').length === 2 &&
   [...document.querySelectorAll('.bz-info-tabs button')].map(button => button.textContent.trim()).join('/') === '基本盘/细盘');
 check('基本盘默认激活', document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+check('八字结果页只绑定一次滑动监听', document.getElementById('bazi-info-view').dataset.baziSwipeBound === '1');
 check('基本盘使用 1.5 倍统一下标缩放作用域',
   document.getElementById('bz-info-content').classList.contains('bz-tab-basic') &&
   /#bz-info-content\.bz-tab-basic\{[^}]*--bz-scale:1\.5/.test(html));
@@ -89,6 +102,24 @@ check('Tab 标签选中与未选中均为放大后的 18px',
   /\.bz-info-tabs button\{[^}]*font-size:18px/.test(html));
 check('命盘要素格渲染完成', document.querySelectorAll('.bz2-kv-cell').length === 5);
 check('干支作用关系三行渲染完成', document.querySelectorAll('.bz3-relation-row').length === 3);
+
+swipe(document.querySelector('.bz2-table'), 100, 5);
+check('基本盘右滑到边界不循环切换',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+swipe(document.querySelector('.bz2-table'), -90, 120);
+check('纵向/斜向滑动不会误切到细盘',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+swipe(document.querySelector('.bz2-table'), -110, 5);
+check('基本盘左滑进入细盘且选中态同步',
+  document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active') &&
+  document.getElementById('bz-info-content').classList.contains('bz-tab-fine'));
+swipe(document.getElementById('bz3-liunian-scroll'), 100, 5);
+check('选择带内横滑优先于 Tab 切换',
+  document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
+swipe(document.querySelector('.bz3-start-info'), 100, 5);
+check('细盘右滑返回基本盘且选中态同步',
+  document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active') &&
+  document.getElementById('bz-info-content').classList.contains('bz-tab-basic'));
 
 document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
 check('细盘已切换到激活态', document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
@@ -125,6 +156,11 @@ check('三条横带使用独立横向滚动且不再等分压缩',
   }) &&
   /\.bz3-strip-scroll\{[^}]*display:flex[^}]*overflow-x:auto/.test(html) &&
   /\.bz3-strip-col\{[^}]*flex:0 0 var\(--bz-strip-col-width\)/.test(html));
+check('选择带渐隐遮罩已移除并改用实体边缘',
+  !/\.bz3-strip-viewport::(before|after)/.test(html) &&
+  html.includes('--bz-band-edge:#dfe3e8') &&
+  /\.bz3-strip\{[^}]*border:1px solid var\(--bz-band-edge\)/.test(html) &&
+  /\.bz3-strip-heading\{[^}]*border-right:1px solid var\(--bz-band-edge\)/.test(html));
 const dayunScroll = document.getElementById('bz3-dayun-scroll');
 const dayunActive = dayunScroll.querySelector('.bz3-strip-col.active');
 Object.defineProperty(dayunScroll, 'clientWidth', {value:300, configurable:true});

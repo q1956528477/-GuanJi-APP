@@ -50,6 +50,9 @@
 >
 > **v1.14.20 (build 54)**：八字大运/流年/流月三条选择带统一高度与标题列宽度，
 > 标题居中，渐隐遮罩改为贯穿整条的实体边框和固定分隔线。
+>
+> **v1.14.19 (build 53)**：六爻结果页新增按起卦记录保存的「卦象解读」只读区与独立多行编辑弹窗；
+> 八字基本盘/细盘支持横向滑动切换，选择带内部横滑优先且不与 Tab 切换冲突。
 
 ---
 
@@ -229,6 +232,8 @@ app/
   不再等分压缩；初始自动将当前高亮列滚动到可视区中央。
 - **选择带统一尺寸（v1.14.20）**：三种选择带共用 `--bz-band-height`、`--bz-band-heading-width` 和
   `--bz-band-edge`；标题列文字绝对居中，标题列右侧使用固定实体分隔线，不再使用渐隐遮罩。
+- **Tab 滑动与选择带边缘（v1.14.19）**：基本盘/细盘支持内容区横向滑动切换；左滑进细盘、右滑回基本盘，
+  已到边界不循环。`.bz3-strip` 内的手势优先交给选择带，不触发 Tab；选择带使用实体外框和固定标题列右侧分隔线。
 - 默认开启真太阳时；选择内置城市后按经度与均时差近似校正。
 - 四柱严格以立春、节气为界；23:00–23:59 按晚子时规则，日柱进位、时干按当日日干起算。
 - 四柱直排在弹层里按 **1801–2099** 范围反推全部匹配日期（选中的日期直接回写出生时间）；排盘/保存链路仍走原引擎，无解时降级为“四柱直录（无出生时间）”，不阻断保存。
@@ -271,6 +276,10 @@ app/
 **结果页传文层级（v1.14.15）**：每个本卦 / 变卦面板按「卦辞 → 彖传 → 大象传 → 爻辞」展示；
 每条爻辞下方紧接同一爻位的小象传，动爻不增加额外左右内边距。传文来源为固定修订的
 Kanripo KR1a0001《周易》，结果页按当前卦 `bits` 查找，历史记录和变卦均读取各自卦象的数据。
+
+**卦象解读（v1.14.19）**：结果页用只读 `.rebu-note-card` 展示当前 `currentResultId` 对应的
+`liuyao_history[].interpretation`；编辑统一走多行 `openTextPrompt()`，保存只更新当前记录，取消不写入。
+同一卦的不同记录各自保存解读，旧记录缺少字段按空值显示，删除记录即同时删除其解读。
 
 **历史记录兼容（v1.14.16）**：渲染历史和当前卦时统一优先按 `bits`（缺失时按卦名）关联当前传文数据；
 旧记录中过时的 `meta.classical` 仅作为无法匹配时的兜底，不会为了补文而改写 `liuyao_history`。
@@ -334,7 +343,7 @@ Kanripo KR1a0001《周易》，结果页按当前卦 `bits` 查找，历史记�
 |---|---|---|
 | `guanji_data_v1` | 精力状态：`{records:{[date]:{score,note,sleepTime,wakeTime,updatedAt}}, settings:{remindTime,lowThreshold}}` | `Storage` 对象 |
 | `guanji_requirements_v2` | 迭代需求数组 | `ReqStorage` 对象 |
-| `liuyao_history` | 六爻起卦记录数组（`fullResult` 存完整卦象；`pinned` / `pinnedAt` 存置顶状态） | `getLiuyaoHistory()` 等 |
+| `liuyao_history` | 六爻起卦记录数组（`fullResult` 存完整卦象；`interpretation` 存该次卦象解读；`pinned` / `pinnedAt` 存置顶状态） | `getLiuyaoHistory()` 等 |
 | `guanji_bazi_groups_v1` | 八字命例分组数组 | `BaziStorage` 对象 |
 | `guanji_bazi_persons_v1` | 八字命例数组（输入信息、四柱缓存与 `pinned` / `pinnedAt` 置顶状态） | `BaziStorage` 对象 |
 | `guanji_gym_v1` | 健身房出勤：`{sessions:{"YYYY-MM-DD":{minutes:整数}}}`（v1.14.14 新增，同一天只一条） | `gymLoad()` / `gymSave()` |
@@ -478,7 +487,10 @@ npm run test:modules# 只跑主界面模块注册表
    - `yijing-data.js` 中旧的白话、断易、邵雍等字段必须保留，但结果页不得读取或渲染。卦辞/爻辞来自 `yijing-classical-data.js`，传文来自 `yijing-commentary-data.js`；历史记录按当前卦的 `bits` 回填。
    - 乾卦保留「用九」及小象传，坤卦保留「用六」及小象传；本卦动爻高亮逻辑不变。
    - Markdown 解析与古文校验脚本：`tools/generate-yijing-classical-data.js`；传文来源修订记录在 `YIJING_COMMENTARY_SOURCE`。
-4. **解卦提示词卡片** `.rebu-prompt-card`（v1.14.9，结果页**最下方，必须在古文区之后**）
+4. **卦象解读卡片** `.rebu-note-card`（v1.14.19，古文区之后）
+   - 内容只读，经 `escapeHtml()` 转义并用 `white-space:pre-wrap` 保留换行；空内容显示「暂无解读」。
+   - 「编辑」按钮打开多行 `openTextPrompt()`，标题为「编辑卦象解读」，保存更新当前 `currentResultId` 对应记录，取消不写 localStorage。
+5. **解卦提示词卡片** `.rebu-prompt-card`（v1.14.9，结果页**最下方，必须在古文区之后**）
    - 结构：`📋 解卦提示词` 标题 + `复制` 按钮 + `<pre class="rebu-prompt-text">` 纯文本块；由 `renderGuaTextCard(r)` 生成，插在 `renderJieshiSection(...)` 之后。
    - 文本由 `LiuYao.buildGuaTextPrompt(result)` 生成（`app/src/liuyao.js`），`renderGuaTextCard` 与 `copyGuaPrompt` 都调它，天然同源。
    - 覆盖：起卦时间 / 干支 / 所问事项 / 起卦方式 / 本卦名 / 变卦名（静卦写「无变卦（静卦）」）/ 动爻位置（无则「无动爻」）/
@@ -658,6 +670,7 @@ npm run test:modules# 只跑主界面模块注册表
 - [x] 八字排盘模块（v1.14.4 起含四柱直排底部弹层）
 - [x] **八字结果页字体与横带滚动**（v1.14.18）：基本盘 1.5 倍、细盘 1.25 倍、Tab 1.5 倍，三条选择带固定列宽横向滚动
 - [x] **八字选择带尺寸与标题布局**（v1.14.20）：三条带统一高度、统一加宽标题列、标题居中、实体分隔边缘
+- [x] **六爻卦象解读与八字 Tab 滑动**（v1.14.19）：解读按起卦记录持久化；八字左右滑动切换，选择带内横滑优先
 - [x] **六爻起卦审计修复**（v1.14.8，来自分支 `codex/liuyao-audit-fixes`）：卦名映射、数字/手动起卦输入校验、摇卦状态隔离
 - [x] **六爻结果页古文解读**（v1.14.8，来自分支 `codex/liuyao-classical-text`）：只显示卦辞与爻辞，数据源 `yijing-classical-data.js`
 - [x] **六爻传文层级与逐爻小象传**（v1.14.15，分支 `codex/liuyao-commentary-ui`）：卦辞 / 彖传 / 大象传 / 爻辞 / 小象传，来源 Kanripo KR1a0001
