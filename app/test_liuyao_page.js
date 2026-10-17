@@ -332,6 +332,89 @@ function wait(ms) {
   await wait(900);
   check('第六爻后重新开始不会保存旧结果', history().length === 1);
 
+  // ===== 卦象解读：只读展示、独立编辑、按记录保存 =====
+  window.localStorage.setItem('liuyao_history', '[]');
+  const noteResultA = window.LiuYao.cast({
+    method:'manual',
+    lines:['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'],
+    date:'2026-09-16T10:00:00',
+    question:'同一卦第一条',
+  });
+  window.showLiuyaoResult(noteResultA);
+  const noteIdA = history()[0].id;
+  const noteCard = document.getElementById('ly-interpretation-card');
+  check('结果页存在只读“卦象解读”区域',
+    !!noteCard && noteCard.querySelector('.rebu-note-title').textContent === '卦象解读' &&
+    !!document.getElementById('ly-interpretation-edit'));
+  check('新记录解读为空且不可原位编辑',
+    document.getElementById('ly-interpretation-content').textContent === '暂无解读' &&
+    !noteCard.querySelector('[contenteditable="true"]') &&
+    !noteCard.querySelector('textarea'));
+
+  document.getElementById('ly-interpretation-edit').click();
+  check('卦象解读使用独立多行编辑弹窗',
+    document.getElementById('text-prompt-modal').classList.contains('show') &&
+    document.getElementById('text-prompt-title').textContent === '编辑卦象解读' &&
+    !document.getElementById('text-prompt-area').classList.contains('hidden'));
+  const unsafeInterpretation = '<b>不可执行</b>\n第二行 & 内容';
+  document.getElementById('text-prompt-area').value = unsafeInterpretation;
+  document.getElementById('text-prompt-area').dispatchEvent(new window.Event('input', {bubbles:true}));
+  document.getElementById('text-prompt-ok').click();
+  await wait(20);
+  const savedNoteA = history().find(r => r.id === noteIdA);
+  const noteContent = document.getElementById('ly-interpretation-content');
+  check('保存后立即刷新只读解读',
+    savedNoteA.interpretation === unsafeInterpretation &&
+    noteContent.textContent === unsafeInterpretation &&
+    !noteContent.querySelector('b'));
+  check('保存解读提示文案统一', document.getElementById('toast').textContent === '卦象解读已保存');
+
+  const noteResultB = window.LiuYao.cast({
+    method:'manual',
+    lines:['young_yang','young_yang','young_yang','young_yang','young_yang','young_yang'],
+    date:'2026-09-16T10:02:00',
+    question:'同一卦第二条',
+  });
+  window.showLiuyaoResult(noteResultB);
+  const noteIdB = history()[0].id;
+  check('同一卦多次起卦生成不同记录', noteIdA !== noteIdB && history().length === 2);
+  check('新记录不会继承另一条解读', document.getElementById('ly-interpretation-content').textContent === '暂无解读');
+  document.getElementById('ly-interpretation-edit').click();
+  document.getElementById('text-prompt-area').value = '第二条独立解读';
+  document.getElementById('text-prompt-area').dispatchEvent(new window.Event('input', {bubbles:true}));
+  document.getElementById('text-prompt-ok').click();
+  await wait(20);
+  check('同一卦不同记录解读互不覆盖',
+    history().find(r => r.id === noteIdA).interpretation === unsafeInterpretation &&
+    history().find(r => r.id === noteIdB).interpretation === '第二条独立解读');
+
+  window.showLiuyaoHistory();
+  document.querySelector('#ly-history-list .ly-history-item[data-id="' + noteIdA + '"]').click();
+  check('历史记录重新打开回填对应解读',
+    document.getElementById('ly-interpretation-content').textContent === unsafeInterpretation);
+  document.getElementById('ly-interpretation-edit').click();
+  document.getElementById('text-prompt-area').value = '取消时不应保存';
+  document.getElementById('text-prompt-cancel').click();
+  await wait(20);
+  check('取消编辑不修改解读也不写入 localStorage',
+    history().find(r => r.id === noteIdA).interpretation === unsafeInterpretation &&
+    document.getElementById('ly-interpretation-content').textContent === unsafeInterpretation);
+
+  const legacyRecord = JSON.parse(JSON.stringify(history().find(r => r.id === noteIdB)));
+  delete legacyRecord.interpretation;
+  window.localStorage.setItem('liuyao_history', JSON.stringify([legacyRecord]));
+  window.viewLiuyaoHistoryRecord(noteIdB);
+  check('旧记录缺少 interpretation 时显示明确空状态',
+    document.getElementById('ly-interpretation-content').textContent === '暂无解读');
+
+  const originalConfirm = window.confirm;
+  window.confirm = () => true;
+  window.deleteSingleHistory(noteIdB, {stopPropagation(){}});
+  window.confirm = originalConfirm;
+  check('删除起卦记录会一并删除对应解读',
+    !history().some(r => r.id === noteIdB) && history().length === 0);
+  window.localStorage.setItem('liuyao_history', '[]');
+
   // ===== 解卦提示词：纯文本描述 + 一键复制 =====
   const promptDate = '2026-09-16T10:00:00';
   const movingResult = window.LiuYao.cast({

@@ -436,6 +436,14 @@
   .rebu-xiaoxiang{font-size:12px;line-height:1.75;color:#6f6350;margin-top:4px;word-break:break-word;overflow-wrap:anywhere;}
   .rebu-xiaoxiang-label{font-weight:800;color:#9b772d;margin-right:4px;}
   .rebu-classical-empty{font-size:12px;line-height:1.7;color:#999;text-align:center;padding:14px 8px;}
+  .rebu-note-card{margin:14px 0 0;background:#fff;border:1px solid #e6dcc6;border-left:3px solid #d4a843;border-radius:8px;padding:10px 12px;box-shadow:0 1px 4px rgba(139,105,20,.06);}
+  .rebu-note-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+  .rebu-note-title{font-size:12px;font-weight:800;color:#7a5d12;letter-spacing:1px;}
+  .rebu-note-edit{flex:0 0 auto;border:none;background:#f5f1e8;color:#7a5d12;border-radius:7px;padding:5px 12px;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;}
+  .rebu-note-edit:active{transform:scale(.98);}
+  .rebu-note-edit:disabled{opacity:.45;cursor:default;}
+  .rebu-note-content{background:#faf7f0;border-radius:6px;padding:9px 10px;font-size:12px;line-height:1.8;color:#333;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;min-height:44px;}
+  .rebu-note-content.is-empty{color:#aaa;}
 
   /* 解卦提示词（纯文本，可滚动、可选中、一键复制） */
   .rebu-prompt-card{margin:14px 0 0;background:#fff;border:1px solid #e6dcc6;border-left:3px solid #d4a843;border-radius:8px;padding:10px 12px;box-shadow:0 1px 4px rgba(139,105,20,.06);}
@@ -880,21 +888,17 @@
   #bz-info-content .bz3-current-age small{font-size:calc(9px * var(--bz-scale));}
   #bz-info-content .bz3-commander{font-size:calc(9.5px * var(--bz-scale));}
 
-  #bz-info-content .bz3-strip{gap:calc(6px * var(--bz-scale));margin-top:calc(9px * var(--bz-pad-scale));}
-  #bz-info-content .bz3-strip-heading{flex-basis:calc(20px * var(--bz-scale));}
+  #bz-info-content .bz3-strip{
+    gap:calc(6px * var(--bz-scale));margin-top:calc(9px * var(--bz-pad-scale));
+    background:#fff;border:1px solid #e2e5e9;border-radius:7px;overflow:hidden;
+  }
+  #bz-info-content .bz3-strip-heading{
+    flex-basis:calc(20px * var(--bz-scale));padding-right:calc(5px * var(--bz-scale));
+    border-right:1px solid #d9dde2;background:#fafbfc;
+  }
   #bz-info-content .bz3-strip-heading .txt{font-size:calc(10px * var(--bz-scale));}
   #bz-info-content .bz3-strip-viewport{
     position:relative;flex:1;min-width:0;overflow:hidden;
-  }
-  #bz-info-content .bz3-strip-viewport::before,
-  #bz-info-content .bz3-strip-viewport::after{
-    content:"";position:absolute;top:0;bottom:0;width:12px;z-index:2;pointer-events:none;
-  }
-  #bz-info-content .bz3-strip-viewport::before{
-    left:0;background:linear-gradient(90deg,rgba(244,245,247,.98),rgba(244,245,247,0));
-  }
-  #bz-info-content .bz3-strip-viewport::after{
-    right:0;background:linear-gradient(270deg,rgba(244,245,247,.98),rgba(244,245,247,0));
   }
   #bz-info-content .bz3-strip-scroll{
     display:flex;gap:calc(4px * var(--bz-scale));
@@ -4318,6 +4322,42 @@ function renderBaziInfo(){
   if(topEdit) topEdit.onclick = () => openBaziForm(person.id);
   if(baziInfoTab === 'basic') renderBaziBasic(result);
   else renderBaziFine(result);
+  bindBaziInfoSwipe();
+}
+
+let baziInfoSwipeState = null;
+function bindBaziInfoSwipe(){
+  const view = document.getElementById('bazi-info-view');
+  if(!view || view.dataset.baziSwipeBound === '1') return;
+  view.dataset.baziSwipeBound = '1';
+  view.addEventListener('touchstart', event => {
+    const target = event.target;
+    if(!target || !target.closest || event.touches.length !== 1) return;
+    if(target.closest('.bz3-strip, .bz-info-tabs, button, input, textarea, select, a, label')){
+      baziInfoSwipeState = null;
+      return;
+    }
+    const touch = event.touches[0];
+    baziInfoSwipeState = {x:touch.clientX, y:touch.clientY};
+  }, {passive:true});
+  view.addEventListener('touchend', event => {
+    if(!baziInfoSwipeState || !event.changedTouches.length){
+      baziInfoSwipeState = null;
+      return;
+    }
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - baziInfoSwipeState.x;
+    const dy = touch.clientY - baziInfoSwipeState.y;
+    baziInfoSwipeState = null;
+    if(Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+    let targetTab = null;
+    if(dx < 0 && baziInfoTab === 'basic') targetTab = 'fine';
+    if(dx > 0 && baziInfoTab === 'fine') targetTab = 'basic';
+    if(!targetTab) return;
+    const button = document.querySelector('.bz-info-tabs button[data-tab="' + targetTab + '"]');
+    if(button) button.click();
+  }, {passive:true});
+  view.addEventListener('touchcancel', () => { baziInfoSwipeState = null; }, {passive:true});
 }
 
 /* ---------------- 对照表（基本盘 4 列 / 细盘 6 列共用）---------------- */
@@ -5279,6 +5319,7 @@ function renderLiuyaoResult(r){
   html+='</table>';
   html+='<div class="rebu-gua-area">'+renderGuaTable(ben, zhi, movingSet)+'</div>';
   html+=renderJieshiSection(ben, zhi, movingSet);
+  html+=renderLiuyaoInterpretationCard();
   html+=renderGuaTextCard(r);
   html+='</div>';
   box.innerHTML=html;
@@ -5295,6 +5336,8 @@ function renderLiuyaoResult(r){
   // 绑定解卦提示词复制按钮
   const promptBtn = document.getElementById('ly-prompt-copy');
   if(promptBtn) promptBtn.addEventListener('click', copyGuaPrompt);
+  const interpretationBtn = document.getElementById('ly-interpretation-edit');
+  if(interpretationBtn) interpretationBtn.addEventListener('click', editLiuyaoInterpretation);
 }
 
 // 卦象表格：表头显示卦名，本卦与变卦的每一爻放在同一行，确保逐爻左右对齐
@@ -5393,6 +5436,55 @@ function renderJieshiContent(hexData, movingSet, isBen){
   return h;
 }
 
+function currentLiuyaoHistoryRecord(){
+  if(currentResultId == null) return null;
+  return getLiuyaoHistory().find(record => String(record.id) === String(currentResultId)) || null;
+}
+
+function renderLiuyaoInterpretationCard(){
+  const record = currentLiuyaoHistoryRecord();
+  const text = record && typeof record.interpretation === 'string' ? record.interpretation : '';
+  let h = '<div class="rebu-note-card" id="ly-interpretation-card">';
+  h += '<div class="rebu-note-head"><div class="rebu-note-title">卦象解读</div>';
+  h += '<button type="button" class="rebu-note-edit" id="ly-interpretation-edit"' +
+    (record ? '' : ' disabled') + '>编辑</button></div>';
+  h += '<div class="rebu-note-content' + (text ? '' : ' is-empty') +
+    '" id="ly-interpretation-content">' + (text ? escapeHtml(text) : '暂无解读') + '</div>';
+  h += '</div>';
+  return h;
+}
+
+async function editLiuyaoInterpretation(){
+  const before = currentLiuyaoHistoryRecord();
+  if(!before){
+    showToast('当前记录不存在，无法编辑');
+    return;
+  }
+  const value = await openTextPrompt({
+    title:'编辑卦象解读',
+    value:typeof before.interpretation === 'string' ? before.interpretation : '',
+    placeholder:'请输入卦象解读',
+    multiline:true,
+    allowEmpty:true,
+    confirmText:'保存',
+  });
+  if(value === null) return;
+  const history = getLiuyaoHistory();
+  const index = history.findIndex(record => String(record.id) === String(currentResultId));
+  if(index < 0){
+    showToast('当前记录不存在，无法保存');
+    return;
+  }
+  history[index].interpretation = value;
+  localStorage.setItem('liuyao_history', JSON.stringify(history));
+  const content = document.getElementById('ly-interpretation-content');
+  if(content){
+    content.textContent = value || '暂无解读';
+    content.classList.toggle('is-empty', !value);
+  }
+  showToast('卦象解读已保存');
+}
+
 // 解卦提示词卡片：纯文本卦象描述，展示与复制同源（同一个 buildGuaTextPrompt 结果）
 function renderGuaTextCard(r){
   let text='';
@@ -5468,7 +5560,8 @@ let currentResultId = null;
 // ========== 六爻记录功能 ==========
 function saveLiuyaoHistory(result){
   const history = getLiuyaoHistory();
-  const id = Date.now();
+  let id = Date.now();
+  while(history.some(record => String(record.id) === String(id))) id++;
   const record = {
     id: id,
     question: result.question || '未填写',
@@ -5477,6 +5570,7 @@ function saveLiuyaoHistory(result){
     timestamp: new Date().toLocaleString('zh-CN'),
     benGua: result.ben.meta.image,
     zhiGua: result.zhi ? result.zhi.meta.image : null,
+    interpretation: '',
     fullResult: result
   };
   history.unshift(record);
