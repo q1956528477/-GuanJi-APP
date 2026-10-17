@@ -102,6 +102,18 @@ check('每行两条竖线分隔（流年 / 年柱 各一）',
   document.querySelectorAll('.bz2-table tbody tr:first-child td.bz2-divider').length === 2);
 check('大运、流年、流月三条横带存在', document.querySelectorAll('.bz3-strip').length === 3);
 check('三条横带默认各高亮一列', document.querySelectorAll('.bz3-strip-col.active').length === 3);
+check('三条选择带共享统一高度和标题列宽度变量',
+  html.includes('--bz-band-height:calc(88px * var(--bz-pad-scale))') &&
+  html.includes('--bz-band-heading-width:calc(44px * var(--bz-scale))') &&
+  [...document.querySelectorAll('.bz3-strip')].every(el => !el.getAttribute('style')));
+check('选择带标题列统一加宽且文字双向居中',
+  html.includes('flex:0 0 var(--bz-band-heading-width);width:var(--bz-band-heading-width)') &&
+  html.includes('position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)'));
+check('选择带使用贯穿高度的实体分隔边缘且无渐隐遮罩',
+  html.includes('--bz-band-edge:#dfe3e8') &&
+  html.includes('border-right:1px solid var(--bz-band-edge)') &&
+  !html.includes('.bz3-strip-viewport::before') &&
+  !html.includes('.bz3-strip-viewport::after'));
 check('大运/流年各十列、流月十二列保持完整列数',
   document.querySelectorAll('#bz3-dayun-scroll .bz3-strip-col').length === 10 &&
   document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col').length === 10 &&
