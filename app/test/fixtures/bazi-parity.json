@@ -1,0 +1,126 @@
+{
+  "source": "观己 v1.14.25 八字回归基线；问真 2.8.1 运行样本见 WZ8ZPP分析/dynamic/chenggu_validate.json",
+  "generatedAt": "2026-10-18",
+  "cases": [
+    {
+      "id": "wenzhen_runtime_sample",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-01-01","time":"00:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"己巳","month":"丙子","day":"丙寅","hour":"戊子"},"dayun":12,"chenggu":"四两二钱"}
+    },
+    {
+      "id": "li_chun_2024_after",
+      "input": {"gender":"female","calendarType":"solar","solarDate":"2024-02-04","time":"10:45","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"癸卯","month":"乙丑","day":"戊戌","hour":"丁巳"},"dayun":12}
+    },
+    {
+      "id": "li_chun_1990_before",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-02-04","time":"09:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"己巳","month":"丁丑","day":"庚子","hour":"辛巳"},"dayun":12}
+    },
+    {
+      "id": "boundary_1800",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1800-12-31","time":"12:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚申","month":"戊子","day":"甲午","hour":"庚午"},"dayun":12}
+    },
+    {
+      "id": "boundary_1801",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1801-01-01","time":"12:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚申","month":"戊子","day":"乙未","hour":"壬午"},"dayun":12}
+    },
+    {
+      "id": "boundary_1801_lichun",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1801-02-04","time":"12:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚申","month":"己丑","day":"己巳","hour":"庚午"},"dayun":12}
+    },
+    {
+      "id": "boundary_2099",
+      "input": {"gender":"female","calendarType":"solar","solarDate":"2099-12-31","time":"12:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"己未","month":"丙子","day":"壬寅","hour":"丙午"},"dayun":12}
+    },
+    {
+      "id": "boundary_2100",
+      "input": {"gender":"female","calendarType":"solar","solarDate":"2100-01-01","time":"12:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"己未","month":"丙子","day":"癸卯","hour":"戊午"},"dayun":12}
+    },
+    {
+      "id": "zi_2259",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-15","time":"22:59","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"辛亥","hour":"己亥"},"dayun":12}
+    },
+    {
+      "id": "zi_2300",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-15","time":"23:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"壬子","hour":"戊子"},"dayun":12}
+    },
+    {
+      "id": "zi_2330",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-15","time":"23:30","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"壬子","hour":"戊子"},"dayun":12}
+    },
+    {
+      "id": "zi_2359",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-15","time":"23:59","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"壬子","hour":"戊子"},"dayun":12}
+    },
+    {
+      "id": "zi_0000",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-16","time":"00:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"壬子","hour":"庚子"},"dayun":12}
+    },
+    {
+      "id": "leap_month",
+      "input": {"gender":"male","calendarType":"lunar","lunarYear":2023,"lunarMonth":-2,"lunarDay":1,"time":"12:00","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"癸卯","month":"乙卯","day":"己卯","hour":"庚午"},"solarDatetime":"2023-03-22 12:00","dayun":12}
+    },
+    {
+      "id": "dst_1988",
+      "input": {"gender":"female","calendarType":"solar","solarDate":"1988-07-01","time":"12:00","useTrueSolarTime":true,"longitude":116.4074},
+      "expected": {"pillars":{"year":"戊辰","month":"戊午","day":"丁巳","hour":"乙巳"},"chartSolarDatetime":"1988-07-01 10:42","dayun":12}
+    },
+    {
+      "id": "true_solar_beijing",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-15","time":"08:32","useTrueSolarTime":true,"longitude":116.4074,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"辛亥","hour":"壬辰"},"chartSolarDatetime":"1990-06-15 08:18","dayun":12}
+    },
+    {
+      "id": "true_solar_urumqi",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-15","time":"08:32","useTrueSolarTime":true,"longitude":87.6168,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"辛亥","hour":"辛卯"},"chartSolarDatetime":"1990-06-15 06:23","dayun":12}
+    },
+    {
+      "id": "true_solar_shanghai",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-06-15","time":"08:32","useTrueSolarTime":true,"longitude":121.4737,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"辛亥","hour":"壬辰"},"chartSolarDatetime":"1990-06-15 08:38","dayun":12}
+    },
+    {
+      "id": "dayun_male",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1985-03-20","time":"10:30","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"乙丑","month":"己卯","day":"戊午","hour":"丁巳"},"dayun":12,"direction":false}
+    },
+    {
+      "id": "dayun_female",
+      "input": {"gender":"female","calendarType":"solar","solarDate":"1990-06-15","time":"08:32","useTrueSolarTime":false,"applyChinaDst":false},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"辛亥","hour":"壬辰"},"dayun":12,"direction":false}
+    },
+    {
+      "id": "direct_solved",
+      "input": {"gender":"female","calendarType":"ganzhi","solarDate":"1990-06-15","time":"08:32","useTrueSolarTime":false,"fourPillars":{"year":"庚午","month":"壬午","day":"辛亥","hour":"壬辰"}},
+      "expected": {"pillars":{"year":"庚午","month":"壬午","day":"辛亥","hour":"壬辰"},"solarDatetime":"1990-06-15 08:00","dayun":12}
+    },
+    {
+      "id": "direct_unsolved",
+      "input": {"gender":"male","calendarType":"ganzhi","solarDate":"","time":"","useTrueSolarTime":false,"fourPillars":{"year":"甲子","month":"丙寅","day":"癸丑","hour":"丙辰"}},
+      "expected": {"pillars":{"year":"甲子","month":"丙寅","day":"癸丑","hour":"丙辰"},"solarDatetime":"","dayun":0}
+    },
+    {
+      "id": "rule_dahan",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"2024-01-25","time":"12:00","useTrueSolarTime":false,"applyChinaDst":false,"rulesSnapshot":{"yearBoundary":"dahan"}},
+      "expected": {"pillars":{"year":"甲辰","month":"乙丑","day":"戊子","hour":"戊午"},"dayun":12}
+    },
+    {
+      "id": "rule_80",
+      "input": {"gender":"male","calendarType":"solar","solarDate":"1990-01-01","time":"00:00","useTrueSolarTime":false,"applyChinaDst":false,"rulesSnapshot":{"dayunSpanYears":80}},
+      "expected": {"pillars":{"year":"己巳","month":"丙子","day":"丙寅","hour":"戊子"},"dayun":8}
+    }
+  ]
+}

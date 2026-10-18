@@ -554,6 +554,11 @@
   .bz-records-search input{height:2.45rem;padding:.55rem .7rem .55rem 2.15rem;border:none;border-radius:.75rem;background:#f2f2f2;font-size:.8rem;color:#333;}
   .bz-records-search input:focus{background:#eee;border:none;}
   .bz-records-filter{flex:0 0 auto;height:2.45rem;padding:0 .85rem;border:1px solid #ddd;border-radius:.75rem;background:#fff;color:#333;font-size:.78rem;font-weight:700;font-family:inherit;}
+  .bz-records-filter.active{border-color:#a08530;color:#7a5d12;background:#fff9ea;}
+  .bz-records-filter-row{display:flex;align-items:center;gap:.4rem;padding:.1rem .9rem .55rem;overflow-x:auto;scrollbar-width:none;}
+  .bz-records-filter-row::-webkit-scrollbar{display:none;}
+  .bz-records-filter-chip{flex:0 0 auto;border:1px solid #e2e2e2;border-radius:999px;background:#fff;color:#666;padding:.34rem .62rem;font-size:.68rem;font-weight:700;font-family:inherit;}
+  .bz-records-filter-chip.active{border-color:#a08530;background:#f7efd9;color:#7a5d12;}
   .bz-records-group-row{display:flex;align-items:center;gap:.35rem;padding:0 .9rem .45rem;border-bottom:1px solid #f2f2f2;}
   .bz-group-tabs{display:flex;flex:1;min-width:0;gap:.85rem;overflow-x:auto;scrollbar-width:none;padding:.15rem 0;}
   .bz-group-tabs::-webkit-scrollbar{display:none;}
@@ -659,16 +664,68 @@
   .bz3-taiming-panel div{text-align:center;font-size:8.5px;color:#a6abb2;}
   .bz3-taiming-panel b{display:block;font-size:12px;color:#33383f;margin-top:3px;font-weight:700;}
 
-  /* 基本盘 / 细盘 切换 */
-  .bz-info-tabs{display:flex;background:#fff;border-bottom:1px solid #edeef1;}
+  /* 基本信息 / 断事笔记 */
+  .bz-info-rulebar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;background:#fff;border-bottom:1px solid #eef0f3;}
+  .bz-info-rulebar .txt{font-size:11px;color:#7a5d12;font-weight:700;}
+  .bz-info-rulebar .txt.warn{color:#b26a38;}
+  .bz-info-rule-btn{border:1px solid #ddcfae;border-radius:8px;background:#fffaf0;color:#7a5d12;padding:5px 9px;font:700 11px/1.2 inherit;cursor:pointer;}
+  .bz-info-card{background:#fff;border-radius:9px;margin:9px 0 0;overflow:hidden;box-shadow:0 1px 2px rgba(20,28,40,.05),0 0 0 .5px rgba(20,28,40,.035);}
+  .bz-info-section-title{padding:11px 12px 8px;font-size:12px;font-weight:800;color:#343941;border-bottom:1px solid #f1f2f4;}
+  .bz-info-grid{display:grid;grid-template-columns:1fr 1fr;}
+  .bz-info-field{padding:9px 12px;border-right:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6;min-width:0;}
+  .bz-info-field:nth-child(2n){border-right:none;}
+  .bz-info-field.full{grid-column:1/-1;border-right:none;}
+  .bz-info-field .k{font-size:9px;color:#9ba1a9;}
+  .bz-info-field .v{margin-top:3px;font-size:12px;font-weight:700;color:#353a42;line-height:1.55;word-break:break-word;}
+  .bz-info-field .v.mono{font-size:10px;color:#666d77;font-weight:600;}
+  .bz-info-wx{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:11px;font-weight:700;}
+  .bz-chenggu{margin:9px 0 0;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 1px 2px rgba(20,28,40,.05),0 0 0 .5px rgba(20,28,40,.035);}
+  .bz-chenggu-head{background:linear-gradient(135deg,#5a431c,#2b2112);color:#ead49c;padding:13px 14px;text-align:center;}
+  .bz-chenggu-head small{display:block;font-size:10px;color:#bda875;}
+  .bz-chenggu-head b{display:block;margin-top:4px;font-size:22px;letter-spacing:.12em;}
+  .bz-chenggu-body{padding:13px 15px 15px;font-family:"Songti SC","SimSun",serif;font-size:15px;line-height:1.9;color:#3d3830;text-align:center;}
+  .bz-chenggu-body div + div{margin-top:4px;}
+  .bz-chenggu-empty{padding:18px 14px;text-align:center;color:#999;font-size:12px;}
+  .bz-rule-badge{display:inline-flex;align-items:center;border-radius:999px;background:#fff0dc;color:#a35c22;padding:2px 7px;font-size:9px;font-weight:800;}
+
+  .bz-notes-toolbar{display:flex;gap:7px;padding:9px 12px;background:#fff;border-bottom:1px solid #eef0f3;}
+  .bz-notes-toolbar button{flex:1;border:1px solid #e4e0d7;border-radius:8px;background:#fff;color:#625846;padding:8px 4px;font:700 11px/1.2 inherit;cursor:pointer;}
+  .bz-notes-toolbar button.active{background:#f8efd9;border-color:#c6a55d;color:#7a5d12;}
+  .bz-note-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:1px solid #f3f4f6;}
+  .bz-note-row:last-child{border-bottom:none;}
+  .bz-note-key{flex:0 0 70px;color:#8a6a2b;font-size:10px;font-weight:800;padding-top:2px;}
+  .bz-note-value{flex:1;min-width:0;color:#444a52;font-size:12px;line-height:1.65;word-break:break-word;}
+  .bz-note-value.empty{color:#b1b5bb;}
+  .bz-note-edit{border:none;background:transparent;color:#92712f;font:700 10px/1.2 inherit;cursor:pointer;padding:2px 0;}
+  .bz-note-select{width:100%;border:1px solid #e2ddd0;border-radius:8px;background:#fbfaf7;color:#333;padding:8px 9px;font:600 11px/1.3 inherit;}
+  .bz-note-switch{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #f3f4f6;font-size:11px;color:#4d535b;font-weight:700;}
+  .bz-note-switch input{width:18px;height:18px;accent-color:#a48539;}
+  .bz-event-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #f3f4f6;}
+  .bz-event-meta{min-width:0;}
+  .bz-event-meta b{display:block;font-size:11px;color:#4a4030;}
+  .bz-event-meta span{display:block;margin-top:3px;font-size:10px;color:#737a83;line-height:1.55;word-break:break-word;}
+  .bz-event-luck{display:inline-flex;min-width:24px;justify-content:center;border-radius:999px;padding:3px 7px;font-size:9px;font-weight:800;background:#eef1f4;color:#59616b;}
+  .bz-event-luck.ji{background:#edf7ee;color:#3f7d49;}
+  .bz-event-luck.xiong{background:#fff0ed;color:#b44b42;}
+  .bz-event-actions{display:flex;gap:7px;}
+  .bz-event-actions button{border:none;background:transparent;color:#8a6a2b;font:700 10px/1.2 inherit;padding:3px 0;cursor:pointer;}
+  .bz-event-actions button.danger{color:#c25349;}
+  .bz-notes-add{width:100%;border:none;background:#fff;color:#8a6a2b;padding:12px;font:800 11px/1.2 inherit;cursor:pointer;}
+  .bz-rules-grid{display:grid;gap:10px;}
+  .bz-rules-grid label{display:grid;gap:5px;font-size:11px;font-weight:700;color:#5b554a;}
+  .bz-rules-grid select,.bz-rules-grid input{border:1px solid #ded8cc;border-radius:9px;background:#fcfbf8;padding:9px 10px;font:600 12px/1.3 inherit;color:#333;}
+  .bz-rules-note{font-size:10px;color:#8f948e;line-height:1.6;}
+
+  /* 四页结果切换 */
+  .bz-info-tabs{display:flex;background:#111216;border-bottom:1px solid #26282e;position:sticky;top:0;z-index:20;}
   .bz-info-tabs button{
     flex:1;position:relative;border:none;background:transparent;cursor:pointer;font-family:inherit;
-    padding:11px 0 10px;font-size:12px;font-weight:600;color:#9ba1a9;letter-spacing:.06em;
+    padding:12px 0 11px;font-size:13px;font-weight:600;color:#d5d1c8;letter-spacing:.02em;min-width:0;
   }
-  .bz-info-tabs button.active{color:#8e6e33;font-weight:700;}
+  .bz-info-tabs button.active{color:#d0ad62;font-weight:700;}
   .bz-info-tabs button.active::after{
     content:"";position:absolute;left:50%;bottom:0;width:26px;height:2px;border-radius:2px;
-    background:#b08c4a;transform:translateX(-50%);
+    background:#d0ad62;transform:translateX(-50%);
   }
   #bz-info-content{overflow-x:hidden;}
   #bz-info-panel{min-width:0;}
@@ -1392,6 +1449,12 @@
         </label>
         <button type="button" class="bz-records-filter" id="bz-records-filter">筛选</button>
       </div>
+      <div class="bz-records-filter-row hidden" id="bz-records-filter-row">
+        <button type="button" class="bz-records-filter-chip active" data-gender="all">全部性别</button>
+        <button type="button" class="bz-records-filter-chip" data-gender="male">男</button>
+        <button type="button" class="bz-records-filter-chip" data-gender="female">女</button>
+        <button type="button" class="bz-records-filter-chip" id="bz-records-pinned-filter">仅置顶</button>
+      </div>
       <div class="bz-records-group-row">
         <div class="bz-group-tabs" id="bz-group-tabs"></div>
         <div class="bz-records-group-actions">
@@ -1540,6 +1603,75 @@
     </div>
     <div id="bz-group-list"></div>
     <button class="btn ghost" id="bz-group-add" style="margin-top:12px;">+ 新建分组</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bz-rules-modal">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h3>排盘规则</h3>
+      <button class="modal-close" id="bz-rules-close">&times;</button>
+    </div>
+    <div class="bz-rules-grid">
+      <label>换年规则
+        <select id="bz-rule-year-boundary">
+          <option value="lichun">逢立春换年柱（默认）</option>
+          <option value="dongzhi">逢冬至换年柱</option>
+          <option value="dahan">逢大寒换年柱</option>
+          <option value="lunarNewYear">逢正月初一换年柱</option>
+        </select>
+      </label>
+      <label>真太阳时
+        <select id="bz-rule-true-solar">
+          <option value="true">开启</option>
+          <option value="false">关闭</option>
+        </select>
+      </label>
+      <label>均时差校正
+        <select id="bz-rule-eot">
+          <option value="true">开启（NOAA 近似）</option>
+          <option value="false">仅经度校正</option>
+        </select>
+      </label>
+      <label>时区偏移（东八区为 8）
+        <input type="number" id="bz-rule-utc-offset" min="-12" max="14" step="1" value="8">
+      </label>
+      <label>大运跨度
+        <select id="bz-rule-dayun-span">
+          <option value="120">120年大运（默认）</option>
+          <option value="80">80年大运</option>
+        </select>
+      </label>
+      <button class="btn" type="button" id="bz-rules-save">保存并按新规则重算</button>
+      <div class="bz-rules-note">定气法为当前默认口径。平气法需要完整权威节气表，本批未以近似值替代。</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="bz-event-modal">
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h3 id="bz-event-modal-title">关键事件</h3>
+      <button class="modal-close" id="bz-event-close">&times;</button>
+    </div>
+    <label class="field">关联类型</label>
+    <select id="bz-event-scope" class="bz-note-select">
+      <option value="dayun">大运</option>
+      <option value="liunian">流年</option>
+    </select>
+    <label class="field">关联年份</label>
+    <input type="number" id="bz-event-year" inputmode="numeric">
+    <label class="field">吉凶</label>
+    <div class="bz-seg" id="bz-event-luck-tabs">
+      <button type="button" data-value="平" class="active">平</button>
+      <button type="button" data-value="吉">吉</button>
+      <button type="button" data-value="凶">凶</button>
+    </div>
+    <label class="field">事件内容</label>
+    <textarea id="bz-event-text" rows="5" placeholder="请输入事件内容"></textarea>
+    <div class="bz-modal-actions">
+      <button type="button" id="bz-event-save">保存事件</button>
+    </div>
   </div>
 </div>
 
@@ -2913,6 +3045,14 @@ function handleBack(){
     cancelTextPrompt();
     return;
   }
+  if(document.getElementById('bz-event-modal').classList.contains('show')){
+    closeBaziEventModal();
+    return;
+  }
+  if(document.getElementById('bz-rules-modal').classList.contains('show')){
+    closeBaziRulesModal();
+    return;
+  }
   // 出生时间弹层（公历 / 农历 / 四柱直排）是排盘页之上的一层：
   // 返回键必须先关弹层，且底下的排盘页要保持原样（未确认的改动不写回）。
   if(gzSheet){
@@ -2995,9 +3135,15 @@ let baziActiveGroupId = null;
 let baziSearchText = '';
 let baziRecordsEditMode = false;
 let baziRecordSelectedIds = new Set();
+let baziRecordGenderFilter = 'all';
+let baziRecordPinnedOnly = false;
 let baziMovePersonIds = [];
 let baziCurrentPersonId = null;
-let baziInfoTab = 'basic';
+let baziInfoTab = 'info';
+let baziNotesTab = 'feedback';
+let baziRulePersonId = null;
+let baziEventEditingId = null;
+let baziEventLuck = '平';
 let baziOpenDaYun = 0;
 let baziOpenLiuNian = -1;
 let baziActionPersonId = null;
@@ -3535,9 +3681,7 @@ function collectBaziForm(){
   if(name.length > 10) throw new Error('姓名最多输入10个字');
   const groupSelect = document.getElementById('bz-group-select');
   if(groupSelect.value === '__new__'){
-    const created = createBaziGroup(prompt('输入新分组名称：'));
-    if(!created) throw new Error('请选择所属分组');
-    groupSelect.value = created.id;
+    throw new Error('请先输入并创建分组');
   }
   if(!groupSelect.value) throw new Error('请选择所属分组');
 
@@ -3580,8 +3724,13 @@ function saveBaziPerson(){
     try{ Bazi.validateDirectPillars(payload.input.fourPillars); }
     catch(err){ alert(err.message); return; }
   }
+  const persons = getBaziPersons();
+  const oldIndex = baziEditingId ? persons.findIndex(item => item.id === baziEditingId) : -1;
+  const previous = oldIndex >= 0 ? persons[oldIndex] : null;
+  const calculationInput = Object.assign({}, payload.input);
+  if(previous && previous.rulesSnapshot) calculationInput.rulesSnapshot = Object.assign({}, previous.rulesSnapshot);
   let result;
-  try{ result = Bazi.calculate(payload.input); }
+  try{ result = Bazi.calculate(calculationInput); }
   catch(err){
     const validationError = err.message === '年柱与月柱不符合五虎遁规则，请检查' ||
       err.message === '日柱与时柱不符合五鼠遁规则，请检查';
@@ -3604,17 +3753,16 @@ function saveBaziPerson(){
     payload.input.applyChinaDst = false;
   }
 
-  const persons = getBaziPersons();
-  const oldIndex = baziEditingId ? persons.findIndex(item => item.id === baziEditingId) : -1;
   const now = Date.now();
-  const person = Object.assign({}, payload.input, {
+  const person = Object.assign({}, previous || {}, payload.input, {
     id:baziEditingId || 'person_' + now,
     groupId:payload.groupId,
     solarDatetime:result.solarDatetime,
     lunarText:result.lunarText,
     fourPillars:result.pillars,
     longitude:payload.input.longitude,
-    createdAt:oldIndex >= 0 ? persons[oldIndex].createdAt : now,
+    rulesSnapshot:previous ? previous.rulesSnapshot : result.rulesSnapshot,
+    createdAt:previous ? previous.createdAt : now,
     updatedAt:now
   });
   if(oldIndex >= 0) persons[oldIndex] = person;
@@ -3846,6 +3994,8 @@ function renderBaziPersonList(){
   const index = document.getElementById('bz-records-index');
   let persons = getBaziPersons();
   if(baziActiveGroupId) persons = persons.filter(person => person.groupId === baziActiveGroupId);
+  if(baziRecordGenderFilter !== 'all') persons = persons.filter(person => person.gender === baziRecordGenderFilter);
+  if(baziRecordPinnedOnly) persons = persons.filter(person => !!person.pinned);
   if(baziSearchText) {
     const keyword = baziSearchText.toLowerCase();
     persons = persons.filter(person => String(person.name || '').toLowerCase().includes(keyword));
@@ -3857,7 +4007,9 @@ function renderBaziPersonList(){
     listBox.innerHTML = '';
     index.innerHTML = '';
     index.classList.add('hidden');
-    empty.textContent = baziSearchText ? '未找到相关命例' : '还没有命例，点击右上角新建。';
+    empty.textContent = (baziSearchText || baziRecordGenderFilter !== 'all' || baziRecordPinnedOnly)
+      ? '没有符合筛选条件的命例'
+      : '还没有命例，点击右上角新建。';
     empty.classList.remove('hidden');
     return;
   }
@@ -3995,7 +4147,7 @@ function openBaziInfo(id){
   const person = getBaziPerson(id);
   if(!person){ showToast('命例不存在'); return; }
   baziCurrentPersonId = id;
-  baziInfoTab = 'basic';
+  baziInfoTab = 'info';
   baziOpenDaYun = 0;
   baziOpenLiuNian = -1;
   baziFineInitKey = '';
@@ -4381,6 +4533,16 @@ function renderBaziProfile(result, person, options){
 }
 
 /* ---------------- 结果页主入口 ---------------- */
+const BAZI_INFO_TABS = [
+  ['info', '基本信息'],
+  ['basic', '基本排盘'],
+  ['fine', '专业细盘'],
+  ['notes', '断事笔记']
+];
+function baziInfoTabIndex(tab){
+  const index = BAZI_INFO_TABS.findIndex(item => item[0] === tab);
+  return index < 0 ? 0 : index;
+}
 function renderBaziInfo(slideDirection){
   const person = getBaziPerson(baziCurrentPersonId);
   const box = document.getElementById('bz-info-content');
@@ -4397,6 +4559,9 @@ function renderBaziInfo(slideDirection){
     return;
   }
   if(!result.yun && baziInfoTab === 'fine') baziInfoTab = 'basic';
+  const tabs = '<div class="bz-info-tabs">' + BAZI_INFO_TABS.map(([tab, label]) =>
+    '<button type="button" data-tab="' + tab + '" class="' + (baziInfoTab === tab ? 'active' : '') + '">' + label + '</button>'
+  ).join('') + '</div>';
   const summary = renderBaziProfile(result, person, {fine:baziInfoTab === 'fine'});
   const taiMingShen = baziInfoTab === 'fine' && baziFineShowTaiMingShen
     ? '<div class="bz3-taiming-panel">' +
@@ -4404,12 +4569,8 @@ function renderBaziInfo(slideDirection){
       '<div>命宫<b>' + escapeHtml(result.extras.mingGong || '—') + '</b></div>' +
       '<div>身宫<b>' + escapeHtml(result.extras.shenGong || '—') + '</b></div></div>'
     : '';
-  const tabs = '<div class="bz-info-tabs">' +
-    '<button type="button" data-tab="basic" class="' + (baziInfoTab === 'basic' ? 'active' : '') + '">基本盘</button>' +
-    '<button type="button" data-tab="fine" class="' + (baziInfoTab === 'fine' ? 'active' : '') + '">细盘</button></div>';
-  box.classList.toggle('bz-tab-basic', baziInfoTab === 'basic');
-  box.classList.toggle('bz-tab-fine', baziInfoTab === 'fine');
-  box.innerHTML = summary + taiMingShen + tabs + '<div id="bz-info-panel"></div>';
+  ['info','basic','fine','notes'].forEach(tab => box.classList.toggle('bz-tab-' + tab, baziInfoTab === tab));
+  box.innerHTML = tabs + summary + taiMingShen + renderBaziRuleBar(person) + '<div id="bz-info-panel"></div>';
   box.querySelectorAll('.bz-info-tabs button').forEach(button => {
     button.onclick = () => {
       const nextTab = button.dataset.tab;
@@ -4418,9 +4579,10 @@ function renderBaziInfo(slideDirection){
         showToast('四柱直录无出生时间，暂不展示细盘');
         return;
       }
+      const direction = baziInfoTabIndex(nextTab) > baziInfoTabIndex(baziInfoTab) ? 'next' : 'prev';
       baziInfoTab = nextTab;
       baziOpenLiuNian = -1;
-      renderBaziInfo(nextTab === 'fine' ? 'next' : 'prev');
+      renderBaziInfo(direction);
     };
   });
   const taiMingToggle = document.getElementById('bz3-taimingshen');
@@ -4432,8 +4594,11 @@ function renderBaziInfo(slideDirection){
   }
   const topEdit = document.getElementById('bz2-top-edit');
   if(topEdit) topEdit.onclick = () => openBaziForm(person.id);
-  if(baziInfoTab === 'basic') renderBaziBasic(result);
-  else renderBaziFine(result);
+  bindBaziRuleBar(person);
+  if(baziInfoTab === 'info') renderBaziInfoOverview(result, person);
+  else if(baziInfoTab === 'basic') renderBaziBasic(result);
+  else if(baziInfoTab === 'fine') renderBaziFine(result);
+  else renderBaziNotes(result, person);
   bindBaziInfoSwipe();
   if(slideDirection) animateBaziInfoPanel(slideDirection);
 }
@@ -4469,9 +4634,9 @@ function finishBaziSwipe(x, y, kind, pointerId){
   const dy = y - state.y;
   const threshold = Math.max(52, Math.min(72, window.innerWidth * 0.15));
   if(Math.abs(dx) < threshold || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-  let targetTab = null;
-  if(dx < 0 && baziInfoTab === 'basic') targetTab = 'fine';
-  if(dx > 0 && baziInfoTab === 'fine') targetTab = 'basic';
+  const currentIndex = baziInfoTabIndex(baziInfoTab);
+  const targetIndex = dx < 0 ? currentIndex + 1 : currentIndex - 1;
+  const targetTab = BAZI_INFO_TABS[targetIndex] ? BAZI_INFO_TABS[targetIndex][0] : null;
   if(!targetTab) return;
   const button = document.querySelector('.bz-info-tabs button[data-tab="' + targetTab + '"]');
   if(button) button.click();
@@ -4514,6 +4679,395 @@ function bindBaziInfoSwipe(){
     if(event.pointerType !== 'touch') cancelBaziSwipe('pointer', event.pointerId);
   }, {passive:true});
   view.addEventListener('touchcancel', () => { cancelBaziSwipe('touch'); }, {passive:true});
+}
+
+function baziRuleSnapshotText(snapshot){
+  if(!snapshot) return '旧规则';
+  const boundaries = {lichun:'立春换年', dongzhi:'冬至换年', dahan:'大寒换年', lunarNewYear:'正月初一换年'};
+  return (boundaries[snapshot.yearBoundary] || '立春换年') + ' · ' +
+    (snapshot.dayunSpanYears || 120) + '年大运';
+}
+function renderBaziRuleBar(person){
+  const old = !person.rulesSnapshot;
+  return '<div class="bz-info-rulebar">' +
+    '<span class="txt' + (old ? ' warn' : '') + '">' +
+      (old ? '<span class="bz-rule-badge">旧规则</span> ' : '') +
+      escapeHtml(baziRuleSnapshotText(person.rulesSnapshot)) +
+    '</span>' +
+    '<button type="button" class="bz-info-rule-btn" id="' +
+      (old ? 'bz-recalc-old-rules' : 'bz-open-rules') + '">' +
+      (old ? '按新规则重算' : '排盘规则') +
+    '</button></div>';
+}
+function bindBaziRuleBar(person){
+  const oldButton = document.getElementById('bz-recalc-old-rules');
+  if(oldButton){
+    oldButton.onclick = () => {
+      if(!confirm('将按问真兼容默认规则重新排盘。原有笔记、事件、置顶和分组都会保留，是否继续？')) return;
+      recalculateBaziPerson(person, Object.assign({}, Bazi.DEFAULT_RULES_SNAPSHOT));
+    };
+  }
+  const rulesButton = document.getElementById('bz-open-rules');
+  if(rulesButton) rulesButton.onclick = () => openBaziRulesModal(person);
+}
+function openBaziRulesModal(person){
+  const rules = Object.assign({}, Bazi.DEFAULT_RULES_SNAPSHOT, person.rulesSnapshot || {});
+  baziRulePersonId = person.id;
+  document.getElementById('bz-rule-year-boundary').value = rules.yearBoundary || 'lichun';
+  document.getElementById('bz-rule-true-solar').value = rules.trueSolarTime === false ? 'false' : 'true';
+  document.getElementById('bz-rule-eot').value = rules.equationOfTime === false ? 'false' : 'true';
+  document.getElementById('bz-rule-utc-offset').value = String(rules.utcOffset == null ? 8 : rules.utcOffset);
+  document.getElementById('bz-rule-dayun-span').value = String(rules.dayunSpanYears === 80 ? 80 : 120);
+  document.getElementById('bz-rules-modal').classList.add('show');
+}
+function closeBaziRulesModal(){
+  document.getElementById('bz-rules-modal').classList.remove('show');
+  baziRulePersonId = null;
+}
+function recalculateBaziPerson(person, snapshot){
+  const input = Object.assign({}, person, {
+    rulesSnapshot:Object.assign({}, snapshot),
+    useTrueSolarTime:snapshot.trueSolarTime !== false
+  });
+  let result;
+  try{ result = Bazi.calculate(input); }
+  catch(err){ showToast('重算失败：' + err.message); return false; }
+  const persons = getBaziPersons();
+  const index = persons.findIndex(item => item.id === person.id);
+  if(index < 0) return false;
+  persons[index] = Object.assign({}, persons[index], {
+    rulesSnapshot:Object.assign({}, snapshot),
+    useTrueSolarTime:snapshot.trueSolarTime !== false,
+    solarDatetime:result.solarDatetime,
+    lunarText:result.lunarText,
+    fourPillars:result.pillars,
+    directRecord:person.calendarType === 'ganzhi' && !result.hasBirthTime,
+    recalculatedAt:Date.now(),
+    updatedAt:Date.now()
+  });
+  saveBaziPersons(persons);
+  baziCurrentPersonId = person.id;
+  renderBaziInfo();
+  showToast('已按新规则重新排盘');
+  return true;
+}
+function saveBaziRulesModal(){
+  if(!baziRulePersonId) return;
+  const person = getBaziPerson(baziRulePersonId);
+  if(!person) return;
+  const snapshot = {
+    calendarMode:'dingqi',
+    yearBoundary:document.getElementById('bz-rule-year-boundary').value,
+    lateZiNextDay:true,
+    trueSolarTime:document.getElementById('bz-rule-true-solar').value === 'true',
+    equationOfTime:document.getElementById('bz-rule-eot').value === 'true',
+    chinaDst:true,
+    utcOffset:Number(document.getElementById('bz-rule-utc-offset').value),
+    dayunSpanYears:Number(document.getElementById('bz-rule-dayun-span').value) === 80 ? 80 : 120,
+    shenshaConfig:'wenzhen-default',
+    relationConfig:'wenzhen-default',
+    engineVersion:'wenzhen-2.8.1-free'
+  };
+  if(!Number.isFinite(snapshot.utcOffset) || snapshot.utcOffset < -12 || snapshot.utcOffset > 14){
+    showToast('时区偏移应在 -12 到 14 之间');
+    return;
+  }
+  const personId = person.id;
+  closeBaziRulesModal();
+  recalculateBaziPerson(person, snapshot);
+  baziCurrentPersonId = personId;
+}
+
+function bzInfoField(label, value, full, mono){
+  return '<div class="bz-info-field' + (full ? ' full' : '') + '"><div class="k">' +
+    escapeHtml(label) + '</div><div class="v' + (mono ? ' mono' : '') + '">' +
+    (value || '—') + '</div></div>';
+}
+function renderBaziInfoOverview(result, person){
+  const extras = result.extras || {};
+  const jieQi = extras.jieQi || {};
+  const mingGua = extras.mingGua
+    ? extras.mingGua.name + '卦（' + extras.mingGua.group + '）'
+    : '—';
+  const trueSolar = person.useTrueSolarTime !== false
+    ? (result.trueSolarDatetime || result.chartSolarDatetime || '—')
+    : '未开启';
+  let html = '<div class="bz-info-card"><div class="bz-info-section-title">出生资料</div><div class="bz-info-grid">';
+  html += bzInfoField('姓名', escapeHtml(person.name));
+  html += bzInfoField('性别', person.gender === 'female' ? '坤造（女）' : '乾造（男）');
+  html += bzInfoField('生肖', escapeHtml(result.zodiac || '—'));
+  html += bzInfoField('出生地区', escapeHtml(person.birthCity || '未设置'));
+  html += bzInfoField('农历', escapeHtml(formatBaziLunarHeader(result, person)), true, true);
+  html += bzInfoField('阳历', escapeHtml(formatBaziSolarHeader(result)), true, true);
+  html += bzInfoField('真太阳时', escapeHtml(trueSolar), true, true);
+  html += bzInfoField('出生节气', escapeHtml(jieQi.previousName || '—') + ' → ' + escapeHtml(jieQi.nextName || '—'));
+  html += bzInfoField('节气交接', escapeHtml(jieQi.previousTime || '—') + ' / ' + escapeHtml(jieQi.nextTime || '—'), true, true);
+  html += '</div></div>';
+
+  html += '<div class="bz-info-card"><div class="bz-info-section-title">命盘资料</div><div class="bz-info-grid">';
+  html += bzInfoField('星座', escapeHtml(result.constellation || '—'));
+  html += bzInfoField('星宿', escapeHtml(extras.xingXiu || '—'));
+  html += bzInfoField('胎元', escapeHtml(extras.taiYuan || '—'));
+  html += bzInfoField('胎息', escapeHtml(extras.taiXi || '—'));
+  html += bzInfoField('命宫', escapeHtml(extras.mingGong || '—'));
+  html += bzInfoField('身宫', escapeHtml(extras.shenGong || '—'));
+  html += bzInfoField('空亡', escapeHtml(extras.kongWang || '—'));
+  html += bzInfoField('命卦', escapeHtml(mingGua));
+  html += bzInfoField('日主属性', escapeHtml((extras.dayMaster || {}).gan || '—') +
+    escapeHtml((extras.dayMaster || {}).yinYang || '') + escapeHtml((extras.dayMaster || {}).element || ''));
+  html += bzInfoField('人元司令', escapeHtml((extras.renYuanSiLing || {}).gan || '—'));
+  const wuXingNames = ['金','木','水','火','土'];
+  const countHtml = '<div class="bz-info-wx">' + wuXingNames.map(name =>
+    '<span class="' + bz2ElementClass(name) + '">' + name + ' ' + ((extras.wuXing || {})[name] || 0) + '</span>'
+  ).join('') + '</div>';
+  const hiddenHtml = '<div class="bz-info-wx">' + wuXingNames.map(name =>
+    '<span class="' + bz2ElementClass(name) + '">' + name + ' ' + ((extras.hiddenWuXing || {})[name] || 0) + '</span>'
+  ).join('') + '</div>';
+  html += '<div class="bz-info-field full"><div class="k">五行个数（明干支）</div><div class="v">' + countHtml + '</div></div>';
+  html += '<div class="bz-info-field full"><div class="k">含藏干数</div><div class="v">' + hiddenHtml + '</div></div>';
+  html += '</div></div>';
+
+  html += '<div class="bz-chenggu"><div class="bz-chenggu-head"><small>袁天罡称骨</small><b>' +
+    escapeHtml((extras.chenggu && extras.chenggu.weightName) || '—') + '</b></div>';
+  if(extras.chenggu && extras.chenggu.lines && extras.chenggu.lines.length){
+    html += '<div class="bz-chenggu-body">' + extras.chenggu.lines.map(line => '<div>' + escapeHtml(line) + '</div>').join('') + '</div>';
+  }else{
+    html += '<div class="bz-chenggu-empty">出生时辰信息不完整，暂不计算称骨重量</div>';
+  }
+  html += '</div>';
+  document.getElementById('bz-info-panel').innerHTML = html;
+}
+
+function baziFeedbackDefinitions(){
+  return [
+    {key:'职业', type:'select', items:['经商','从政','教师','职工','农民','医生','设计师','军警','律师','销售','未知']},
+    {key:'学历', type:'select', items:['小学','初中','高中','专科','本科','研究生','博士']},
+    {key:'财富', type:'select', items:['20万以下','20-100万','100-1000万','1000-5000万','5000-10000万','1亿以上','负债','未知']},
+    {key:'婚姻', type:'select', items:['未婚','已婚','二婚','三婚','离异','丧偶','同性','未知']},
+    {key:'健康状态', type:'text'},
+    {key:'六亲状况', type:'text'},
+    {key:'性情描述', type:'text'}
+  ];
+}
+function normalizeBaziNotes(person){
+  const source = person && person.notes && typeof person.notes === 'object' ? person.notes : {};
+  const feedback = Object.assign({}, source.feedback || {});
+  const master = Object.assign({}, source.master || {});
+  return {
+    feedback,
+    master,
+    events:Array.isArray(source.events) ? source.events.slice() : [],
+    display:Object.assign({feedback:true, master:true, events:true}, source.display || {})
+  };
+}
+function updateBaziNotes(personId, updater){
+  const persons = getBaziPersons();
+  const index = persons.findIndex(item => item.id === personId);
+  if(index < 0) return;
+  const person = persons[index];
+  const notes = normalizeBaziNotes(person);
+  updater(notes);
+  persons[index] = Object.assign({}, person, {notes, updatedAt:Date.now()});
+  saveBaziPersons(persons);
+  renderBaziNotes(Bazi.calculate(persons[index]), persons[index]);
+}
+async function editBaziNoteText(personId, group, key){
+  const person = getBaziPerson(personId);
+  if(!person) return;
+  const notes = normalizeBaziNotes(person);
+  const value = await openTextPrompt({
+    title:key,
+    value:(notes[group] && notes[group][key]) || '',
+    placeholder:'请输入' + key,
+    multiline:true,
+    allowEmpty:true,
+    confirmText:'保存'
+  });
+  if(value === null) return;
+  updateBaziNotes(personId, draft => {
+    draft[group][key] = String(value).trim();
+  });
+  showToast('断事笔记已保存');
+}
+function bzEventGanZhi(result, scope, year){
+  if(!result || !result.yun) return '';
+  if(scope === 'dayun'){
+    const item = result.yun.daYun.find(entry => year >= entry.startYear && year <= entry.endYear);
+    return item ? item.ganZhi : '';
+  }
+  for(const dayun of result.yun.daYun){
+    const item = dayun.liuNian.find(entry => entry.year === Number(year));
+    if(item) return item.ganZhi;
+  }
+  return '';
+}
+function renderBaziNotes(result, person){
+  const notes = normalizeBaziNotes(person);
+  let html = '<div class="bz-info-card">' +
+    '<div class="bz-notes-toolbar">' +
+      '<button type="button" data-notes-tab="feedback" class="' + (baziNotesTab === 'feedback' ? 'active' : '') + '">命主反馈</button>' +
+      '<button type="button" data-notes-tab="master" class="' + (baziNotesTab === 'master' ? 'active' : '') + '">师傅点评</button>' +
+    '</div>';
+  if(notes.display.feedback === false && baziNotesTab === 'feedback'){
+    html += '<div class="bz-chenggu-empty">命主反馈已隐藏</div>';
+  }else if(notes.display.master === false && baziNotesTab === 'master'){
+    html += '<div class="bz-chenggu-empty">师傅点评已隐藏</div>';
+  }else if(baziNotesTab === 'feedback'){
+    baziFeedbackDefinitions().forEach(def => {
+      html += '<div class="bz-note-row"><div class="bz-note-key">' + escapeHtml(def.key) + '</div><div class="bz-note-value">';
+      if(def.type === 'select'){
+        html += '<select class="bz-note-select" data-note-group="feedback" data-note-key="' + escapeHtmlAttr(def.key) + '">' +
+          '<option value="">未填写</option>' + def.items.map(item =>
+            '<option value="' + escapeHtmlAttr(item) + '"' + (notes.feedback[def.key] === item ? ' selected' : '') + '>' +
+            escapeHtml(item) + '</option>').join('') + '</select>';
+      }else{
+        const value = notes.feedback[def.key] || '';
+        html += '<span class="' + (value ? '' : 'empty') + '">' + escapeHtml(value || '未填写') + '</span> ' +
+          '<button type="button" class="bz-note-edit" data-note-edit-group="feedback" data-note-edit-key="' +
+          escapeHtmlAttr(def.key) + '">编辑</button>';
+      }
+      html += '</div></div>';
+    });
+  }else{
+    ['旺衰','格局','喜','忌'].forEach(key => {
+      const value = notes.master[key] || '';
+      html += '<div class="bz-note-row"><div class="bz-note-key">' + escapeHtml(key) + '</div>' +
+        '<div class="bz-note-value"><span class="' + (value ? '' : 'empty') + '">' + escapeHtml(value || '未填写') + '</span> ' +
+        '<button type="button" class="bz-note-edit" data-note-edit-group="master" data-note-edit-key="' +
+        escapeHtmlAttr(key) + '">编辑</button></div></div>';
+    });
+  }
+  html += '</div>';
+
+  html += '<div class="bz-info-card"><div class="bz-info-section-title">显示设置</div>';
+  ['feedback','master','events'].forEach(key => {
+    const labels = {feedback:'命主反馈', master:'师傅点评', events:'关键事件'};
+    html += '<label class="bz-note-switch"><span>' + labels[key] + '</span>' +
+      '<input type="checkbox" data-note-display="' + key + '"' + (notes.display[key] !== false ? ' checked' : '') + '></label>';
+  });
+  html += '</div>';
+
+  html += '<div class="bz-info-card"><div class="bz-info-section-title">关键事件反馈</div>';
+  if(notes.display.events === false){
+    html += '<div class="bz-chenggu-empty">关键事件已隐藏</div>';
+  }else if(!notes.events.length){
+    html += '<div class="bz-chenggu-empty">暂未记录关键事件</div>';
+  }else{
+    notes.events.slice().sort((a, b) => Number(a.year) - Number(b.year)).forEach(item => {
+      const luckClass = item.luck === '吉' ? 'ji' : item.luck === '凶' ? 'xiong' : '';
+      html += '<div class="bz-event-row"><span class="bz-event-luck ' + luckClass + '">' + escapeHtml(item.luck || '平') + '</span>' +
+        '<div class="bz-event-meta"><b>' + escapeHtml(String(item.year || '—')) + '年 · ' +
+        escapeHtml(item.scope === 'dayun' ? '大运' : '流年') + ' ' + escapeHtml(item.ganZhi || '') + '</b>' +
+        '<span>' + escapeHtml(item.visible === false ? '事件内容已隐藏' : (item.text || '')) + '</span></div>' +
+        '<div class="bz-event-actions"><button type="button" data-event-edit="' + escapeHtmlAttr(item.id) + '">编辑</button>' +
+        '<button type="button" data-event-visible="' + escapeHtmlAttr(item.id) + '">' +
+        (item.visible === false ? '显示' : '隐藏') + '</button>' +
+        '<button type="button" class="danger" data-event-delete="' + escapeHtmlAttr(item.id) + '">删除</button></div></div>';
+    });
+  }
+  html += '<button type="button" class="bz-notes-add" id="bz-event-add">+ 添加关键事件</button></div>';
+  document.getElementById('bz-info-panel').innerHTML = html;
+
+  document.querySelectorAll('[data-notes-tab]').forEach(button => {
+    button.onclick = () => {
+      baziNotesTab = button.dataset.notesTab;
+      renderBaziNotes(result, getBaziPerson(person.id));
+    };
+  });
+  document.querySelectorAll('[data-note-edit-group]').forEach(button => {
+    button.onclick = () => editBaziNoteText(person.id, button.dataset.noteEditGroup, button.dataset.noteEditKey);
+  });
+  document.querySelectorAll('[data-note-group][data-note-key]').forEach(select => {
+    select.onchange = () => {
+      const group = select.dataset.noteGroup;
+      const key = select.dataset.noteKey;
+      updateBaziNotes(person.id, draft => { draft[group][key] = select.value; });
+    };
+  });
+  document.querySelectorAll('[data-note-display]').forEach(input => {
+    input.onchange = () => {
+      const key = input.dataset.noteDisplay;
+      updateBaziNotes(person.id, draft => { draft.display[key] = input.checked; });
+    };
+  });
+  const addEvent = document.getElementById('bz-event-add');
+  if(addEvent) addEvent.onclick = () => openBaziEventModal(person.id);
+  document.querySelectorAll('[data-event-edit]').forEach(button => {
+    button.onclick = () => openBaziEventModal(person.id, button.dataset.eventEdit);
+  });
+  document.querySelectorAll('[data-event-visible]').forEach(button => {
+    button.onclick = () => {
+      updateBaziNotes(person.id, draft => {
+        const item = draft.events.find(event => event.id === button.dataset.eventVisible);
+        if(item) item.visible = item.visible === false;
+      });
+    };
+  });
+  document.querySelectorAll('[data-event-delete]').forEach(button => {
+    button.onclick = () => {
+      if(!confirm('确定删除这条关键事件吗？')) return;
+      updateBaziNotes(person.id, draft => {
+        draft.events = draft.events.filter(item => item.id !== button.dataset.eventDelete);
+      });
+      showToast('关键事件已删除');
+    };
+  });
+}
+function openBaziEventModal(personId, eventId){
+  const person = getBaziPerson(personId);
+  if(!person) return;
+  const result = Bazi.calculate(person);
+  const notes = normalizeBaziNotes(person);
+  const existing = eventId ? notes.events.find(item => item.id === eventId) : null;
+  baziRulePersonId = personId;
+  baziEventEditingId = existing ? existing.id : null;
+  const year = existing ? existing.year : (result.currentYear || new Date().getFullYear());
+  document.getElementById('bz-event-modal-title').textContent = existing ? '编辑关键事件' : '添加关键事件';
+  document.getElementById('bz-event-scope').value = existing ? existing.scope : 'liunian';
+  document.getElementById('bz-event-year').value = String(year);
+  document.getElementById('bz-event-text').value = existing ? existing.text : '';
+  baziEventLuck = existing ? existing.luck : '平';
+  document.querySelectorAll('#bz-event-luck-tabs button').forEach(button => {
+    button.classList.toggle('active', button.dataset.value === baziEventLuck);
+  });
+  document.getElementById('bz-event-modal').classList.add('show');
+}
+function closeBaziEventModal(){
+  document.getElementById('bz-event-modal').classList.remove('show');
+  baziEventEditingId = null;
+  baziRulePersonId = null;
+}
+function saveBaziEventModal(){
+  const personId = baziRulePersonId || baziCurrentPersonId;
+  const person = getBaziPerson(personId);
+  if(!person) return;
+  const year = Number(document.getElementById('bz-event-year').value);
+  const text = document.getElementById('bz-event-text').value.trim();
+  if(!Number.isFinite(year) || year < 1801 || year > 2200){
+    showToast('请输入有效关联年份');
+    return;
+  }
+  if(!text){ showToast('请输入事件内容'); return; }
+  const scope = document.getElementById('bz-event-scope').value;
+  const result = Bazi.calculate(person);
+  const ganZhi = bzEventGanZhi(result, scope, year);
+  updateBaziNotes(personId, draft => {
+    const event = {
+      id:baziEventEditingId || 'event_' + Date.now(),
+      scope,
+      year,
+      ganZhi,
+      text,
+      luck:baziEventLuck,
+      visible:true,
+      updatedAt:Date.now()
+    };
+    const index = draft.events.findIndex(item => item.id === event.id);
+    if(index >= 0) draft.events[index] = event;
+    else draft.events.push(event);
+  });
+  closeBaziEventModal();
+  showToast('关键事件已保存');
 }
 
 /* ---------------- 对照表（基本盘 4 列 / 细盘 6 列共用）---------------- */
@@ -6066,9 +6620,16 @@ document.getElementById('gz-branch-time').addEventListener('change', event => {
   gzSheet.time = event.target.value;
   updateGzConfirm();
 });
-document.getElementById('bz-group-select').addEventListener('change', event => {
+document.getElementById('bz-group-select').addEventListener('change', async event => {
   if(event.target.value !== '__new__') return;
-  const group = createBaziGroup(prompt('输入新分组名称：'));
+  const name = await openTextPrompt({
+    title:'新建分组',
+    value:'',
+    placeholder:'请输入分组名称',
+    allowEmpty:false,
+    confirmText:'创建'
+  });
+  const group = name === null ? null : createBaziGroup(name);
   renderBaziGroupSelect(group ? group.id : getDefaultBaziGroupId());
 });
 document.getElementById('bz-form-back').addEventListener('click', () => backFromBaziForm());
@@ -6085,7 +6646,43 @@ document.getElementById('bz-search').addEventListener('input', event => {
   baziSearchText = event.target.value.trim();
   renderBaziPersonList();
 });
-document.getElementById('bz-records-filter').addEventListener('click', () => showToast('筛选功能敬请期待'));
+document.getElementById('bz-records-filter').addEventListener('click', () => {
+  const row = document.getElementById('bz-records-filter-row');
+  row.classList.toggle('hidden');
+  document.getElementById('bz-records-filter').classList.toggle('active', !row.classList.contains('hidden'));
+});
+document.querySelectorAll('#bz-records-filter-row [data-gender]').forEach(button => {
+  button.addEventListener('click', () => {
+    baziRecordGenderFilter = button.dataset.gender;
+    document.querySelectorAll('#bz-records-filter-row [data-gender]').forEach(item => {
+      item.classList.toggle('active', item.dataset.gender === baziRecordGenderFilter);
+    });
+    renderBaziPersonList();
+  });
+});
+document.getElementById('bz-records-pinned-filter').addEventListener('click', event => {
+  baziRecordPinnedOnly = !baziRecordPinnedOnly;
+  event.currentTarget.classList.toggle('active', baziRecordPinnedOnly);
+  renderBaziPersonList();
+});
+document.getElementById('bz-rules-close').addEventListener('click', closeBaziRulesModal);
+document.getElementById('bz-rules-modal').addEventListener('click', event => {
+  if(event.target === document.getElementById('bz-rules-modal')) closeBaziRulesModal();
+});
+document.getElementById('bz-rules-save').addEventListener('click', saveBaziRulesModal);
+document.getElementById('bz-event-close').addEventListener('click', closeBaziEventModal);
+document.getElementById('bz-event-modal').addEventListener('click', event => {
+  if(event.target === document.getElementById('bz-event-modal')) closeBaziEventModal();
+});
+document.querySelectorAll('#bz-event-luck-tabs button').forEach(button => {
+  button.addEventListener('click', () => {
+    baziEventLuck = button.dataset.value;
+    document.querySelectorAll('#bz-event-luck-tabs button').forEach(item => {
+      item.classList.toggle('active', item.dataset.value === baziEventLuck);
+    });
+  });
+});
+document.getElementById('bz-event-save').addEventListener('click', saveBaziEventModal);
 document.getElementById('bz-records-group-more').addEventListener('click', openBaziGroupManager);
 document.getElementById('bz-records-edit-btn').addEventListener('click', toggleBaziRecordsEditMode);
 document.getElementById('bz-records-move-selected').addEventListener('click', moveSelectedBaziRecords);

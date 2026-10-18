@@ -21,6 +21,20 @@ function check(name, cond) {
 const Bazi = ctx.Bazi;
 check('八字引擎已加载', !!(Bazi && Bazi.calculate));
 
+const parityFixture = JSON.parse(fs.readFileSync('test/fixtures/bazi-parity.json', 'utf8'));
+check('八字黄金样本文件覆盖历法与规则边界', Array.isArray(parityFixture.cases) && parityFixture.cases.length >= 20);
+parityFixture.cases.forEach(item => {
+  const actual = Bazi.calculate(item.input);
+  const expected = item.expected;
+  check('黄金样本 ' + item.id,
+    (!expected.pillars || JSON.stringify(actual.pillars) === JSON.stringify(expected.pillars)) &&
+    (expected.solarDatetime === undefined || actual.solarDatetime === expected.solarDatetime) &&
+    (expected.chartSolarDatetime === undefined || actual.chartSolarDatetime === expected.chartSolarDatetime) &&
+    (expected.dayun === undefined || (actual.yun ? actual.yun.daYun.length : 0) === expected.dayun) &&
+    (expected.direction === undefined || (actual.yun ? actual.yun.forward : null) === expected.direction) &&
+    (expected.chenggu === undefined || (actual.extras.chenggu && actual.extras.chenggu.weightName) === expected.chenggu));
+});
+
 // 验收用例 1：1990-06-15 08:32 女
 const case1 = Bazi.calculate({
   gender:'female', calendarType:'solar', solarDate:'1990-06-15', time:'08:32', useTrueSolarTime:false
@@ -38,7 +52,7 @@ check('四柱纳音存在', case1.columns.every(item => !!item.naYin));
 check('空亡与神煞字段存在', case1.columns.every(item => item.xunKong && Array.isArray(item.shenSha)));
 check('神煞规则库已完整载入', case1.pillarDetails.day.shenSha.includes('天厨贵人') && case1.pillarDetails.day.shenSha.includes('孤鸾煞'));
 check('五行统计总数为8', Object.values(case1.extras.wuXing).reduce((a, b) => a + b, 0) === 8);
-check('大运含10步', case1.yun.daYun.length === 10 && case1.yun.daYun[0].liuNian.length === 10);
+check('大运默认120年含12步', case1.yun.daYun.length === 12 && case1.yun.daYun[0].liuNian.length === 10);
 
 // 验收用例 2：1985-03-20 10:30 男
 const case2 = Bazi.calculate({
@@ -73,11 +87,22 @@ const trueSolar = Bazi.calculate({
   useTrueSolarTime:true, longitude:116.4074
 });
 check('真太阳时执行经度校正', trueSolar.correctionMinutes < 0 && trueSolar.chartSolarDatetime !== trueSolar.solarDatetime);
-const longitudeOnly = Bazi.calculate({
+const trueSolarWithEot = Bazi.calculate({
   gender:'female', calendarType:'solar', solarDate:'2026-09-04', time:'02:03',
   useTrueSolarTime:true, longitude:104.0665, applyChinaDst:false
 });
-check('真太阳时只按经度公式校正', longitudeOnly.longitudeCorrectionMinutes === -64 && longitudeOnly.chartSolarDatetime === '2026-09-04 00:59');
+check('真太阳时包含经度与均时差校正',
+  trueSolarWithEot.longitudeCorrectionMinutes === -63.7 &&
+  trueSolarWithEot.eotCorrectionMinutes === 0.5 &&
+  trueSolarWithEot.chartSolarDatetime === '2026-09-04 01:00');
+const longitudeOnly = Bazi.calculate({
+  gender:'female', calendarType:'solar', solarDate:'2026-09-04', time:'02:03',
+  useTrueSolarTime:true, longitude:104.0665, applyChinaDst:false, equationOfTime:false
+});
+check('可关闭均时差仅保留经度校正',
+  longitudeOnly.longitudeCorrectionMinutes === -63.7 &&
+  longitudeOnly.eotCorrectionMinutes === 0 &&
+  longitudeOnly.chartSolarDatetime === '2026-09-04 00:59');
 const noLongitude = Bazi.calculate({
   gender:'female', calendarType:'solar', solarDate:'1990-06-15', time:'08:32',
   useTrueSolarTime:true, longitude:null, applyChinaDst:false
@@ -96,7 +121,7 @@ const direct = Bazi.calculate({
 check('四柱直排保持用户输入', JSON.stringify(direct.pillars) === JSON.stringify({
   year:'庚午', month:'壬午', day:'辛亥', hour:'壬辰'
 }));
-check('四柱直排附加信息完整', !!direct.extras.mingGong && !!direct.extras.shenGong && direct.yun.daYun.length === 10);
+check('四柱直排附加信息完整', !!direct.extras.mingGong && !!direct.extras.shenGong && direct.yun.daYun.length === 12);
 check('四柱直排自动反推公历时间', direct.resolvedSolarDate === '1990-06-15' && direct.resolvedTime === '08:00');
 const directReopened = Bazi.calculate({
   gender:'female', calendarType:'solar', solarDate:direct.resolvedSolarDate, time:direct.resolvedTime,
@@ -150,6 +175,63 @@ const directNoSolution = Bazi.calculate({
 });
 check('合法四柱无解时返回四柱直录结果', !directNoSolution.hasBirthTime && !directNoSolution.directTimeResolved &&
   directNoSolution.solarDatetime === '' && directNoSolution.yun === null && !!directNoSolution.extras.taiYuan);
+
+// 问真兼容的逐柱空亡、称骨、规则快照与换年边界
+const parityCase = Bazi.calculate({
+  gender:'male', calendarType:'solar', solarDate:'1990-01-01', time:'00:00',
+  useTrueSolarTime:false, applyChinaDst:false
+});
+check('逐柱空亡按各自旬首计算',
+  parityCase.columns.map(item => item.xunKong).join('/') === '戌亥/申酉/戌亥/午未');
+check('称骨数据与问真运行样例一致',
+  parityCase.extras.chenggu.weightName === '四两二钱' &&
+  parityCase.extras.chenggu.total === 42 &&
+  parityCase.extras.chenggu.lines[0] === '得宽怀处且宽怀，何用双眉皱不开；' &&
+  parityCase.extras.chenggu.lines[1] === '若使中年命运济，那时名利一齐来。');
+check('称骨来源和胎息/星宿/命卦字段已接入',
+  parityCase.extras.chenggu.source === Bazi.CHENGGU_SOURCE &&
+  parityCase.extras.taiXi === '辛亥' &&
+  parityCase.extras.xingXiu === '心' &&
+  !!parityCase.extras.mingGua);
+const chengguValidation = JSON.parse(fs.readFileSync('test/fixtures/chenggu-validate.json', 'utf8'));
+check('问真称骨运行样本共12组', Array.isArray(chengguValidation) && chengguValidation.length === 12);
+chengguValidation.forEach((item, index) => {
+  const male = Bazi.calculateChenggu(item.year, item.month, item.day, item.hour, 'male');
+  const female = Bazi.calculateChenggu(item.year, item.month, item.day, item.hour, 'female');
+  check('问真称骨样本 ' + (index + 1),
+    !!male && !!female && male.id === item.id && male.text === item.man && female.text === item.woman);
+});
+check('规则快照记录历法/换年/时区/大运跨度',
+  parityCase.rulesSnapshot.yearBoundary === 'lichun' &&
+  parityCase.rulesSnapshot.utcOffset === 8 &&
+  parityCase.rulesSnapshot.dayunSpanYears === 120 &&
+  parityCase.rulesSnapshot.engineVersion === 'wenzhen-2.8.1-free');
+const span80 = Bazi.calculate({
+  gender:'male', calendarType:'solar', solarDate:'1990-01-01', time:'00:00',
+  useTrueSolarTime:false, applyChinaDst:false,
+  rulesSnapshot:{dayunSpanYears:80}
+});
+check('大运支持80年选项', span80.yun.daYun.length === 8 && span80.yun.spanYears === 80);
+const dahan = Bazi.calculate({
+  gender:'male', calendarType:'solar', solarDate:'2024-01-25', time:'12:00',
+  useTrueSolarTime:false, applyChinaDst:false,
+  rulesSnapshot:{yearBoundary:'dahan'}
+});
+const lichun = Bazi.calculate({
+  gender:'male', calendarType:'solar', solarDate:'2024-01-25', time:'12:00',
+  useTrueSolarTime:false, applyChinaDst:false,
+  rulesSnapshot:{yearBoundary:'lichun'}
+});
+check('换年规则切换后年柱按边界变化', dahan.pillars.year === '甲辰' && lichun.pillars.year === '癸卯');
+const utcZero = Bazi.calculate({
+  gender:'male', calendarType:'solar', solarDate:'1990-06-15', time:'08:32',
+  useTrueSolarTime:true, longitude:121.4737, applyChinaDst:false,
+  rulesSnapshot:{utcOffset:0}
+});
+check('时区偏移参与真太阳时基准计算', utcZero.longitudeCorrectionMinutes > 400 && !!utcZero.rulesSnapshot);
+const boundary1801 = Bazi.calculate({gender:'male', calendarType:'solar', solarDate:'1801-01-01', time:'12:00', useTrueSolarTime:false});
+const boundary2100 = Bazi.calculate({gender:'female', calendarType:'solar', solarDate:'2100-01-01', time:'12:00', useTrueSolarTime:false});
+check('1801与2100边界年份可排盘', !!boundary1801.pillars.year && !!boundary2100.pillars.year);
 
 // 流月使用真实交节日期
 const timeline = Bazi.calculate({

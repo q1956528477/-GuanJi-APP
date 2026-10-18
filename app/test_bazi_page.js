@@ -107,9 +107,46 @@ check('保存后自动进入信息页', !document.getElementById('bazi-info-view
 check('基本信息页四柱正确', JSON.stringify(persons[0].fourPillars) === JSON.stringify({
   year:'庚午', month:'壬午', day:'辛亥', hour:'壬辰'
 }));
+check('新命例保存时写入规则快照', !!persons[0].rulesSnapshot &&
+  persons[0].rulesSnapshot.yearBoundary === 'lichun' &&
+  persons[0].rulesSnapshot.dayunSpanYears === 120);
 const profileText = document.querySelector('.bz2-profile').textContent;
 check('顶部农历信息格式正确', profileText.includes('农历：1990年五月廿三 辰时 坤造'));
 check('顶部阳历信息格式正确', profileText.includes('阳历：1990年06月15日 08:32:00'));
+check('结果页按问真顺序提供四个页面', document.querySelectorAll('.bz-info-tabs button').length === 4 &&
+  [...document.querySelectorAll('.bz-info-tabs button')].map(button => button.textContent.trim()).join('/') ===
+  '基本信息/基本排盘/专业细盘/断事笔记');
+check('默认进入基本信息页', document.querySelector('.bz-info-tabs button[data-tab="info"]').classList.contains('active') &&
+  document.getElementById('bz-info-content').classList.contains('bz-tab-info'));
+check('基本信息展示命盘资料与称骨卡', document.querySelectorAll('.bz-info-field').length >= 14 &&
+  document.querySelector('.bz-chenggu-head').textContent.includes('袁天罡称骨') &&
+  !document.querySelector('.bz-chenggu-head').textContent.includes('—'));
+check('基本信息不显示姓名五行和付费分析入口',
+  !document.getElementById('bz-info-panel').textContent.includes('姓名五行') &&
+  !document.getElementById('bz-info-panel').textContent.includes('开通VIP') &&
+  !document.getElementById('bz-info-panel').textContent.includes('五行能量'));
+check('八字结果页排除会员、姓名五行、流日流时入口',
+  ['开通VIP会员','姓名五行','流日','流时'].every(text =>
+    !document.getElementById('bazi-info-view').textContent.includes(text)));
+document.getElementById('bz-open-rules').click();
+check('排盘规则弹层可打开且包含换年、时区和大运跨度',
+  document.getElementById('bz-rules-modal').classList.contains('show') &&
+  !!document.getElementById('bz-rule-year-boundary') &&
+  !!document.getElementById('bz-rule-utc-offset') &&
+  !!document.getElementById('bz-rule-dayun-span'));
+window.handleBack();
+check('返回键只关闭排盘规则弹层并停留在结果页',
+  !document.getElementById('bz-rules-modal').classList.contains('show') &&
+  !document.getElementById('bazi-info-view').classList.contains('hidden'));
+document.getElementById('bz-open-rules').click();
+document.getElementById('bz-rule-dayun-span').value = '80';
+document.getElementById('bz-rules-save').click();
+const ruleSavedPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
+check('规则弹层保存后按80年大运重算', ruleSavedPersons[0].rulesSnapshot.dayunSpanYears === 80);
+document.getElementById('bz-open-rules').click();
+document.getElementById('bz-rule-dayun-span').value = '120';
+document.getElementById('bz-rules-save').click();
+document.querySelector('.bz-info-tabs button[data-tab="basic"]').click();
 check('基本盘10行渲染完成', document.querySelectorAll('.bz2-table tbody tr').length === 10);
 check('五列等宽结构已生成', document.querySelectorAll('.bz2-table colgroup col').length === 5);
 check('五行着色元素已生成', document.querySelectorAll('.bz2-table [class*="bz2-el-"]').length > 0);
@@ -119,9 +156,7 @@ const kongRow = [...document.querySelectorAll('.bz2-table tbody tr')].find(row =
 check('空亡按各柱旬空显示', !!kongRow && !kongRow.textContent.includes('—'));
 check('占位卡片已移除', document.querySelectorAll('.bz2-action-card').length === 0);
 check('无效的智能干支图示/AI指令按钮已移除', document.querySelectorAll('.bz3-action-card').length === 0);
-check('基本盘/细盘两个切换按钮已恢复', document.querySelectorAll('.bz-info-tabs button').length === 2 &&
-  [...document.querySelectorAll('.bz-info-tabs button')].map(button => button.textContent.trim()).join('/') === '基本盘/细盘');
-check('基本盘默认激活', document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+check('切换到基本排盘后激活态正确', document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
 check('八字结果页只绑定一次滑动监听', document.getElementById('bazi-info-view').dataset.baziSwipeBound === '1');
 check('基本盘使用 1.5 倍统一下标缩放作用域',
   document.getElementById('bz-info-content').classList.contains('bz-tab-basic') &&
@@ -148,7 +183,13 @@ check('标签点击切回基本盘时播放向左入场动画',
   document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
 
 swipe(document.querySelector('.bz2-table'), 100, 5);
-check('基本盘右滑到边界不循环切换',
+check('基本排盘右滑进入基本信息',
+  document.querySelector('.bz-info-tabs button[data-tab="info"]').classList.contains('active'));
+swipe(document.getElementById('bz-info-panel'), 100, 5);
+check('基本信息右滑到首屏边界不循环',
+  document.querySelector('.bz-info-tabs button[data-tab="info"]').classList.contains('active'));
+swipe(document.getElementById('bz-info-panel'), -110, 5);
+check('基本信息左滑返回基本排盘',
   document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
 swipe(document.querySelector('.bz2-table'), -90, 120);
 check('纵向/斜向滑动不会误切到细盘',
@@ -162,6 +203,17 @@ check('基本盘左滑进入细盘时动画方向正确',
 touchSwipeWithPointerCancel(document.querySelector('.bz3-start-info'), 120, 5);
 check('触摸产生的 pointercancel 不会中断 touchend 返回基本盘',
   document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+document.querySelector('.bz-info-tabs button[data-tab="notes"]').click();
+check('断事笔记页可通过标签进入',
+  document.querySelector('.bz-info-tabs button[data-tab="notes"]').classList.contains('active') &&
+  document.getElementById('bz-info-content').classList.contains('bz-tab-notes'));
+check('断事笔记包含命主反馈、师傅点评和关键事件',
+  document.getElementById('bz-info-panel').textContent.includes('命主反馈') &&
+  document.getElementById('bz-info-panel').textContent.includes('师傅点评') &&
+  document.getElementById('bz-info-panel').textContent.includes('关键事件反馈'));
+swipe(document.getElementById('bz-info-panel'), -110, 5);
+check('断事笔记左滑到末页边界不循环',
+  document.querySelector('.bz-info-tabs button[data-tab="notes"]').classList.contains('active'));
 document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
 swipe(document.getElementById('bz3-liunian-scroll'), 100, 5);
 check('选择带内横滑优先于 Tab 切换',
@@ -201,6 +253,49 @@ check('减少动态效果开启时仍可切换且不播放动画',
 window.matchMedia = realMatchMedia;
 document.querySelector('.bz-info-tabs button[data-tab="basic"]').click();
 
+document.querySelector('.bz-info-tabs button[data-tab="notes"]').click();
+const feedbackCareer = document.querySelector('[data-note-group="feedback"][data-note-key="职业"]');
+feedbackCareer.value = '医生';
+feedbackCareer.dispatchEvent(new window.Event('change', {bubbles:true}));
+let savedPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
+check('断事笔记命主反馈写入当前命例',
+  savedPersons[0].notes && savedPersons[0].notes.feedback &&
+  savedPersons[0].notes.feedback['职业'] === '医生');
+document.getElementById('bz-event-add').click();
+check('关键事件使用项目自绘弹层', document.getElementById('bz-event-modal').classList.contains('show'));
+window.handleBack();
+check('返回键只关闭关键事件弹层', !document.getElementById('bz-event-modal').classList.contains('show') &&
+  !document.getElementById('bazi-info-view').classList.contains('hidden'));
+document.getElementById('bz-event-add').click();
+document.getElementById('bz-event-scope').value = 'liunian';
+document.getElementById('bz-event-year').value = '2026';
+document.getElementById('bz-event-text').value = '工作变动';
+document.querySelector('#bz-event-luck-tabs button[data-value="吉"]').click();
+document.getElementById('bz-event-save').click();
+savedPersons = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]');
+check('关键事件可新增并保存吉凶与关联年份',
+  savedPersons[0].notes.events.length === 1 &&
+  savedPersons[0].notes.events[0].year === 2026 &&
+  savedPersons[0].notes.events[0].luck === '吉' &&
+  savedPersons[0].notes.events[0].text === '工作变动');
+const notesPersonId = savedPersons[0].id;
+window.openBaziInfo(notesPersonId);
+document.querySelector('.bz-info-tabs button[data-tab="notes"]').click();
+check('重新打开命例后断事笔记仍恢复',
+  document.querySelector('[data-note-group="feedback"][data-note-key="职业"]').value === '医生' &&
+  document.getElementById('bz-info-panel').textContent.includes('工作变动'));
+const beforeRecalc = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]')[0];
+beforeRecalc.pinned = true;
+window.localStorage.setItem('guanji_bazi_persons_v1', JSON.stringify([beforeRecalc]));
+window.recalculateBaziPerson(beforeRecalc, window.Bazi.DEFAULT_RULES_SNAPSHOT);
+const afterRecalc = JSON.parse(window.localStorage.getItem('guanji_bazi_persons_v1') || '[]')[0];
+check('按规则重算保留笔记、事件和置顶状态',
+  afterRecalc.pinned === true &&
+  afterRecalc.notes.feedback['职业'] === '医生' &&
+  afterRecalc.notes.events.length === 1 &&
+  afterRecalc.rulesSnapshot.yearBoundary === 'lichun');
+document.querySelector('.bz-info-tabs button[data-tab="basic"]').click();
+
 document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
 check('细盘已切换到激活态', document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
 check('细盘使用 1.25 倍统一下标缩放作用域',
@@ -225,8 +320,8 @@ check('选择带使用贯穿高度的实体分隔边缘且无渐隐遮罩',
   html.includes('border-right:1px solid var(--bz-band-edge)') &&
   !html.includes('.bz3-strip-viewport::before') &&
   !html.includes('.bz3-strip-viewport::after'));
-check('大运/流年各十列、流月十二列保持完整列数',
-  document.querySelectorAll('#bz3-dayun-scroll .bz3-strip-col').length === 10 &&
+check('大运十二列、流年十列、流月十二列保持完整列数',
+  document.querySelectorAll('#bz3-dayun-scroll .bz3-strip-col').length === 12 &&
   document.querySelectorAll('#bz3-liunian-scroll .bz3-strip-col').length === 10 &&
   document.querySelectorAll('#bz3-liuyue-scroll .bz3-strip-col').length === 12);
 check('三条横带使用独立横向滚动且不再等分压缩',
@@ -418,7 +513,9 @@ check('合法四柱无解时仍可保存', !!fallbackPerson && fallbackPerson.di
   fallbackPerson.solarDate === '' && fallbackPerson.timeMode === 'unknown');
 check('四柱直录详情显示无出生时间', document.querySelector('.bz2-profile').textContent.includes('四柱直录（无出生时间）'));
 document.querySelector('.bz-info-tabs button[data-tab="fine"]').click();
-check('四柱直录无出生时间时不进入细盘', document.querySelector('.bz-info-tabs button[data-tab="basic"]').classList.contains('active'));
+check('四柱直录无出生时间时不进入细盘',
+  document.querySelector('.bz-info-tabs button[data-tab="info"]').classList.contains('active') &&
+  !document.querySelector('.bz-info-tabs button[data-tab="fine"]').classList.contains('active'));
 window.showView('bazi-records');
 check('四柱直录命例卡片显示标记与完整四柱', document.querySelector('[data-id="' + fallbackPerson.id + '"] .bz-record-date').textContent === '四柱直录（无出生时间）' &&
   document.querySelector('[data-id="' + fallbackPerson.id + '"] .bz-record-pillars').textContent === '甲丙癸丙子寅丑辰');
@@ -468,7 +565,11 @@ searchInput.value = '';
 searchInput.dispatchEvent(new window.Event('input', {bubbles:true}));
 
 document.getElementById('bz-records-filter').click();
-check('筛选按钮保留为占位功能', document.getElementById('toast').textContent.includes('敬请期待'));
+check('筛选按钮展开真实筛选条件', !document.getElementById('bz-records-filter-row').classList.contains('hidden'));
+document.querySelector('#bz-records-filter-row [data-gender="female"]').click();
+check('筛选可按性别过滤当前分组', document.querySelectorAll('.bz-record-row').length === 3);
+document.querySelector('#bz-records-filter-row [data-gender="all"]').click();
+check('清除性别筛选后恢复全部命例', document.querySelectorAll('.bz-record-row').length === recordPersons.length);
 
 document.getElementById('bz-records-edit-btn').click();
 check('编辑模式显示选择框和批量操作栏', document.querySelectorAll('.bz-record-check').length === recordPersons.length &&
@@ -488,6 +589,9 @@ check('再次点击编辑按钮退出编辑模式', document.querySelectorAll('.
 
 document.querySelector('[data-id="p_kong"]').click();
 check('点击命例行进入八字信息页', !document.getElementById('bazi-info-view').classList.contains('hidden'));
+check('旧命例无规则快照时显示旧规则和重算入口',
+  !!document.getElementById('bz-recalc-old-rules') &&
+  document.querySelector('.bz-rule-badge').textContent === '旧规则');
 window.showView('bazi-records');
 const selfGroupTab = [...document.querySelectorAll('#bz-group-tabs .bz-group-tab')].find(tab => tab.textContent === '自己');
 selfGroupTab.click();

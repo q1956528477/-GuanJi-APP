@@ -2,7 +2,7 @@
 
 > 把本文件整份贴给任意终端上的 AI Agent，它即可接手本项目。
 > 仓库：`https://github.com/q1956528477/-GuanJi-APP.git`　分支：`codex/liuyao-replica`
-> 当前版本：**v1.14.24 (build 58)**　最后更新：2026-10-18
+> 当前版本：**v1.14.25 (build 59)**　最后更新：2026-10-18
 >
 > **版本已统一（2026-09-17）**：`codex/liuyao-audit-fixes`（09-16 16:00）与 `codex/liuyao-classical-text`（09-16 16:56）
 > 两条并行分支已按上传时间先后合并进本分支，对外只保留 **v1.14.8 (build 42)** 这一个号。
@@ -64,6 +64,10 @@
 >
 > **v1.14.24 (build 58)**：精力状态「数据与提醒」新增「复制30天状态信息」，复用一周状态的
 > 作息整理、缺失标注和剪贴板三级兜底，仅将数据范围扩展为最近 30 天。
+>
+> **v1.14.25 (build 59)**：八字结果页改为「基本信息 / 基本排盘 / 专业细盘 / 断事笔记」四页；
+> 接入问真兼容称骨、胎息、星宿、命卦、逐柱空亡、真太阳时均时差、规则快照与旧命例重算，
+> 并补齐命例筛选、断事笔记和关键事件本地保存。
 
 ---
 
@@ -252,6 +256,12 @@ app/
   已到边界不循环。`.bz3-strip` 内的手势优先交给选择带，不触发 Tab；选择带使用实体外框和固定标题列右侧分隔线。
 - **滑动动画与桌面手势（v1.14.23）**：标签点击和触摸滑动共用同一状态切换入口，面板按方向执行
   220ms 淡入位移动画；支持鼠标/触控笔拖动。系统开启减少动态效果时保留切换但关闭动画。
+- **四页结果与断事笔记（v1.14.25）**：结果页固定为基本信息、基本排盘、专业细盘、断事笔记四页；
+  基本信息展示免费出生/命盘字段与称骨歌诀，断事笔记按命例保存命主反馈、师傅点评、关键事件和显示设置。
+- **规则快照（v1.14.25）**：每条新命例保存 `rulesSnapshot`；旧命例无快照时显示「旧规则」并提供按新规则重算，
+  重算只替换排盘结果，不覆盖笔记、事件、置顶和分组。
+- **真太阳时与边界（v1.14.25）**：校正链为夏令时、时区、经度、NOAA 均时差；支持立春/冬至/大寒/正月初一换年，
+  大运默认 120 年、可选 80 年。
 - 默认开启真太阳时；选择内置城市后按经度与均时差近似校正。
 - 四柱严格以立春、节气为界；23:00–23:59 按晚子时规则，日柱进位、时干按当日日干起算。
 - 四柱直排在弹层里按 **1801–2099** 范围反推全部匹配日期（选中的日期直接回写出生时间）；排盘/保存链路仍走原引擎，无解时降级为“四柱直录（无出生时间）”，不阻断保存。
@@ -458,6 +468,7 @@ npm run test:modules# 只跑主界面模块注册表
 - `test_liuyao_classical_page.js` 验证卦辞、彖传、大象传、爻辞和小象传的层级与逐爻对应；「不泄漏现代解读」断言只作用于**古文区**（`.rebu-jieshi-section`）。
   ⚠️ 不要改回整页扫描：结果页最下方的解卦提示词结尾句按需求固定含「卦象」二字，整页扫描必然误报。
 - `test_bazi_page.js` 用 jsdom 验证八字入口、保存命例、基本盘、大运流年和流月展开。
+  页面还包括四页切换与滑动、基本信息称骨卡、命例筛选、断事笔记持久化、关键事件和旧规则标记。
   另含「今日干支」卡片断言：**冷启动首屏即有内容**（初始化必须调用 `openHomeGanZhiCard()`）、卡片在 `#hero` 之前、
   不是 `.mod-card`、标题文案、右块与左侧三行共用同一纵向容器且靠 `align-self` 居中（结构 + 样式双断言）、
   四柱与 `Bazi.calculate` 同源、时辰名/不补零时间/节气段格式/日期行不含时间、右块不含时辰区间、
@@ -585,26 +596,30 @@ npm run test:modules# 只跑主界面模块注册表
 
 | 顺序 | 层级 | 返回行为 |
 |---|---|---|
-| 1 | `gzSheet` 非空（出生时间弹层 `#gz-sheet`） | `closeGzSheet()`，**留在排盘页**，未确认的草稿不写回 |
-| 2 | `#ly-action-modal` 可见（起卦记录长按菜单） | `closeLiuyaoHistoryActions()`，留在起卦记录页 |
-| 3 | `#bz-move-modal` 可见（移动到分组） | `closeBaziMoveModal()`，留在命例记录页（清空 `baziMovePersonIds`） |
-| 4 | `#bz-action-modal` 可见（命例长按菜单） | `closeBaziPersonActions()`，留在命例记录页 |
-| 5 | `#bz-group-modal` 可见（分组管理） | `closeBaziGroupModal()`，留在命例记录页 |
-| 6 | `#day-modal` 可见（精力状态日期详情） | `closeDayDetail()`，留在精力状态页 |
-| 7 | `#req-view` 可见 | `closeReqView()` → 回到打开它的页面（`reqReturnView`） |
-| 8 | `#liuyao-history-view` 可见 | `backFromHistory()` → 六爻起卦页 |
-| 9 | 六爻结果页可见 | `backFromResult()` → 从历史点进则回历史，否则回起卦记录页 |
-| 10 | `#bazi-info-view` 可见 | → 命例记录页（**按需求刻意如此**，见 9.4） |
-| 11 | 排盘页 `#bazi-form-view` 可见 | `backFromBaziForm()` → 回**进入排盘页时的来源页**（`baziFormReturnView`） |
-| 12 | `#energy-history-view` 可见 | `backFromEnergyHistory()` → 精力状态页 |
-| 13 | 精力 / 六爻 / 命例记录页 | → 主界面 |
-| 14 | 已经在主界面 | 2 秒内再按一次退出 App |
+| 1 | `#text-prompt-modal` 可见 | 取消输入，不写回数据 |
+| 2 | `#bz-event-modal` 可见（关键事件） | `closeBaziEventModal()`，留在断事笔记页 |
+| 3 | `#bz-rules-modal` 可见（排盘规则） | `closeBaziRulesModal()`，留在八字结果页 |
+| 4 | `gzSheet` 非空（出生时间弹层 `#gz-sheet`） | `closeGzSheet()`，**留在排盘页**，未确认的草稿不写回 |
+| 5 | `#ly-action-modal` 可见（起卦记录长按菜单） | `closeLiuyaoHistoryActions()`，留在起卦记录页 |
+| 6 | `#bz-move-modal` 可见（移动到分组） | `closeBaziMoveModal()`，留在命例记录页（清空 `baziMovePersonIds`） |
+| 7 | `#bz-action-modal` 可见（命例长按菜单） | `closeBaziPersonActions()`，留在命例记录页 |
+| 8 | `#bz-group-modal` 可见（分组管理） | `closeBaziGroupModal()`，留在命例记录页 |
+| 9 | `#day-modal` 可见（精力状态日期详情） | `closeDayDetail()`，留在精力状态页 |
+| 10 | `#req-view` 可见 | `closeReqView()` → 回到打开它的页面（`reqReturnView`） |
+| 11 | `#liuyao-history-view` 可见 | `backFromHistory()` → 六爻起卦页 |
+| 12 | 六爻结果页可见 | `backFromResult()` → 从历史点进则回历史，否则回起卦记录页 |
+| 13 | `#bazi-info-view` 可见 | → 命例记录页（**按需求刻意如此**，见 9.4） |
+| 14 | 排盘页 `#bazi-form-view` 可见 | `backFromBaziForm()` → 回**进入排盘页时的来源页**（`baziFormReturnView`） |
+| 15 | `#energy-history-view` 可见 | `backFromEnergyHistory()` → 精力状态页 |
+| 16 | 精力 / 六爻 / 命例记录页 | → 主界面 |
+| 17 | 已经在主界面 | 2 秒内再按一次退出 App |
 
 > 新增任何弹窗/浮层时，**必须把它加进 `handleBack()` 的最前面那几层**，否则会出现「返回键作用到底层页面、弹窗还浮在上面」的错乱。
 
 **9.2 已入栈的层级**：出生时间弹层（v1.14.4 修复）、起卦记录操作菜单（v1.14.5）、
 `#day-modal` / `#bz-action-modal` / `#bz-move-modal` / `#bz-group-modal`（v1.14.6 修复）、
-精力历史独立视图 `#energy-history-view`（v1.14.10）。
+精力历史独立视图 `#energy-history-view`（v1.14.10）、八字排盘规则 `#bz-rules-modal` 与
+关键事件 `#bz-event-modal`（v1.14.25）。
 
 **9.3 既有弹窗入栈修复（v1.14.6 已完成，勿再回退）**：
 
@@ -704,6 +719,7 @@ npm run test:modules# 只跑主界面模块注册表
 - [x] **精力状态按月历史记录**（v1.14.10，阶段分支 `codex/energy-history`）：独立视图、逐月翻阅、未来月拦截、返回栈接入
 - [x] **精力状态复制一周状态信息**（v1.14.21，分支 `codex/energy-weekly-copy`）：7 天作息提示词、剪贴板与手动复制兜底
 - [x] **精力状态复制30天状态信息**（v1.14.24，分支 `codex/energy-monthly-copy`）：30 天作息提示词、完整复制兜底
+- [x] **八字四页结果与问真兼容基础项**（v1.14.25，分支 `codex/bazi-wenzhen-parity`）：称骨、规则快照、断事笔记、筛选与边界校正
 - [x] **八字 Tab 滑动动画修复**（v1.14.23）：移动端触摸与桌面拖动、方向动画、手势隔离和减少动态效果适配
 - [x] **卦名起卦 · 预设变卦**（v1.14.12）：本卦 + 目标变卦 → 动爻自动推导，结果与铜钱起卦同构，见 4.3。
       **候选为全部 64 卦（含本卦自身 = 静卦），共 64×64 = 4096 组全部合法**；

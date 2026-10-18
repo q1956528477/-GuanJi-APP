@@ -2,6 +2,7 @@ import lunarPkg from 'lunar-javascript';
 import {
   analyzePillars, collectNatalShenSha, packPillar, selectRenyuanSiling, shenShaNames, GENDER
 } from 'bazi-lite';
+import { calculateChenggu, CHENGGU_SOURCE } from './bazi-chenggu.js';
 
 const { Solar, Lunar, LunarYear } = lunarPkg;
 
@@ -11,6 +12,19 @@ const ZODIAC = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗
 const ELEMENTS = ['木','火','土','金','水'];
 const GAN_ELEMENT = {甲:'木',乙:'木',丙:'火',丁:'火',戊:'土',己:'土',庚:'金',辛:'金',壬:'水',癸:'水'};
 const ZHI_ELEMENT = {子:'水',丑:'土',寅:'木',卯:'木',辰:'土',巳:'火',午:'火',未:'土',申:'金',酉:'金',戌:'土',亥:'水'};
+const DEFAULT_RULES_SNAPSHOT = Object.freeze({
+  calendarMode:'dingqi',
+  yearBoundary:'lichun',
+  lateZiNextDay:true,
+  trueSolarTime:true,
+  equationOfTime:true,
+  chinaDst:true,
+  utcOffset:8,
+  dayunSpanYears:120,
+  shenshaConfig:'wenzhen-default',
+  relationConfig:'wenzhen-default',
+  engineVersion:'wenzhen-2.8.1-free'
+});
 const HIDDEN_GAN = {
   子:['癸'], 丑:['己','癸','辛'], 寅:['甲','丙','戊'], 卯:['乙'],
   辰:['戊','乙','癸'], 巳:['丙','戊','庚'], 午:['丁','己'], 未:['己','丁','乙'],
@@ -148,6 +162,39 @@ function chinaDstCorrectionMinutes(parts) {
   const end = Date.parse(ranges[1] + '+08:00');
   return current >= start && current < end ? -60 : 0;
 }
+function normalizeRulesSnapshot(input) {
+  const source = input && (input.rulesSnapshot || input.rules || input);
+  const rules = Object.assign({}, DEFAULT_RULES_SNAPSHOT);
+  if (source && typeof source === 'object') {
+    ['calendarMode', 'yearBoundary', 'shenshaConfig', 'relationConfig', 'engineVersion'].forEach(key => {
+      if (source[key] !== undefined && source[key] !== null && source[key] !== '') rules[key] = String(source[key]);
+    });
+    ['lateZiNextDay', 'trueSolarTime', 'equationOfTime', 'chinaDst'].forEach(key => {
+      if (source[key] !== undefined) rules[key] = !!source[key];
+    });
+    const offset = Number(source.utcOffset);
+    if (Number.isFinite(offset) && offset >= -12 && offset <= 14) rules.utcOffset = offset;
+    const span = Number(source.dayunSpanYears);
+    if (span === 80 || span === 120) rules.dayunSpanYears = span;
+  }
+  return rules;
+}
+function dayOfYear(parts) {
+  const start = Date.UTC(parts.year, 0, 1);
+  const current = Date.UTC(parts.year, parts.month - 1, parts.day);
+  return Math.floor((current - start) / 86400000) + 1;
+}
+// NOAA approximation, returned in minutes (positive means the apparent sun is ahead).
+function equationOfTimeMinutes(parts) {
+  const gamma = 2 * Math.PI / 365 * (dayOfYear(parts) - 1 + (parts.hour - 12) / 24);
+  return 229.18 * (
+    0.000075 +
+    0.001868 * Math.cos(gamma) -
+    0.032077 * Math.sin(gamma) -
+    0.014615 * Math.cos(2 * gamma) -
+    0.040849 * Math.sin(2 * gamma)
+  );
+}
 function isYangGan(gan) { return GAN.indexOf(gan) % 2 === 0; }
 function elementGenerates(a, b) {
   return (a === '木' && b === '火') || (a === '火' && b === '土') || (a === '土' && b === '金') ||
@@ -178,8 +225,10 @@ function changSheng(gan, zhi) {
 function xunKong(ganZhi) {
   const idx = JIAZI.indexOf(ganZhi);
   if (idx < 0) return '';
-  const startZhi = idx % 12;
-  return ZHI[(startZhi + 10) % 12] + ZHI[(startZhi + 11) % 12];
+  const ganIndex = idx % 10;
+  const zhiIndex = idx % 12;
+  const xunHeadZhi = (zhiIndex - ganIndex + 12) % 12;
+  return ZHI[(xunHeadZhi + 10) % 12] + ZHI[(xunHeadZhi + 11) % 12];
 }
 function validGanZhi(gz) {
   return JIAZI.includes(gz);
@@ -427,16 +476,18 @@ function calculateTraditionalStart(solar, yun) {
     daysAfterJie:Math.max(0, startSolar.subtract(actualPreviousJie.getSolar()))
   };
 }
-function buildYun(solar, pillars, input, birthYear) {
+function buildYun(solar, pillars, input, birthYear, rules) {
+  const activeRules = rules || DEFAULT_RULES_SNAPSHOT;
   const lunar = solar.getLunar();
   const eightChar = lunar.getEightChar();
   eightChar.setSect(2);
   const genderValue = input.gender === 'male' ? 1 : 0;
   const yun = eightChar.getYun(genderValue, 1);
   const traditionalStart = calculateTraditionalStart(solar, yun);
-  const sourceDaYun = yun.getDaYun(11);
+  const daYunCount = activeRules.dayunSpanYears === 80 ? 8 : 12;
+  const sourceDaYun = yun.getDaYun(daYunCount + 1);
   const startAge = sourceDaYun[1] ? sourceDaYun[1].getStartAge() : traditionalStart.years + 1;
-  const daYun = sourceDaYun.slice(1, 11).map(item => {
+  const daYun = sourceDaYun.slice(1, daYunCount + 1).map(item => {
     const gz = item.getGanZhi();
     const gan = gz[0], zhi = gz[1];
     return {
@@ -494,6 +545,7 @@ function buildYun(solar, pillars, input, birthYear) {
       daysAfterJie:traditionalStart.daysAfterJie,
       text:`${traditionalStart.years}年${traditionalStart.months}月${traditionalStart.days}天${traditionalStart.hours ? traditionalStart.hours + '时' : ''}`
     },
+    spanYears:activeRules.dayunSpanYears,
     daYun
   };
 }
@@ -520,7 +572,8 @@ function resolveSolar(input) {
 function solarSerial(solar) {
   return Date.UTC(solar.getYear(), solar.getMonth() - 1, solar.getDay(), solar.getHour(), solar.getMinute(), solar.getSecond());
 }
-function rawPillarsFromSolar(solar) {
+function rawPillarsFromSolar(solar, rules) {
+  const activeRules = rules || DEFAULT_RULES_SNAPSHOT;
   const parts = solarParts(solar);
   const eightChar = solar.getLunar().getEightChar();
   eightChar.setSect(2);
@@ -528,7 +581,7 @@ function rawPillarsFromSolar(solar) {
     year:eightChar.getYear(), month:eightChar.getMonth(),
     day:eightChar.getDay(), hour:eightChar.getTime()
   };
-  if (parts.hour === 23) {
+  if (parts.hour === 23 && activeRules.lateZiNextDay !== false) {
     const next = addMinutes(parts, 60 - parts.minute);
     const nextSolar = Solar.fromYmdHms(next.year, next.month, next.day, 0, 0, 0);
     const nextEightChar = nextSolar.getLunar().getEightChar();
@@ -538,6 +591,62 @@ function rawPillarsFromSolar(solar) {
     pillars.hour = GAN[((GAN.indexOf(currentDayGan) % 5) * 2) % 10] + ZHI[0];
   }
   return pillars;
+}
+function jieQiSolar(year, name) {
+  const table = Solar.fromYmd(year, 6, 1).getLunar().getJieQiTable();
+  return table[name] || null;
+}
+function applyYearBoundary(pillars, solar, rules) {
+  const boundary = rules.yearBoundary || 'lichun';
+  if (boundary === 'lichun') return pillars;
+  const parts = solarParts(solar);
+  let pillarYear = parts.year;
+  if (boundary === 'lunarNewYear') {
+    pillarYear = solar.getLunar().getYear();
+  } else if (boundary === 'daHan') {
+    const boundarySolar = jieQiSolar(parts.year, '大寒');
+    if (boundarySolar && solarSerial(solar) < solarSerial(boundarySolar)) pillarYear -= 1;
+  } else if (boundary === 'dongZhi') {
+    const boundarySolar = jieQiSolar(parts.year, '冬至');
+    if (boundarySolar && solarSerial(solar) >= solarSerial(boundarySolar)) pillarYear += 1;
+  }
+  pillars.year = JIAZI[((pillarYear - 4) % 60 + 60) % 60];
+  return pillars;
+}
+function getJieQiInfo(solar) {
+  if (!solar) return null;
+  try {
+    const lunar = solar.getLunar();
+    const previous = lunar.getPrevJie();
+    const next = lunar.getNextJie();
+    if (!previous || !next) return null;
+    return {
+      previousName:previous.getName(),
+      previousTime:previous.getSolar().toYmdHms(),
+      nextName:next.getName(),
+      nextTime:next.getSolar().toYmdHms()
+    };
+  } catch (e) {
+    return null;
+  }
+}
+function calculateMingGua(year, gender) {
+  const value = Number(year);
+  if (!Number.isFinite(value) || value < 1900 || value > 2099) return null;
+  const lastTwo = value % 100;
+  const male = gender !== 'female';
+  let number;
+  if (value < 2000) number = male ? 100 - lastTwo : lastTwo - 4;
+  else number = male ? 99 - lastTwo : lastTwo + 6;
+  number = ((number - 1) % 9 + 9) % 9 + 1;
+  const table = {
+    1:{name:'坎',element:'水',group:'东四命'}, 2:{name:'坤',element:'土',group:'西四命'},
+    3:{name:'震',element:'木',group:'东四命'}, 4:{name:'巽',element:'木',group:'东四命'},
+    5:{name:male ? '坤' : '艮',element:'土',group:'西四命'}, 6:{name:'乾',element:'金',group:'西四命'},
+    7:{name:'兑',element:'金',group:'西四命'}, 8:{name:'艮',element:'土',group:'西四命'},
+    9:{name:'离',element:'火',group:'东四命'}
+  };
+  return Object.assign({ number }, table[number]);
 }
 function samePillars(a, b) {
   return a.year === b.year && a.month === b.month && a.day === b.day && a.hour === b.hour;
@@ -627,7 +736,7 @@ function directSolarFromSerial(serial) {
     date.getUTCHours(), date.getUTCMinutes(), 0
   );
 }
-function resolveDirectSolar(pillars, reference) {
+function resolveDirectSolar(pillars, reference, rules) {
   const candidates = [];
   const seen = new Set();
   // 参考日期落在默认区间之外时（例如弹层里选到 19 世纪），把搜索区间扩到能覆盖它，
@@ -671,7 +780,7 @@ function resolveDirectSolar(pillars, reference) {
         const candidateSerial = Math.min(Math.max(Math.round(midpoint / 60000) * 60000, minuteStart), minuteEnd);
         if (seen.has(candidateSerial)) return;
         const candidate = directSolarFromSerial(candidateSerial);
-        if (!samePillars(rawPillarsFromSolar(candidate), pillars)) return;
+        if (!samePillars(rawPillarsFromSolar(candidate, rules), pillars)) return;
         seen.add(candidateSerial);
         candidates.push(candidate);
       });
@@ -697,7 +806,7 @@ function directMatchSerial(year, month, day, hourZhi, safeStart, safeEnd) {
   return null;
 }
 // 四柱直排：枚举查找范围内所有匹配的日期，每个匹配日取该时辰起始时刻。
-function collectDirectMatches(pillars) {
+function collectDirectMatches(pillars, rules) {
   const matches = [];
   const seen = new Set();
   for (let year = DIRECT_MATCH_YEAR_START; year <= DIRECT_MATCH_YEAR_END; year++) {
@@ -717,7 +826,7 @@ function collectDirectMatches(pillars) {
       );
       if (serial === null || seen.has(serial)) continue;
       const candidate = directSolarFromSerial(serial);
-      if (!samePillars(rawPillarsFromSolar(candidate), pillars)) continue;
+      if (!samePillars(rawPillarsFromSolar(candidate, rules), pillars)) continue;
       seen.add(serial);
       matches.push(candidate);
     }
@@ -726,6 +835,7 @@ function collectDirectMatches(pillars) {
 }
 function findDirectMatches(pillars, options) {
   const opts = options || {};
+  const rules = normalizeRulesSnapshot(opts);
   const list = [];
   try {
     validateDirectPillars(pillars);
@@ -735,9 +845,8 @@ function findDirectMatches(pillars, options) {
   const startYear = Number(opts.startYear);
   const endYear = Number(opts.endYear);
   const limit = Number(opts.limit);
-  collectDirectMatches(pillars).forEach(solar => {
+  collectDirectMatches(pillars, rules).forEach(solar => {
     const parts = solarParts(solar);
-    if (isFinite(startYear) && parts.year < startYear) return;
     if (isFinite(endYear) && parts.year > endYear) return;
     const lunar = solar.getLunar();
     list.push({
@@ -754,6 +863,7 @@ function findDirectMatches(pillars, options) {
 }
 function calculate(input) {
   input = input || {};
+  const rules = normalizeRulesSnapshot(input);
   const chartType = input.calendarType || 'solar';
   const isDirect = chartType === 'ganzhi';
   const direct = isDirect ? (input.fourPillars || {}) : null;
@@ -763,6 +873,7 @@ function calculate(input) {
   let chartSolar = null;
   let dstCorrectionMinutes = 0;
   let longitudeCorrectionMinutes = 0;
+  let eotCorrectionMinutes = 0;
   let correctionMinutes = 0;
   if (isDirect) {
     if (input.solarDate) {
@@ -772,24 +883,30 @@ function calculate(input) {
   } else {
     solar = resolveSolar(input);
     const original = solarParts(solar);
-    dstCorrectionMinutes = input.applyChinaDst === false ? 0 : chinaDstCorrectionMinutes(original);
+    const applyChinaDst = input.applyChinaDst !== undefined ? input.applyChinaDst !== false : rules.chinaDst !== false;
+    dstCorrectionMinutes = applyChinaDst ? chinaDstCorrectionMinutes(original) : 0;
     const standard = addMinutes(original, dstCorrectionMinutes);
+    const useTrueSolar = input.useTrueSolarTime !== undefined ? !!input.useTrueSolarTime : rules.trueSolarTime !== false;
     const hasLongitude = input.longitude !== null && input.longitude !== undefined && input.longitude !== '';
     const longitude = hasLongitude ? Number(input.longitude) : NaN;
-    longitudeCorrectionMinutes = input.useTrueSolarTime && isFinite(longitude)
-      ? Math.round((longitude - 120) * 4)
+    const standardMeridian = rules.utcOffset * 15;
+    longitudeCorrectionMinutes = useTrueSolar && isFinite(longitude)
+      ? Math.round((longitude - standardMeridian) * 4 * 10) / 10
       : 0;
-    const adjusted = addMinutes(standard, longitudeCorrectionMinutes);
+    eotCorrectionMinutes = useTrueSolar && hasLongitude && isFinite(longitude) && rules.equationOfTime !== false
+      ? Math.round(equationOfTimeMinutes(standard) * 10) / 10
+      : 0;
+    const adjusted = addMinutes(standard, Math.round(longitudeCorrectionMinutes + eotCorrectionMinutes));
     chartSolar = Solar.fromYmdHms(adjusted.year, adjusted.month, adjusted.day, adjusted.hour, adjusted.minute, 0);
-    correctionMinutes = dstCorrectionMinutes + longitudeCorrectionMinutes;
+    correctionMinutes = Math.round((dstCorrectionMinutes + longitudeCorrectionMinutes + eotCorrectionMinutes) * 10) / 10;
   }
 
   let rawPillars = isDirect
     ? { year:direct.year, month:direct.month, day:direct.day, hour:direct.hour }
-    : rawPillarsFromSolar(chartSolar);
+    : applyYearBoundary(rawPillarsFromSolar(chartSolar, rules), chartSolar, rules);
   let resolvedSolar = chartSolar;
   let directTimeResolved = true;
-  const directSolar = isDirect ? resolveDirectSolar(rawPillars, referenceSolar) : null;
+  const directSolar = isDirect ? resolveDirectSolar(rawPillars, referenceSolar, rules) : null;
   const hasBirthTime = !isDirect || !!directSolar;
   if (isDirect) {
     resolvedSolar = directSolar;
@@ -811,7 +928,42 @@ function calculate(input) {
     : { gan:'', daysAfterJie:0 };
   const birthSolar = isDirect ? resolvedSolar : solar;
   const birthLunar = birthSolar ? birthSolar.getLunar() : null;
-  const yun = chartBaseSolar ? buildYun(chartBaseSolar, rawPillars, input, resolvedParts.year) : null;
+  const chartLunar = chartBaseSolar ? chartBaseSolar.getLunar() : null;
+  extras.hiddenWuXing = { 金:0, 木:0, 水:0, 火:0, 土:0 };
+  ['year','month','day','hour'].forEach(key => {
+    const item = details[key];
+    extras.hiddenWuXing[item.ganElement] = (extras.hiddenWuXing[item.ganElement] || 0) + 1;
+    extras.hiddenWuXing[item.zhiElement] = (extras.hiddenWuXing[item.zhiElement] || 0) + 1;
+    item.hidden.forEach(hidden => {
+      extras.hiddenWuXing[hidden.element] = (extras.hiddenWuXing[hidden.element] || 0) + 1;
+    });
+  });
+  extras.kongWang = details.day ? details.day.xunKong : '';
+  extras.taiXi = '';
+  extras.xingXiu = '';
+  extras.jieQi = getJieQiInfo(chartBaseSolar);
+  extras.mingGua = null;
+  extras.chenggu = null;
+  if (sourceEightChar) {
+    try { extras.taiXi = sourceEightChar.getTaiXi() || ''; } catch (e) {}
+  }
+  if (chartLunar) {
+    try { extras.xingXiu = chartLunar.getXiu() || ''; } catch (e) {}
+  }
+  if (birthSolar) {
+    const beforeLiChun = birthSolar.getMonth() < 2 || (birthSolar.getMonth() === 2 && birthSolar.getDay() < 4);
+    extras.mingGua = calculateMingGua(birthSolar.getYear() - (beforeLiChun ? 1 : 0), dayGender);
+  }
+  if (birthSolar && chartLunar) {
+    extras.chenggu = calculateChenggu(
+      rawPillars.year,
+      chartLunar.getMonth(),
+      chartLunar.getDay(),
+      chartSolar ? chartSolar.getHour() : birthSolar.getHour(),
+      dayGender
+    );
+  }
+  const yun = chartBaseSolar ? buildYun(chartBaseSolar, rawPillars, input, resolvedParts.year, rules) : null;
   const zodiac = birthLunar ? birthLunar.getYearShengXiao() : ZODIAC[ZHI.indexOf(rawPillars.year[1])];
 
   return {
@@ -823,10 +975,14 @@ function calculate(input) {
     correctionMinutes,
     dstCorrectionMinutes,
     longitudeCorrectionMinutes,
+    eotCorrectionMinutes,
     lunarText:birthLunar ? birthLunar.toString() : '',
     chartLunarText:chartBaseSolar ? chartBaseSolar.getLunar().toString() : '',
     zodiac,
     constellation:birthSolar ? birthSolar.getXingZuo() : '',
+    rulesSnapshot:Object.assign({}, rules, {
+      trueSolarTime:input.useTrueSolarTime !== undefined ? !!input.useTrueSolarTime : rules.trueSolarTime
+    }),
     resolvedSolarDate:birthSolar ? birthSolar.toYmd() : '',
     resolvedTime:birthSolar
       ? (birthSolar.getHour() < 10 ? '0' : '') + birthSolar.getHour() + ':' +
@@ -870,5 +1026,6 @@ function getHiddenGan(zhi) {
 export {
   calculate, validateDirectPillars, findDirectMatches, getLunarMonths, getLunarDays, getNaYin, getHiddenGan,
   getJieQiSegment, Solar,
-  CITIES, JIAZI, GAN, ZHI, GAN_ELEMENT, ZHI_ELEMENT, tenGod, changSheng
+  CITIES, JIAZI, GAN, ZHI, GAN_ELEMENT, ZHI_ELEMENT, tenGod, changSheng,
+  DEFAULT_RULES_SNAPSHOT, CHENGGU_SOURCE, calculateChenggu
 };
