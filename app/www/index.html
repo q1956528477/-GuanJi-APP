@@ -1211,6 +1211,7 @@
       <div style="display:flex;flex-direction:column;gap:10px;">
         <button class="btn ghost" id="export-btn">⬇️ 导出为表格（CSV）</button>
         <button class="btn ghost" id="copy-week-energy-btn">复制一周状态信息</button>
+        <button class="btn ghost" id="copy-month-energy-btn">复制30天状态信息</button>
         <div class="row">
           <button class="btn small ghost" id="backup-btn">💾 备份数据</button>
           <button class="btn small ghost" id="restore-btn">📥 恢复数据</button>
@@ -2750,12 +2751,12 @@ document.getElementById('export-btn').addEventListener('click', ()=>{
   Storage.exportCSV();
 });
 
-function buildWeeklyEnergyPrompt(){
+function buildEnergyStatusPrompt(dayCount, summaryPeriod){
   const weekdays = ['日','一','二','三','四','五','六'];
   const lines = [];
-  const startDate = daysAgo(6);
+  const startDate = daysAgo(dayCount - 1);
   const endDate = todayStr();
-  for(let offset = 6; offset >= 0; offset--){
+  for(let offset = dayCount - 1; offset >= 0; offset--){
     const date = daysAgo(offset);
     const [year, month, day] = date.split('-').map(Number);
     const weekday = weekdays[new Date(year, month - 1, day).getDay()];
@@ -2774,10 +2775,10 @@ function buildWeeklyEnergyPrompt(){
     );
   }
   return [
-    '请根据以下过去 7 天的作息与睡眠数据，直接进行分析并给出调整建议。',
+    '请根据以下过去 ' + dayCount + ' 天的作息与睡眠数据，直接进行分析并给出调整建议。',
     '',
     '分析要求：',
-    '1. 总结过去一周的作息规律、睡眠稳定性和可能存在的问题。',
+    '1. 总结' + summaryPeriod + '的作息规律、睡眠稳定性和可能存在的问题。',
     '2. 给出具体、可执行的作息与睡眠调整建议。',
     '3. 如果某些日期未记录或数据不完整，请明确说明分析限制，不得猜测或补造缺失信息。',
     '',
@@ -2787,19 +2788,26 @@ function buildWeeklyEnergyPrompt(){
   ].join('\n');
 }
 
-async function copyWeeklyEnergyPrompt(){
-  const text = buildWeeklyEnergyPrompt();
+function buildWeeklyEnergyPrompt(){
+  return buildEnergyStatusPrompt(7, '过去一周');
+}
+
+function buildMonthlyEnergyPrompt(){
+  return buildEnergyStatusPrompt(30, '过去 30 天');
+}
+
+async function copyEnergyPrompt(text, label){
   let ok = false;
   if(navigator.clipboard && navigator.clipboard.writeText){
     try{ await navigator.clipboard.writeText(text); ok = true; }catch(e){ ok = false; }
   }
   if(!ok) ok = fallbackCopyText(text);
   if(ok){
-    showToast('一周状态信息已复制');
+    showToast(label + '已复制');
     return;
   }
   openTextPrompt({
-    title:'复制一周状态信息',
+    title:'复制' + label,
     value:text,
     placeholder:'',
     multiline:true,
@@ -2809,7 +2817,16 @@ async function copyWeeklyEnergyPrompt(){
   showToast('复制失败，已打开文本，请手动选择复制');
 }
 
+async function copyWeeklyEnergyPrompt(){
+  await copyEnergyPrompt(buildWeeklyEnergyPrompt(), '一周状态信息');
+}
+
+async function copyMonthlyEnergyPrompt(){
+  await copyEnergyPrompt(buildMonthlyEnergyPrompt(), '30天状态信息');
+}
+
 document.getElementById('copy-week-energy-btn').addEventListener('click', copyWeeklyEnergyPrompt);
+document.getElementById('copy-month-energy-btn').addEventListener('click', copyMonthlyEnergyPrompt);
 
 // ---- 数据备份 / 恢复 ----
 document.getElementById('backup-btn').addEventListener('click', async ()=>{

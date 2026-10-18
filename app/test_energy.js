@@ -235,6 +235,68 @@ document.getElementById('text-prompt-cancel').click();
 document.execCommand = realExecCommand;
 check('复制一周状态信息不会改写精力记录数据',
   window.localStorage.getItem('guanji_data_v1') === stateBeforeCopy);
+
+const copyMonthButton = document.getElementById('copy-month-energy-btn');
+check('「数据与提醒」中存在复制30天状态信息按钮并位于一周按钮下方',
+  !!copyMonthButton &&
+  copyMonthButton.textContent.trim() === '复制30天状态信息' &&
+  copyWeekButton.nextElementSibling === copyMonthButton);
+
+const monthlyPrompt = window.buildMonthlyEnergyPrompt();
+const monthlyDataLines = monthlyPrompt.split('\n').filter(line => line.startsWith('- '));
+check('30天状态提示词包含最近 30 天且按日期升序',
+  monthlyDataLines.length === 30 &&
+  monthlyDataLines[0].includes(window.daysAgo(29)) &&
+  monthlyDataLines[29].includes(window.todayStr()));
+check('30天状态提示词沿用作息、睡眠时长与缺失标注',
+  monthlyPrompt.includes('入睡 23:00；起床 07:00；睡眠时长 8小时') &&
+  monthlyPrompt.includes(threeDaysAgo + '（周') &&
+  monthlyPrompt.includes('：未记录') &&
+  monthlyPrompt.includes(window.todayStr() + '（周') &&
+  monthlyPrompt.includes('睡眠时长 数据不完整'));
+check('30天状态提示词明确时间范围与完整分析指令',
+  monthlyPrompt.includes('过去 30 天的作息与睡眠数据') &&
+  monthlyPrompt.includes('总结过去 30 天的作息规律、睡眠稳定性和可能存在的问题') &&
+  monthlyPrompt.includes('给出具体、可执行的作息与睡眠调整建议') &&
+  monthlyPrompt.includes('不得猜测或补造缺失信息'));
+
+let copiedMonthly = '';
+Object.defineProperty(window.navigator, 'clipboard', {
+  configurable:true,
+  value:{ writeText: async text => { copiedMonthly = text; } },
+});
+copyMonthButton.click();
+await new Promise(resolve => setTimeout(resolve, 20));
+check('点击按钮复制完整30天提示词',
+  copiedMonthly === monthlyPrompt && document.getElementById('toast').textContent === '30天状态信息已复制');
+
+let monthlyFallbackCopied = '';
+Object.defineProperty(window.navigator, 'clipboard', {
+  configurable:true,
+  value:{ writeText: async () => { throw new Error('clipboard unavailable'); } },
+});
+document.execCommand = function(){
+  const area = document.querySelector('textarea[readonly]');
+  monthlyFallbackCopied = area ? area.value : '';
+  return true;
+};
+copyMonthButton.click();
+await new Promise(resolve => setTimeout(resolve, 20));
+check('30天状态复制沿用 execCommand 兜底',
+  monthlyFallbackCopied === monthlyPrompt &&
+  document.getElementById('toast').textContent === '30天状态信息已复制');
+
+document.execCommand = function(){ return false; };
+copyMonthButton.click();
+await new Promise(resolve => setTimeout(resolve, 20));
+check('30天状态复制失败时打开完整文本供手动复制',
+  document.getElementById('text-prompt-modal').classList.contains('show') &&
+  document.getElementById('text-prompt-area').value === monthlyPrompt &&
+  document.getElementById('toast').textContent === '复制失败，已打开文本，请手动选择复制');
+document.getElementById('text-prompt-cancel').click();
+document.execCommand = realExecCommand;
+check('复制30天状态信息不会改写精力记录数据',
+  window.localStorage.getItem('guanji_data_v1') === stateBeforeCopy);
 }
 
 runWeeklyCopyTests().then(() => {
