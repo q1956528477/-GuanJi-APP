@@ -393,7 +393,28 @@ npm run build        # 用 esbuild 生成 native / notify / liuyao / bazi 四个
 
 > 只改 `app/www/index.html` 时**不需要**重新构建 bundle。
 
-### 6.2 同步到 Android 工程（改了 `app/www/` 就必须做）
+### 6.2 同步到 Android 工程（改了 `app/www/` 就别再手工拷）
+
+`app/android/app/src/main/assets/public` 是 **Capacitor 的构建产物**（已被 .gitignore 排除），
+过去靠人手复制，一旦漏拷就会打出「versionName 是新的、界面是旧的」混合包
+（v1.14.18–v1.14.25 期间真实发生过：源码 1.14.25，assets 还停在 1.14.17）。
+
+统一走脚本：构建 bundle → 逐字节同步 → 逐文件哈希校验。
+
+```powershell
+cd app
+node scripts/release.js          # 只同步 + 校验，不打包
+node scripts/release.js --check  # 只校验，不写任何文件（提交前 / CI 用）
+```
+
+脚本会删掉 `www` 中已不存在的残留文件（保留 Capacitor 自带的 `cordova.js` / `cordova_plugins.js`），
+逐文件比对 SHA-256，任何不一致直接非零退出。
+
+> **新机器克隆后必须先跑一次**：`native.bundle.js` 与 `notify.bundle.js` 被 .gitignore，
+> 且被 `index.html` 直接 `<script src>` 引用。缺了它们不会报错，只会静默退化成
+> 「没有返回键、没有每日通知」的包。
+
+手工兜底（仅脚本不可用时）：
 
 ```powershell
 $dst = "app\android\app\src\main\assets\public"
@@ -401,7 +422,26 @@ Copy-Item app\www\index.html $dst -Force
 Copy-Item app\www\*.bundle.js $dst -Force
 ```
 
-### 6.3 打包 Release APK
+### 6.3 打包 Release APK（一条命令）
+
+```powershell
+cd app
+node scripts/release.js --build --name="描述"
+```
+
+脚本自动完成：
+
+1. 校验 `package.json` 与 `build.gradle` 的版本号一致；
+2. esbuild 重建四个 bundle → 同步 `assets/public` → 逐文件哈希校验；
+3. 从 `local.properties` 的 `sdk.dir` 反推 `JAVA_HOME` / `ANDROID_HOME` / `GRADLE_USER_HOME`
+   （换机器不用改脚本）→ `assembleRelease --no-daemon`；
+4. 校验 `output-metadata.json` 的 versionCode / versionName；
+5. 解包比对 `assets/public/index.html` 与 `www/index.html` 的 SHA-256；
+6. 归档到仓库根 `观己_vX.Y_描述_release.apk` 并打印 APK 的 SHA-256。
+
+任一步不一致都会打印 ❌ 并以退出码 1 中止，**不会产出「看起来成功」的包**。
+
+手工执行时：
 
 ```powershell
 cd app/android
@@ -411,19 +451,11 @@ $env:GRADLE_USER_HOME = "C:\Users\v_huixqi\.workbuddy\binaries\android\gradle-ho
 .\gradlew.bat assembleRelease --no-daemon
 ```
 
-- 产物：`app\android\app\build\outputs\apk\release\app-release.apk`
-- 交付：复制到工程根目录，命名 `观己_vX.Y_描述_release.apk`
 - **硬性要求（v1.14.9 起）**：每次交付都必须真的跑一次 `assembleRelease` 并交出 APK，不能只改代码。
-  交付时同时给出：APK 完整路径、文件大小，以及包内 `assets/public/index.html` 与本机文件的 SHA-256 是否一致：
-
-```powershell
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-$zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path 观己_vX.Y_描述_release.apk))
-$e = $zip.Entries | Where-Object { $_.FullName -eq 'assets/public/index.html' }
-$ms = New-Object System.IO.MemoryStream; $e.Open().CopyTo($ms)
-([System.Security.Cryptography.SHA256]::Create().ComputeHash($ms.ToArray()) | ForEach-Object { $_.ToString('x2') }) -join ''
-# 再与本机 app\www\index.html 的 Get-FileHash -Algorithm SHA256 对比
-```
+- 交付时同时给出：APK 完整路径、文件大小、包内 `assets/public/index.html` 与本机文件的 SHA-256 是否一致（脚本已自动打印）。
+- **哈希比对约定**：一律拿**工作区文件**比**包内文件**。本机 `core.autocrlf=true`，工作区的
+  `index.html` 是 CRLF、git blob 是 LF，两者哈希天然不同（`bfd28c…` vs `4822…`），
+  拿 git blob 的哈希去比包内文件会得到假失败。
 
 > 另一台终端（用户名 `19565`）工具链路径结构相同，只是盘符/用户目录不同；换机前必须核对 `app/android/local.properties` 的 `sdk.dir` 与 `app/android/gradle.properties` 的 `projectcachedir`。
 
